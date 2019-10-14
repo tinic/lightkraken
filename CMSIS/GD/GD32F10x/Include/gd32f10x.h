@@ -311,8 +311,8 @@ typedef enum IRQn
 #include <stdint.h>
 
 /* enum definitions */
+enum {FALSE = 0, TRUE = !FALSE};
 typedef enum {DISABLE = 0, ENABLE = !DISABLE} EventStatus, ControlStatus;
-typedef enum {FALSE = 0, TRUE = !FALSE} bool;
 typedef enum {RESET = 0, SET = !RESET} FlagStatus;
 typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrStatus;
 

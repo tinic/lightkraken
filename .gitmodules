@@ -1,0 +1,3 @@
+[submodule "lwip-ajax"]
+	path = lwip-ajax
+	url = https://github.com/tinic/lwip-ajax.git

@@ -32,6 +32,7 @@ set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 set(CMAKE_C_COMPILER arm-none-eabi-gcc)
 set(CMAKE_ASM_COMPILER arm-none-eabi-as)
 set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
+set(CMAKE_RANLIB arm-none-eabi-ranlib)
 set(CMAKE_SIZE arm-none-eabi-size)
 
 set(ARM_ARCH cortex-m3)
@@ -58,6 +59,9 @@ set(SYSTEMCPATH CMSIS/GD/GD32F10x/Source/${CMSISSYSTEMC})
 include_directories(GD32F10x_standard_peripheral/Include)
 file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
 
+# LwIP
+include_directories(GD32F10x_lwip)
+
 set(COMMON_FLAGS "-DGD32 -D${GD32ARCH} -D${GD32MCU} -Werror -Wall -Wextra -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
 
 set(CMAKE_ASM_FLAGS "-mcpu=${ARM_ARCH}")
@@ -81,9 +85,16 @@ set(CMAKE_C_LINK_FLAGS "")
 set(CMAKE_CXX_LINK_FLAGS "")
 set(CMAKE_LINKER_FLAGS "")
 
-set(SOURCE_FILES main.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
+set(SOURCE_FILES main.c ethernetif.c netconf.c rest.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
+
+set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip-ajax)
+set(LWIP_INCLUDE_DIRS "${LWIP_DIR}/src/include")
+include(${LWIP_DIR}/src/Filelists.cmake)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
+
+target_include_directories(${PROJECT_NAME}.elf PRIVATE ${LWIP_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME}.elf lwipallapps lwipcore)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.map")
 set(HEX_FILE ${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.hex)
