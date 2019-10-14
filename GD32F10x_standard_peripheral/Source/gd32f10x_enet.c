@@ -3000,7 +3000,7 @@ void enet_initpara_reset(void)
     \param[out] none
     \retval     none
 */
-static void enet_default_init(void)
+void enet_default_init(void)
 {
     uint32_t reg_value = 0U;
 
@@ -3068,7 +3068,7 @@ static void enet_default_init(void)
     \param[out] none
     \param[out] none
 */
-static void enet_delay(uint32_t ncount)
+void enet_delay(uint32_t ncount)
 {
     __IO uint32_t delay_time = 0U; 
     

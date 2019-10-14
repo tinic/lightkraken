@@ -37,41 +37,45 @@ set(CMAKE_SIZE arm-none-eabi-size)
 set(ARM_ARCH cortex-m3)
 set(ARM_FLOAT_ABI softfp)
 
-set(CMSISDEVINC STM32F1xx)
-set(CMSISSTARTUPS startup_stm32f107xc.s)
-set(CMSISSYSTEMC system_stm32f1xx.c)
-set(CMSISLINKLD STM32F107XC_FLASH.ld)
+set(CMSISDEVINC GD32F10x)
+set(CMSISSTARTUPS startup_gd32f10x_cl.s)
+set(CMSISSYSTEMC system_gd32f10x.c)
+set(CMSISLINKLD GD32F107RC_FLASH.ld)
 
-set(STM32ARCH STM32F1xx)
-set(STM32MCU STM32F107xC)
+set(GD32ARCH GD32F10X_CL)
+set(GD32MCU GD32F107RC)
 
 # CMSIS
+include_directories(.)
 include_directories(CMSIS/Include)
-include_directories(CMSIS/Device/ST/STM32F1xx/Include)
+include_directories(CMSIS/GD/GD32F10x/Include)
 
-set(LINKLDPATH CMSIS/Device/ST/STM32F1xx/Source/Templates/gcc/linker/${CMSISLINKLD})
-set(DEVICESTARTUPPATH CMSIS/Device/ST/STM32F1xx/Source/Templates/gcc/${CMSISSTARTUPS})
-set(SYSTEMCPATH CMSIS/Device/ST/STM32F1xx/Source/Templates/${CMSISSYSTEMC})
+set(LINKLDPATH CMSIS/GD/GD32F10x/Source/GCC/linker/${CMSISLINKLD})
+set(DEVICESTARTUPPATH CMSIS/GD/GD32F10x/Source/GCC/${CMSISSTARTUPS})
+set(SYSTEMCPATH CMSIS/GD/GD32F10x/Source/${CMSISSYSTEMC})
 
 # HAL
-include_directories(STM32F1xx_HAL_Driver/Inc)
-file(GLOB_RECURSE HAL_SRC STM32F1xx_HAL_Driver/Src/*.c)
+include_directories(GD32F10x_standard_peripheral/Include)
+file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
 
-set(COMMON_FLAGS "-DSTM32 -D${STM32ARCH} -D${STM32MCU} -Werror -Wall -Wextra -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
+set(COMMON_FLAGS "-DGD32 -D${GD32ARCH} -D${GD32MCU} -Werror -Wall -Wextra -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
 
 set(CMAKE_ASM_FLAGS "-mcpu=${ARM_ARCH}")
+set(CMAKE_ASM_FLAGS_RELEASE "")
+set(CMAKE_ASM_FLAGS_DEBUG "")
 
 set(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
 set(CMAKE_C_FLAGS_RELEASE "-Os")
-set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
+set(CMAKE_C_FLAGS_DEBUG "-Og -g3")
 
 set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Werror -Wall -Wextra -Wno-strict-aliasing -Wdouble-promotion -Wshadow -Wfloat-conversion -Wnull-dereference -Wformat=2 -std=c++17 -fno-rtti -fno-exceptions")
 set(CMAKE_CXX_FLAGS_RELEASE "-Os")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 
 set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T${CMAKE_SOURCE_DIR}/${LINKLDPATH}")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
 
+set(CMAKE_OSX_DEPLOYMENT_TARGET "")
 set(CMAKE_OSX_SYSROOT "")
 set(CMAKE_C_LINK_FLAGS "")
 set(CMAKE_CXX_LINK_FLAGS "")
@@ -90,5 +94,5 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 		COMMAND ${CMAKE_SIZE} ${PROJECT_NAME}.elf
 		COMMENT "Building ${HEX_FILE} \nBuilding ${BIN_FILE}")
 
-set(PROGRAM_CMD "stm32flash -w ${BIN_FILE} -R -i rts,dtr,-dtr,:-rts,dtr,-dtr, /dev/ttyS0")
+#set(PROGRAM_CMD "stm32flash -w ${BIN_FILE} -R -i rts,dtr,-dtr,:-rts,dtr,-dtr, /dev/ttyS0")
 install(CODE "execute_process(COMMAND ${PROGRAM_CMD})")

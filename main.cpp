@@ -23,13 +23,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdint.h>
 
-#ifdef STM32F1xx
-#include "stm32f1xx.h"
-#endif  // #ifdef STM32F103xB
+#ifdef GD32F10x
+#include "gd32f10x.h"
+#endif  // #ifdef GD32F10x
 
 int main() {
     while (1) {
-        __WFI();
+//        __WFI();
     }
     return 0;
 }
