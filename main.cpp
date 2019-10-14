@@ -23,6 +23,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdint.h>
 
 extern "C" {
+const uint32_t build_number = 
+#include "build_number.h"
+;
+
 #include "gd32f10x.h"
 #include "cmsis_gcc.h"
 
