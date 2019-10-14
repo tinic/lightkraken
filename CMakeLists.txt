@@ -45,12 +45,17 @@ set(CMSISLINKLD STM32F107XC_FLASH.ld)
 set(STM32ARCH STM32F1xx)
 set(STM32MCU STM32F107xC)
 
+# CMSIS
 include_directories(CMSIS/Include)
 include_directories(CMSIS/Device/ST/STM32F1xx/Include)
 
 set(LINKLDPATH CMSIS/Device/ST/STM32F1xx/Source/Templates/gcc/linker/${CMSISLINKLD})
 set(DEVICESTARTUPPATH CMSIS/Device/ST/STM32F1xx/Source/Templates/gcc/${CMSISSTARTUPS})
 set(SYSTEMCPATH CMSIS/Device/ST/STM32F1xx/Source/Templates/${CMSISSYSTEMC})
+
+# HAL
+include_directories(STM32F1xx_HAL_Driver/Inc)
+file(GLOB_RECURSE HAL_SRC STM32F1xx_HAL_Driver/Src/*.c)
 
 set(COMMON_FLAGS "-DSTM32 -D${STM32ARCH} -D${STM32MCU} -Werror -Wall -Wextra -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
 
@@ -72,7 +77,7 @@ set(CMAKE_C_LINK_FLAGS "")
 set(CMAKE_CXX_LINK_FLAGS "")
 set(CMAKE_LINKER_FLAGS "")
 
-set(SOURCE_FILES main.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH})
+set(SOURCE_FILES main.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
 
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
 
@@ -84,3 +89,6 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 		COMMAND ${CMAKE_OBJCOPY} -O ihex -R .eeprom -R .fuse -R .lock -R .signature $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
 		COMMAND ${CMAKE_SIZE} ${PROJECT_NAME}.elf
 		COMMENT "Building ${HEX_FILE} \nBuilding ${BIN_FILE}")
+
+set(PROGRAM_CMD "stm32flash -w ${BIN_FILE} -R -i rts,dtr,-dtr,:-rts,dtr,-dtr, /dev/ttyS0")
+install(CODE "execute_process(COMMAND ${PROGRAM_CMD})")
