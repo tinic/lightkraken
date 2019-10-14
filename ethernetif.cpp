@@ -34,6 +34,10 @@ extern "C" {
 #include "netconf.h"
 }; // extern "C" {
 
+const int32_t build_number = 
+#include "build_number.h"
+;
+
 extern enet_descriptors_struct  rxdesc_tab[ENET_RXBUF_NUM], txdesc_tab[ENET_TXBUF_NUM];
 
 extern uint8_t rx_buff[ENET_RXBUF_NUM][ENET_RXBUF_SIZE]; 
@@ -45,17 +49,59 @@ extern enet_descriptors_struct  *dma_current_rxdesc;
 enet_descriptors_struct  ptp_txstructure[ENET_TXBUF_NUM];
 enet_descriptors_struct  ptp_rxstructure[ENET_RXBUF_NUM];
 
-static void low_level_init(struct netif *netif) {
+static uint32_t get_uid0() { return *reinterpret_cast<uint32_t*>(0x1FFFF7E8); }
+static uint32_t get_uid1() { return *reinterpret_cast<uint32_t*>(0x1FFFF7EC); }
+static uint32_t get_uid2() { return *reinterpret_cast<uint32_t*>(0x1FFFF7F0); }
+
+static uint32_t murmur3_32(const uint8_t* key, size_t len, uint32_t seed) {
+	uint32_t h = seed;
+	if (len > 3) {
+		size_t i = len >> 2;
+		do {
+			uint32_t k;
+			memcpy(&k, key, sizeof(uint32_t));
+			key += sizeof(uint32_t);
+			k *= 0xcc9e2d51;
+			k = (k << 15) | (k >> 17);
+			k *= 0x1b873593;
+			h ^= k;
+			h = (h << 13) | (h >> 19);
+			h = h * 5 + 0xe6546b64;
+		} while (--i);
+	}
+	if (len & 3) {
+		size_t i = len & 3;
+		uint32_t k = 0;
+		do {
+			k <<= 8;
+			k |= key[i - 1];
+		} while (--i);
+		k *= 0xcc9e2d51;
+		k = (k << 15) | (k >> 17);
+		k *= 0x1b873593;
+		h ^= k;
+	}
+	h ^= len;
+	h ^= h >> 16;
+	h *= 0x85ebca6b;
+	h ^= h >> 13;
+	h *= 0xc2b2ae35;
+	h ^= h >> 16;
+	return h;
+}
+
+static void low_level_init(struct netif *netif, uint32_t mac_addr) {
     unsigned int i; 
 
     netif->hwaddr_len = ETHARP_HWADDR_LEN;
 
-    netif->hwaddr[0] =  MAC_ADDR0;
-    netif->hwaddr[1] =  MAC_ADDR1;
-    netif->hwaddr[2] =  MAC_ADDR2;
-    netif->hwaddr[3] =  MAC_ADDR3;
-    netif->hwaddr[4] =  MAC_ADDR4;
-    netif->hwaddr[5] =  MAC_ADDR5;
+    netif->hwaddr[0] =  0x1E;
+    netif->hwaddr[1] =  0xD5;
+
+    netif->hwaddr[2] =  ( mac_addr >> 24 ) & 0xFF;
+    netif->hwaddr[3] =  ( mac_addr >> 16 ) & 0xFF;
+    netif->hwaddr[4] =  ( mac_addr >>  8 ) & 0xFF;
+    netif->hwaddr[5] =  ( mac_addr >>  0 ) & 0xFF;
     
     enet_mac_address_set(ENET_MAC_ADDRESS0, netif->hwaddr);
 
@@ -144,10 +190,17 @@ err_t ethernetif_input(struct netif *netif) {
 }
 
 err_t ethernetif_init(struct netif *netif) {
-    LWIP_ASSERT("netif != NULL", (netif != NULL));
   
-    /* Initialize interface hostname */
-    netif->hostname = "Gigadevice.COM_lwip";
+	uint32_t uid[3];
+	uid[0] = get_uid0();
+	uid[1] = get_uid1();
+	uid[2] = get_uid2();
+    uint32_t mac_addr  = murmur3_32(reinterpret_cast<uint8_t *>(&uid[0]), sizeof(uid), 0x66cf8031);
+
+  	static char s_hostname[64];
+  	sprintf(s_hostname, "lightguy-%08x (Build %d)", int(mac_addr), int(build_number));
+  
+    netif->hostname = s_hostname;
 
     netif->name[0] = IFNAME0;
     netif->name[1] = IFNAME1;
@@ -155,7 +208,7 @@ err_t ethernetif_init(struct netif *netif) {
     netif->output = etharp_output;
     netif->linkoutput = low_level_output;
 
-    low_level_init(netif);
+    low_level_init(netif, mac_addr);
 
     return ERR_OK;
 }
