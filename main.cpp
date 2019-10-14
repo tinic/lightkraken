@@ -20,14 +20,14 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-
 #include <stdint.h>
 
+extern "C" {
 #include "gd32f10x.h"
 #include "cmsis_gcc.h"
-#include "netconf.h"
 
-static __IO uint32_t enet_init_status = 0;
+#include "netconf.h"
+}; //extern "C" {
 
 static void enet_mac_dma_config(void)
 {
@@ -41,7 +41,7 @@ static void enet_mac_dma_config(void)
 
     enet_software_reset();
 
-    enet_init_status = enet_init(ENET_AUTO_NEGOTIATION, ENET_AUTOCHECKSUM_DROP_FAILFRAMES, ENET_BROADCAST_FRAMES_PASS);
+    enet_init(ENET_AUTO_NEGOTIATION, ENET_AUTOCHECKSUM_DROP_FAILFRAMES, ENET_BROADCAST_FRAMES_PASS);
 }
 
 static void enet_gpio_config(void)

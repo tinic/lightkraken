@@ -36,8 +36,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
+#include <stdio.h>
+#include <stdint.h>
+
+extern "C" {
 #include "gd32f10x.h"
 #include "cmsis_gcc.h"
+
+#include "lwip/sys.h"
 #include "lwip/mem.h"
 #include "lwip/memp.h"
 #include "lwip/tcp.h"
@@ -45,12 +51,12 @@ OF SUCH DAMAGE.
 #include "lwip/apps/httpd.h"
 #include "netif/etharp.h"
 #include "lwip/dhcp.h"
-#include "ethernetif.h"
-#include "stdint.h"
-#include "netconf.h"
-#include <stdio.h>
 #include "lwip/timeouts.h"
 #include "lwip/priv/tcp_priv.h"
+
+#include "ethernetif.h"
+#include "netconf.h"
+}; //extern "C" {
 
 #define MAX_DHCP_TRIES        4
 
@@ -71,12 +77,17 @@ uint32_t tcp_timer = 0;
 uint32_t arp_timer = 0;
 ip_addr_t ip_address = {0};
 
+u32_t sys_now(void) {
+    //extern volatile unsigned int g_localtime;
+    //return g_localtime;
+    return 0;
+}
+
 void lwip_pkt_handle(void) {
     ethernetif_input(&netif);
 }
 
 void lwip_periodic_handle(__IO uint32_t localtime) {
-    /* TCP periodic process every 250 ms */
     if (localtime - tcp_timer >= TCP_TMR_INTERVAL){
         tcp_timer =  localtime;
         tcp_tmr();
@@ -87,17 +98,14 @@ void lwip_periodic_handle(__IO uint32_t localtime) {
         etharp_tmr();
     }
 
-    /* fine DHCP periodic process every 500ms */
     if (localtime - dhcp_fine_timer >= DHCP_FINE_TIMER_MSECS){
         dhcp_fine_timer =  localtime;
         dhcp_fine_tmr();
         if ((dhcp_state != DHCP_ADDRESS_ASSIGNED) && (dhcp_state != DHCP_TIMEOUT)){ 
-            /* process DHCP state machine */
             lwip_dhcp_process_handle();    
         }
     }
 
-    /* DHCP coarse periodic process every 60s */
     if (localtime - dhcp_coarse_timer >= DHCP_COARSE_TIMER_MSECS){
         dhcp_coarse_timer =  localtime;
         dhcp_coarse_tmr();
@@ -121,24 +129,16 @@ void lwip_dhcp_process_handle(void)
         break;
 
     case DHCP_WAIT_ADDRESS:
-        /* read the new IP address */
         ip_address.addr = netif.ip_addr.addr;
 
         if (ip_address.addr != 0){ 
             dhcp_state = DHCP_ADDRESS_ASSIGNED;
-            /* stop DHCP */
             dhcp_stop(&netif);
-
-            printf("\r\nDHCP -- eval board ip address: %d.%d.%d.%d \r\n", ip4_addr1_16(&ip_address), \
-                   ip4_addr2_16(&ip_address), ip4_addr3_16(&ip_address), ip4_addr4_16(&ip_address));          
         }else{
-            /* DHCP timeout */
             if (dhcp_client->tries > MAX_DHCP_TRIES){
                 dhcp_state = DHCP_TIMEOUT;
-                /* stop DHCP */
                 dhcp_stop(&netif);
 
-                /* static address used */
                 IP4_ADDR(&ipaddr, IP_ADDR0 ,IP_ADDR1 , IP_ADDR2 , IP_ADDR3 );
                 IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
                 IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
@@ -157,10 +157,8 @@ void lwip_stack_init(void) {
     ip_addr_t netmask;
     ip_addr_t gw;
 
-    /* initializes the dynamic memory heap defined by MEM_SIZE */
     mem_init();
 
-    /* initializes the memory pools defined by MEMP_NUM_x */
     memp_init();
   
     sys_timeouts_init();
@@ -176,12 +174,4 @@ void lwip_stack_init(void) {
     netif_set_up(&netif);
 
 	httpd_init();
-}
-
-
-unsigned long sys_now(void)
-{
-    //extern volatile unsigned int g_localtime;
-    //return g_localtime;
-    return 0;
 }

@@ -127,6 +127,7 @@ OF SUCH DAMAGE.
 #define LWIP_HTTPD_SUPPORT_REST 1
 #define LWIP_HTTPD_DYNAMIC_HEADERS 1
 #define LWIP_HTTPD_DYNAMIC_FILE_READ 1
+#define LWIP_NETIF_HOSTNAME 	1
 
 /* CHECKSUM_GEN_IP==0: generate checksums by hardware for outgoing IP packets.*/
 #define CHECKSUM_GEN_IP                 0
