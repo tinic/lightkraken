@@ -105,5 +105,5 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 		COMMAND ${CMAKE_SIZE} ${PROJECT_NAME}.elf
 		COMMENT "Building ${HEX_FILE} \nBuilding ${BIN_FILE}")
 
-#set(PROGRAM_CMD "stm32flash -w ${BIN_FILE} -R -i rts,dtr,-dtr,:-rts,dtr,-dtr, /dev/ttyS0")
+set(PROGRAM_CMD "sudo openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c \"program ${PROJECT_NAME}.elf verify reset exit\"")
 install(CODE "execute_process(COMMAND ${PROGRAM_CMD})")
