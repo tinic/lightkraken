@@ -66,6 +66,10 @@ static void enet_gpio_config(void)
     rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
   
+    /* PB15: nRST, set low*/
+    gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_15);    
+    gpio_bit_reset(GPIOB, GPIO_PIN_15);
+
     gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
   
     /* enable SYSCFG clock */
@@ -98,15 +102,24 @@ static void enet_gpio_config(void)
     gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_12);
     /* PB13: ETH_RMII_TXD1 */    
     gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_13);    
+
+    /* PB14: NINT */
+    gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_14);    
+
+    enet_delay(100000);
+
+    /* PB15: nRST, set high*/
+    gpio_bit_set(GPIOB, GPIO_PIN_15);
 }
 
 static void enet_system_setup(void) {
-	enet_mac_dma_config();
-	enet_gpio_config();
+    enet_mac_dma_config();
+    enet_gpio_config();
 }
 
 
 void config_hardware() {
-	setup_systick();
-	enet_system_setup();
+    setup_systick();
+    enet_system_setup();
 }
+
