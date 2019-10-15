@@ -53,10 +53,11 @@ extern "C" {
 #include "lwip/dhcp.h"
 #include "lwip/timeouts.h"
 #include "lwip/priv/tcp_priv.h"
+}; //extern "C" {
 
+#include "hardware.h"
 #include "ethernetif.h"
 #include "netconf.h"
-}; //extern "C" {
 
 #define MAX_DHCP_TRIES        4
 
@@ -78,9 +79,7 @@ uint32_t arp_timer = 0;
 ip_addr_t ip_address = {0};
 
 u32_t sys_now(void) {
-    //extern volatile unsigned int g_localtime;
-    //return g_localtime;
-    return 0;
+    return system_time();
 }
 
 void lwip_pkt_handle(void) {

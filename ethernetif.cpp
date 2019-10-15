@@ -29,10 +29,10 @@ extern "C" {
 
 #include "lwip/mem.h"
 #include "netif/etharp.h"
+}; // extern "C" {
 
 #include "ethernetif.h"
 #include "netconf.h"
-}; // extern "C" {
 
 const int32_t build_number = 
 #include "build_number.h"
