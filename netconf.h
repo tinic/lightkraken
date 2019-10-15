@@ -1,8 +1,8 @@
 #ifndef NETCONF_H
 #define NETCONF_H
 
-#define IFNAME0 'G'
-#define IFNAME1 'D'
+#define IFNAME0 'L'
+#define IFNAME1 'G'
 
 #define MAC_ADDR0   	0x1E
 #define MAC_ADDR1   	0xD5

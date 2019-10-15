@@ -198,7 +198,7 @@ err_t ethernetif_init(struct netif *netif) {
     uint32_t mac_addr  = murmur3_32(reinterpret_cast<uint8_t *>(&uid[0]), sizeof(uid), 0x66cf8031);
 
   	static char s_hostname[64];
-  	sprintf(s_hostname, "lightguy-%08x (Build %d)", int(mac_addr), int(build_number));
+  	sprintf(s_hostname, "lightguy-%08x", int(mac_addr));
   
     netif->hostname = s_hostname;
 
