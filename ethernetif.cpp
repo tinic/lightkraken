@@ -145,7 +145,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     return ERR_OK;
 }
 
-static struct pbuf * low_level_input(struct netif *netif) {
+static struct pbuf *low_level_input(struct netif *netif) {
     struct pbuf *p, *q;
     u16_t len;
     int l =0;

@@ -43,6 +43,7 @@ extern "C" {
 #include "gd32f10x.h"
 #include "cmsis_gcc.h"
 
+#include "lwip/init.h"
 #include "lwip/sys.h"
 #include "lwip/mem.h"
 #include "lwip/memp.h"
@@ -67,7 +68,7 @@ typedef enum
     DHCP_WAIT_ADDRESS,
     DHCP_ADDRESS_ASSIGNED,
     DHCP_TIMEOUT
-}dhcp_state_enum;
+} dhcp_state_enum;
 
 uint32_t dhcp_fine_timer = 0;
 uint32_t dhcp_coarse_timer = 0;
@@ -111,8 +112,7 @@ void lwip_periodic_handle(__IO uint32_t localtime) {
     }
 }
 
-void lwip_dhcp_process_handle(void)
-{
+void lwip_dhcp_process_handle(void) {
     ip_addr_t ipaddr;
     ip_addr_t netmask;
     ip_addr_t gw;
@@ -156,12 +156,8 @@ void lwip_stack_init(void) {
     ip_addr_t netmask;
     ip_addr_t gw;
 
-    mem_init();
+    lwip_init();
 
-    memp_init();
-  
-    sys_timeouts_init();
-  
     ipaddr.addr = 0;
     netmask.addr = 0;
     gw.addr = 0;
@@ -170,7 +166,14 @@ void lwip_stack_init(void) {
 
     netif_set_default(&netif);
 
-    netif_set_up(&netif);
+    if (netif_is_link_up(&netif)) {
+        netif_set_up(&netif);
+    } else {
+        netif_set_down(&netif);
+    }
+
+    dhcp_start(&netif);
 
 	httpd_init();
 }
+

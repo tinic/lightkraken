@@ -20,6 +20,7 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+#include <stdio.h>
 #include <stdint.h>
 
 extern "C" {
@@ -27,6 +28,8 @@ extern "C" {
 #include "cmsis_gcc.h"
 
 void SysTick_Handler(void);
+int __io_putchar(int ch);
+int _write(int file, char *ptr, int len);
 
 }; //extern "C" {
 
@@ -36,7 +39,23 @@ uint32_t system_time() {
 	return systemTime;
 }
 
+int __io_putchar(int ch){
+    ITM_SendChar(ch);
+    return(ch);
+}
+
+int _write(int, char *ptr, int len) {
+    int DataIdx;
+    for (DataIdx = 0; DataIdx < len; DataIdx++) {
+        __io_putchar(*ptr++);
+    }
+    return len;
+}
+
 void SysTick_Handler(void) {
+    if ((systemTime % 1000) == 0) {
+        printf("hello!\n");
+    }
     systemTime++;
 }
 
@@ -66,11 +85,11 @@ static void enet_gpio_config(void)
     rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
   
-    /* PB15: nRST, set low*/
-    gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_15);    
-    gpio_bit_reset(GPIOB, GPIO_PIN_15);
-
     gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
+
+    /* PB15: nRST, pull low*/
+    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_15);    
+    gpio_bit_reset(GPIOB, GPIO_PIN_15);
   
     /* enable SYSCFG clock */
     rcu_periph_clock_enable(RCU_AF);
@@ -80,6 +99,7 @@ static void enet_gpio_config(void)
     rcu_osci_stab_wait(RCU_PLL2_CK);
     /* get 50MHz from CK_PLL2 on CKOUT0 pin (PA8) to clock the PHY */
     rcu_ckout0_config(RCU_CKOUT0SRC_CKPLL2);
+
     gpio_ethernet_phy_select(GPIO_ENET_PHY_RMII);
 
     /* PA1: ETH_RMII_REF_CLK */
@@ -106,15 +126,16 @@ static void enet_gpio_config(void)
     /* PB14: NINT */
     gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_14);    
 
-    enet_delay(100000);
+    enet_delay(10000);
 
     /* PB15: nRST, set high*/
     gpio_bit_set(GPIOB, GPIO_PIN_15);
 }
 
 static void enet_system_setup(void) {
-    enet_mac_dma_config();
     enet_gpio_config();
+
+    enet_mac_dma_config();
 }
 
 
