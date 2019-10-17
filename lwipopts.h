@@ -53,7 +53,7 @@ OF SUCH DAMAGE.
                                                             is compiled. 4 byte alignment -> define MEM_ALIGNMENT 
                                                             to 4, 2 byte alignment -> define MEM_ALIGNMENT to 2 */
 
-#define MEM_SIZE                (16*1024)                /* the size of the heap memory, if the application will 
+#define MEM_SIZE                (8*1024)                 /* the size of the heap memory, if the application will 
                                                             send a lot of data that needs to be copied, this should
                                                             be set high */
 
@@ -130,10 +130,10 @@ OF SUCH DAMAGE.
 #define LWIP_DNS_SECURE         7
 #define LWIP_DHCP_DOES_ACD_CHECK 0
 
-//#define LWIP_HTTPD_SUPPORT_REST 1
-//#define LWIP_HTTPD_DYNAMIC_HEADERS 1
-//#define LWIP_HTTPD_DYNAMIC_FILE_READ 1
-#define LWIP_NETIF_HOSTNAME 1
+#define LWIP_HTTPD_SUPPORT_REST 		1
+#define LWIP_HTTPD_DYNAMIC_HEADERS 		1
+#define LWIP_HTTPD_DYNAMIC_FILE_READ 	1
+#define LWIP_NETIF_HOSTNAME 			1
 
 #ifdef CHECKSUM_BY_HARDWARE
     /* CHECKSUM_GEN_IP==0: generate checksums by hardware for outgoing IP packets.*/

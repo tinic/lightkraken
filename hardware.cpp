@@ -34,6 +34,7 @@ int _write(int file, char *ptr, int len);
 }; //extern "C" {
 
 #include "./model.h"
+#include "./status.h"
 
 static uint32_t systemTime  = 0;
 
@@ -58,7 +59,7 @@ int _write(int, char *ptr, int len) {
 void SysTick_Handler(void) {
 	static int32_t status_led = 0;
 	if ((status_led++ & 0xFF) == 0) {
-		lightguy::Model::instance().updateUserLED();
+		lightguy::StatusLED::instance().update();
 	}
     systemTime++;
 }
@@ -175,17 +176,10 @@ static void enet_gpio_config(void)
 
 static void enet_system_setup(void) {
     enet_gpio_config();
-
     enet_mac_dma_config();
 }
 
-void system_led_setup() {
-    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_6);    
-    gpio_bit_reset(GPIOB, GPIO_PIN_6);
-}
-
 void config_hardware() {
-    system_led_setup();
     setup_uart0();
     setup_systick();
     enet_system_setup();

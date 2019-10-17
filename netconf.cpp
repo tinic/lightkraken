@@ -204,6 +204,7 @@ void lwip_stack_init(void) {
 		udp_remove(upcb_artnet);
 		upcb_artnet = 0;
 	}
-
+	
+	httpd_init();
 }
 

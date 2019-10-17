@@ -49,16 +49,12 @@ public:
 	OutputConfig outputConfig() const { return output_config; }
 	void setOutputConfig(OutputConfig outputConfig);
 
-    void updateUserLED();
 
 private:
 	Model() {};
 
 	void readFlash();
 	void writeFlash();
-
-    void readPowerState();
-	void setUserLED(uint8_t r, uint8_t g, uint8_t b);
 
 	bool initialized = false;
 	void init();
@@ -77,10 +73,6 @@ private:
 	uint16_t universe[stripN][universeN];
 	uint8_t mac_address[6];
 
-  	bool bt_state = false;
-	bool tpl_state = false;
-	bool tph_state = false;
-	bool powergood_state = false;
 
 };
 
