@@ -31,11 +31,11 @@ extern "C" {
 #include "netif/etharp.h"
 }; // extern "C" {
 
-#include "ethernetif.h"
-#include "netconf.h"
+#include "./ethernetif.h"
+#include "./netconf.h"
 
 const int32_t build_number = 
-#include "build_number.h"
+#include "./build_number.h"
 ;
 
 extern enet_descriptors_struct  rxdesc_tab[ENET_RXBUF_NUM], txdesc_tab[ENET_TXBUF_NUM];

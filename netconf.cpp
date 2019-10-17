@@ -56,9 +56,11 @@ extern "C" {
 #include "lwip/priv/tcp_priv.h"
 }; //extern "C" {
 
-#include "hardware.h"
-#include "ethernetif.h"
-#include "netconf.h"
+#include "./hardware.h"
+#include "./ethernetif.h"
+#include "./netconf.h"
+#include "./artnet.h"
+#include "./model.h"
 
 #define MAX_DHCP_TRIES        4
 
@@ -154,6 +156,14 @@ void lwip_dhcp_process_handle(void) {
 }
 #endif  // #if LWIP_DHCP
 
+static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *, u16_t) {
+	struct pbuf *i = p;
+	for( ; i != NULL ; i = i->next) {
+		lightguy_artnet_packet_dispatch(reinterpret_cast<uint8_t *>(p->payload), p->len);
+	}
+	pbuf_free(p);
+}
+
 void lwip_stack_init(void) {
     ip_addr_t ipaddr;
     ip_addr_t netmask;
@@ -162,7 +172,7 @@ void lwip_stack_init(void) {
     lwip_init();
 
 #if LWIP_DHCP
-    if (1) {
+    if (lightguy::Model::instance().dhcpEnabled()) {
       ipaddr.addr = 0;
       netmask.addr = 0;
       gw.addr = 0;
@@ -186,6 +196,14 @@ void lwip_stack_init(void) {
         printf("ENET link is down.\n");
     }
 
-	//httpd_init();
+   	static struct udp_pcb *upcb_artnet = 0;
+	upcb_artnet = udp_new();
+	if (udp_bind(upcb_artnet,IP4_ADDR_ANY,6454) == ERR_OK) {
+		udp_recv(upcb_artnet,udp_receive_artnet_callback,NULL);
+	} else {
+		udp_remove(upcb_artnet);
+		upcb_artnet = 0;
+	}
+
 }
 

@@ -28,12 +28,15 @@ extern "C" {
 #include "cmsis_gcc.h"
 }; //extern "C" {
 
-#include "hardware.h"
-#include "netconf.h"
+#include "./hardware.h"
+#include "./netconf.h"
+#include "./model.h"
 
 int main() {
 
 	config_hardware();
+    
+    lightguy::Model::instance();
 
     lwip_stack_init();
 	
