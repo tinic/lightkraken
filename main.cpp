@@ -33,20 +33,11 @@ extern "C" {
 #include "./model.h"
 
 int main() {
-
 	config_hardware();
     
-    lightguy::Model::instance();
-
-    lwip_stack_init();
-	
     while (1) {
-        if (enet_rxframe_size_get()){
-            /* process received ethernet packet */
-            lwip_pkt_handle();
-        }        
-        lwip_dhcp_process_handle();
-        lwip_periodic_handle(system_time());
+    	 lightguy::NetConf::instance().update();
     }
+
     return 0;
 }

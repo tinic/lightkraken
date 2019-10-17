@@ -62,99 +62,16 @@ extern "C" {
 #include "./artnet.h"
 #include "./model.h"
 
-#define MAX_DHCP_TRIES        4
+namespace lightguy {
 
-typedef enum 
-{ 
-    DHCP_START=0,
-    DHCP_WAIT_ADDRESS,
-    DHCP_ADDRESS_ASSIGNED,
-    DHCP_TIMEOUT
-} dhcp_state_enum;
-
-uint32_t dhcp_fine_timer = 0;
-uint32_t dhcp_coarse_timer = 0;
-dhcp_state_enum dhcp_state = DHCP_START;
-
-struct netif netif;
-uint32_t tcp_timer = 0;
-uint32_t arp_timer = 0;
-ip_addr_t ip_address = {0};
-
-u32_t sys_now(void) {
-    return system_time();
+NetConf &NetConf::instance() {
+	static NetConf netconf;
+	if (!netconf.initialized) {
+		netconf.initialized = true;
+		netconf.init();
+	}
+	return netconf;
 }
-
-void lwip_pkt_handle(void) {
-    ethernetif_input(&netif);
-}
-
-void lwip_periodic_handle(__IO uint32_t localtime) {
-    if (localtime - tcp_timer >= TCP_TMR_INTERVAL){
-        tcp_timer =  localtime;
-        tcp_tmr();
-    }
-  
-    if ((localtime - arp_timer) >= ARP_TMR_INTERVAL){ 
-        arp_timer =  localtime;
-        etharp_tmr();
-    }
-
-#if LWIP_DHCP
-    if (localtime - dhcp_fine_timer >= DHCP_FINE_TIMER_MSECS){
-        dhcp_fine_timer =  localtime;
-        dhcp_fine_tmr();
-        if ((dhcp_state != DHCP_ADDRESS_ASSIGNED) && (dhcp_state != DHCP_TIMEOUT)){ 
-            lwip_dhcp_process_handle();    
-        }
-    }
-
-    if (localtime - dhcp_coarse_timer >= DHCP_COARSE_TIMER_MSECS){
-        dhcp_coarse_timer =  localtime;
-        dhcp_coarse_tmr();
-    }
-#endif  // #if LWIP_DHCP
-}
-
-#if LWIP_DHCP
-void lwip_dhcp_process_handle(void) {
-    ip_addr_t netmask;
-    ip_addr_t gw;
-    struct dhcp *dhcp_client;
-    
-    dhcp_client = netif_dhcp_data(&netif);
-    
-    switch (dhcp_state){
-    case DHCP_START:
-        printf("DHCP start...\n");
-        dhcp_start(&netif);
-        ip_address.addr = 0;
-        dhcp_state = DHCP_WAIT_ADDRESS;
-        break;
-    case DHCP_WAIT_ADDRESS:
-        ip_address.addr = netif.ip_addr.addr;
-        if (ip_address.addr != 0){ 
-            printf("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address));
-            dhcp_state = DHCP_ADDRESS_ASSIGNED;
-        } else {
-            if (dhcp_client->tries > MAX_DHCP_TRIES){
-                dhcp_state = DHCP_TIMEOUT;
-                dhcp_stop(&netif);
-                ip_addr_t ipaddr;
-                IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
-                IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
-                IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
-                netif_set_addr(&netif, &ipaddr , &netmask, &gw);
-            }
-        }
-        break;
-    case DHCP_TIMEOUT:
-        printf("DHCP timeout.\n");
-    default: 
-        break;
-    }
-}
-#endif  // #if LWIP_DHCP
 
 static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *, u16_t) {
 	struct pbuf *i = p;
@@ -164,27 +81,28 @@ static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p
 	pbuf_free(p);
 }
 
-void lwip_stack_init(void) {
-    ip_addr_t ipaddr;
-    ip_addr_t netmask;
-    ip_addr_t gw;
+void NetConf::init() {
 
     lwip_init();
 
+    ip_addr_t address;
+    ip_addr_t netmask;
+    ip_addr_t gateway;
+
 #if LWIP_DHCP
     if (lightguy::Model::instance().dhcpEnabled()) {
-      ipaddr.addr = 0;
+      address.addr = 0;
       netmask.addr = 0;
-      gw.addr = 0;
+      gateway.addr = 0;
     } else 
 #endif  // #if LWIP_DHCP
     {
-      IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
-      IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1 , NETMASK_ADDR2, NETMASK_ADDR3);
-      IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
+	  address.addr = lightguy::Model::instance().ip4Address()->addr;
+	  netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
+	  gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
     }
 
-    netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
+    netif_add(&netif, &address, &netmask, &gateway, NULL, &EthernetIf::ethernetif_init, &ethernet_input);
 
     netif_set_default(&netif);
 
@@ -198,8 +116,8 @@ void lwip_stack_init(void) {
 
    	static struct udp_pcb *upcb_artnet = 0;
 	upcb_artnet = udp_new();
-	if (udp_bind(upcb_artnet,IP4_ADDR_ANY,6454) == ERR_OK) {
-		udp_recv(upcb_artnet,udp_receive_artnet_callback,NULL);
+	if (udp_bind(upcb_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
+		udp_recv(upcb_artnet, udp_receive_artnet_callback, NULL);
 	} else {
 		udp_remove(upcb_artnet);
 		upcb_artnet = 0;
@@ -207,4 +125,75 @@ void lwip_stack_init(void) {
 	
 	httpd_init();
 }
+
+void NetConf::update() {
+
+	uint32_t localtime = system_time();
+
+    if (enet_rxframe_size_get()){
+	    EthernetIf::ethernetif_input(&netif);
+	}
+
+    if (localtime - tcp_timer >= TCP_TMR_INTERVAL){
+        tcp_timer =  localtime;
+        tcp_tmr();
+    }
+  
+    if ((localtime - arp_timer) >= ARP_TMR_INTERVAL){ 
+        arp_timer =  localtime;
+        etharp_tmr();
+    }
+
+#if LWIP_DHCP
+	const int32_t MAX_DHCP_TRIES = 4;
+
+    if (localtime - dhcp_fine_timer >= DHCP_FINE_TIMER_MSECS){
+        dhcp_fine_timer =  localtime;
+        dhcp_fine_tmr();
+        if ((dhcp_state != DHCP_ADDRESS_ASSIGNED) && (dhcp_state != DHCP_TIMEOUT)){ 
+			struct dhcp *dhcp_client = netif_dhcp_data(&netif);
+			switch (dhcp_state){
+			case DHCP_START:
+				printf("DHCP start...\n");
+				dhcp_start(&netif);
+				dhcp_state = DHCP_WAIT_ADDRESS;
+				break;
+			case DHCP_WAIT_ADDRESS:
+				ip_addr_t address;
+				ip_address.addr = netif.ip_addr.addr;
+				if (ip_address.addr != 0){ 
+					printf("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address));
+					dhcp_state = DHCP_ADDRESS_ASSIGNED;
+				} else {
+					if (dhcp_client->tries > MAX_DHCP_TRIES){
+						dhcp_state = DHCP_TIMEOUT;
+						dhcp_stop(&netif);
+
+						ip_addr_t netmask;
+						ip_addr_t gateway;
+						address.addr = lightguy::Model::instance().ip4Address()->addr;
+						netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
+						gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
+
+						netif_set_addr(&netif, &address , &netmask, &gateway);
+					}
+				}
+				break;
+			case DHCP_TIMEOUT:
+				printf("DHCP timeout.\n");
+			default: 
+				break;
+			}
+        }
+    }
+
+    if (localtime - dhcp_coarse_timer >= DHCP_COARSE_TIMER_MSECS){
+        dhcp_coarse_timer =  localtime;
+        dhcp_coarse_tmr();
+    }
+#endif  // #if LWIP_DHCP
+}
+
+}
+
 

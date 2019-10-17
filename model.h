@@ -42,7 +42,7 @@ public:
   
 	bool dhcpEnabled() const { return ip_dhcp; }
 
-	const ip_addr_t *ip4Interface() const { return &ip4_interface; }
+	const ip_addr_t *ip4Address() const { return &ip4_address; }
 	const ip_addr_t *ip4Netmask() const { return &ip4_netmask; }
 	const ip_addr_t *ip4Gateway() const { return &ip4_gateway; };
 
@@ -60,7 +60,8 @@ private:
 	void init();
 
 	bool ip_dhcp;
-	ip_addr_t ip4_interface;
+	
+	ip_addr_t ip4_address;
 	ip_addr_t ip4_netmask;
 	ip_addr_t ip4_gateway;
 
