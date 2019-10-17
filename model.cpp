@@ -59,15 +59,15 @@ void Model::init() {
 	const uint8_t IP_ADDRESS2 = 0x1e;
 	const uint8_t IP_ADDRESS3 = 0xd5;
 
-	const uint8_t IP_NETMASK0 = 255;
-	const uint8_t IP_NETMASK1 = 255;
-	const uint8_t IP_NETMASK2 =	  0;
-	const uint8_t IP_NETMASK3 =	  0;
+	const uint8_t IP_NETMASK0 =  255;
+	const uint8_t IP_NETMASK1 =  255;
+	const uint8_t IP_NETMASK2 =	   0;
+	const uint8_t IP_NETMASK3 =	   0;
 
-	const uint8_t IP_GATEWAY0 = 169;
-	const uint8_t IP_GATEWAY1 = 254;
-	const uint8_t IP_GATEWAY2 =	  0;
-	const uint8_t IP_GATEWAY3 =	  1;
+	const uint8_t IP_GATEWAY0 =  169;
+	const uint8_t IP_GATEWAY1 =  254;
+	const uint8_t IP_GATEWAY2 =	   0;
+	const uint8_t IP_GATEWAY3 =	   1;
 
 	IP4_ADDR(&ip4_address, IP_ADDRESS0, IP_ADDRESS1, IP_ADDRESS2, IP_ADDRESS3);
 	IP4_ADDR(&ip4_netmask, IP_NETMASK0, IP_NETMASK1, IP_NETMASK2, IP_NETMASK3);
@@ -90,29 +90,11 @@ void Model::init() {
 	int32_t counter = 0;
 	for (size_t c = 0; c < stripN; c++) {
 		for (size_t d = 0; d < universeN; d++) {
-			universe[c][d] = counter++;
+			uni[c][d] = counter++;
 		}
-	}
-	for (size_t c = 0; c < stripN; c++) {
-		striplen[c] = lightguy::Strip::get(c).getMaxPixelLen();
-		lightguy::Strip::get(c).setPixelLen(striplen[c]);
 	}
 
 	readFlash();
-
-	lightguy::Strip::get(0).dmaTransferFunc = [](const uint8_t *data, size_t len) {
-		SPI_0::instance().dma_transfer(data, len);
-	};
-	lightguy::Strip::get(0).dmaBusyFunc = []() {
-        return false;
-	};
-
-	lightguy::Strip::get(1).dmaTransferFunc = [](const uint8_t *data, size_t len) {
-		SPI_2::instance().dma_transfer(data, len);
-	};
-	lightguy::Strip::get(1).dmaBusyFunc = []() {
-        return false;
-	};
 
 	Driver::instance().setRGBW16(0x0000, 0x0000, 0x0000, 0x0000);
 }
@@ -128,87 +110,6 @@ Model &Model::instance() {
 		model.init();
 	}
 	return model;
-}
-
-void Model::transferNow() {
-	for (size_t c = 0; c < lightguy::Model::stripN; c++) {
-		lightguy::Strip::get(c).transfer();
-	}
-}
-
-void Model::setOutputData(uint8_t channel, const uint8_t *data, size_t len) {
-	switch(output_config) {
-	case OUTPUT_CONFIG_DUAL_STRIP: {
-		Driver::instance().setRGBW16(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
-		channel %= stripN;
-		lightguy::Strip::get(channel).setData(data, len);
-		lightguy::Strip::get(channel).transfer();
-	} break;
-	case OUTPUT_CONFIG_RGB_STRIP: {
-		if (channel == 0) {
-			if (len >= 3) {
-				Driver::instance().setRGBW8CIE(data[0], data[1], data[2], 0xFF);
-			}
-		}
-		if (channel == 1) {
-			lightguy::Strip::get(channel).setData(data, len);
-			lightguy::Strip::get(channel).transfer();
-		}
-	} break;
-	case OUTPUT_CONFIG_RGBW: {
-		if (channel == 0) {
-			if (len >= 4) {
-				Driver::instance().setRGBW8CIE(data[0], data[1], data[2], data[3]);
-			}
-		}
-	} break;
-	}
-}
-
-void Model::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t len) {
-	switch(output_config) {
-	case OUTPUT_CONFIG_DUAL_STRIP: {
-		Driver::instance().setRGBW16(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
-		for (size_t c = 0; c < stripN; c++) {
-			bool set = false;
-			for (size_t d = 0; d < universeN; d++) {
-				if (universe[c][d] == uni) {
-					lightguy::Strip::get(c).setUniverseData(d, data, len);
-					set = true;
-				}
-			}
-			if (set) {
-				lightguy::Strip::get(c).transfer();
-			}
-		}
-	} break;
-	case OUTPUT_CONFIG_RGB_STRIP: {
-		if (universe[0][0] == uni) {
-			if (len >= 3) {
-				Driver::instance().setRGBW8CIE(data[0], data[1], data[2], 0xFF);
-			}
-		}
-		for (size_t c = 1; c < stripN; c++) {
-			bool set = false;
-			for (size_t d = 0; d < universeN; d++) {
-				if (universe[c][d] == uni) {
-					lightguy::Strip::get(c).setUniverseData(d, data, len);
-					set = true;
-				}
-			}
-			if (set) {
-				lightguy::Strip::get(c).transfer();
-			}
-		}
-	} break;
-	case OUTPUT_CONFIG_RGBW: {
-		if (universe[0][0] == uni) {
-			if (len >= 4) {
-				Driver::instance().setRGBW8CIE(data[0], data[1], data[2], data[3]);
-			}
-		}
-	} break;
-	}
 }
 
 } /* namespace lightguy */

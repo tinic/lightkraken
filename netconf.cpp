@@ -61,6 +61,7 @@ extern "C" {
 #include "./netconf.h"
 #include "./artnet.h"
 #include "./model.h"
+#include "./artnet.h"
 
 namespace lightguy {
 
@@ -76,7 +77,7 @@ NetConf &NetConf::instance() {
 static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *, u16_t) {
 	struct pbuf *i = p;
 	for( ; i != NULL ; i = i->next) {
-		lightguy_artnet_packet_dispatch(reinterpret_cast<uint8_t *>(p->payload), p->len);
+		lightguy::ArtNetPacket::dispatch(reinterpret_cast<uint8_t *>(p->payload), p->len);
 	}
 	pbuf_free(p);
 }
