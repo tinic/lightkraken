@@ -2,10 +2,10 @@ extern "C" {
 #include "lwip/sys.h"
 }
 
-#include "./hardware.h"
+#include "./systick.h"
 
 extern "C" {
 u32_t sys_now(void) {
-    return system_time();
+    return lightguy::Systick::instance().systemTime();
 }
 }

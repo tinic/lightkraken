@@ -56,12 +56,12 @@ extern "C" {
 #include "lwip/priv/tcp_priv.h"
 }; //extern "C" {
 
-#include "./hardware.h"
 #include "./ethernetif.h"
 #include "./netconf.h"
 #include "./artnet.h"
 #include "./model.h"
 #include "./artnet.h"
+#include "./systick.h"
 
 namespace lightguy {
 
@@ -129,7 +129,7 @@ void NetConf::init() {
 
 void NetConf::update() {
 
-	uint32_t localtime = system_time();
+	uint32_t localtime = lightguy::Systick::instance().systemTime();
 
     if (enet_rxframe_size_get()){
 	    EthernetIf::ethernetif_input(&netif);
@@ -169,6 +169,7 @@ void NetConf::update() {
 					if (dhcp_client->tries > MAX_DHCP_TRIES){
 						dhcp_state = DHCP_TIMEOUT;
 						dhcp_stop(&netif);
+						printf("DHCP timeout.\n");
 
 						ip_addr_t netmask;
 						ip_addr_t gateway;
@@ -180,8 +181,6 @@ void NetConf::update() {
 					}
 				}
 				break;
-			case DHCP_TIMEOUT:
-				printf("DHCP timeout.\n");
 			default: 
 				break;
 			}

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 extern "C" {
 #include "gd32f10x.h"
 }
@@ -32,6 +34,10 @@ void StatusLED::init() {
     gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_5);
     gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_4);
     gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
+
+	update();
+
+    printf("Status LED up.");
 }
 
 void StatusLED::update() {

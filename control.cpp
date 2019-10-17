@@ -116,6 +116,8 @@ void Control::init() {
 	lightguy::Strip::get(1).dmaBusyFunc = []() {
         return false;
 	};
+
+    printf("Control up.");
 }
 
 }  // namespace lightguy {

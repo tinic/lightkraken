@@ -28,16 +28,12 @@ extern "C" {
 #include "cmsis_gcc.h"
 }; //extern "C" {
 
-#include "./hardware.h"
 #include "./netconf.h"
 #include "./model.h"
 
 int main() {
-	config_hardware();
-    
     while (1) {
     	 lightguy::NetConf::instance().update();
     }
-
     return 0;
 }
