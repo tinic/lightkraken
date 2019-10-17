@@ -21,6 +21,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <stdint.h>
+#include <stdio.h>
 
 extern "C" {
 #include "gd32f10x.h"
@@ -37,6 +38,11 @@ int main() {
     lwip_stack_init();
 	
     while (1) {
+        if (enet_rxframe_size_get()){
+            /* process received ethernet packet */
+            lwip_pkt_handle();
+        }        
+        lwip_dhcp_process_handle();
         lwip_periodic_handle(system_time());
     }
     return 0;

@@ -116,9 +116,11 @@ static void low_level_init(struct netif *netif, uint32_t mac_addr) {
 	   enet_desc_receive_complete_bit_enable(&rxdesc_tab[i]);
 	}
 
+#ifdef CHECKSUM_BY_HARDWARE
     for(i=0; i < ENET_TXBUF_NUM; i++){
         enet_transmit_checksum_config(&txdesc_tab[i], ENET_CHECKSUM_TCPUDPICMP_FULL);
     }
+#endif  // #ifdef CHECKSUM_BY_HARDWARE
 
     enet_enable();
 }
@@ -130,8 +132,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 
 	(void)netif;
     
-    while((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_DAV)){
-    }  
+    while((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_DAV)) { }  
     
     buffer = (uint8_t *)(enet_desc_information_get(dma_current_txdesc, TXDESC_BUFFER_1_ADDR));
     
@@ -197,10 +198,14 @@ err_t ethernetif_init(struct netif *netif) {
 	uid[2] = get_uid2();
     uint32_t mac_addr  = murmur3_32(reinterpret_cast<uint8_t *>(&uid[0]), sizeof(uid), 0x66cf8031);
 
+#if LWIP_NETIF_HOSTNAME
   	static char s_hostname[64];
   	sprintf(s_hostname, "lightguy-%08x", int(mac_addr));
-  
+
+    printf("Hostname is %s\n", s_hostname);
+
     netif->hostname = s_hostname;
+#endif  // #if LWIP_NETIF_HOSTNAME
 
     netif->name[0] = IFNAME0;
     netif->name[1] = IFNAME1;

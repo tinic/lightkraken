@@ -68,8 +68,7 @@ OF SUCH DAMAGE.
 #ifndef _PHY_H_
 #define DP83848                          0
 #define LAN8700                          1
-#define LAN8710                          2
-#define PHY_TYPE                         LAN8710
+#define PHY_TYPE                         LAN8700
 
 #define PHY_ADDRESS                      ((uint16_t)0U)                         /*!< phy address determined by the hardware */
 
@@ -106,10 +105,6 @@ OF SUCH DAMAGE.
 #define PHY_SR                           31U                                    /*!< tranceiver status register */
 #define PHY_SPEED_STATUS                 ((uint16_t)0x0004)                     /*!< configured information of speed: 10Mbit/s */
 #define PHY_DUPLEX_STATUS                ((uint16_t)0x0010)                     /*!< configured information of duplex: full-duplex */
-#elif(PHY_TYPE == LAN8710)
-#define PHY_SR                           31U                                    /*!< tranceiver status register */
-#define PHY_SPEED_STATUS                 ((uint16_t)0x0002)                     /*!< configured information of speed: 10Mbit/s */
-#define PHY_DUPLEX_STATUS                ((uint16_t)0x0004)                     /*!< configured information of duplex: full-duplex */
 #elif(PHY_TYPE == DP83848)
 #define PHY_SR                           16U                                    /*!< tranceiver status register */
 #define PHY_SPEED_STATUS                 ((uint16_t)0x0002)                     /*!< configured information of speed: 10Mbit/s */

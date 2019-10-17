@@ -40,7 +40,8 @@ uint32_t system_time() {
 }
 
 int __io_putchar(int ch){
-    ITM_SendChar(ch);
+    usart_data_transmit(USART0, (uint8_t)ch);
+    while(RESET == usart_flag_get(USART0, USART_FLAG_TBE));
     return(ch);
 }
 
@@ -53,10 +54,26 @@ int _write(int, char *ptr, int len) {
 }
 
 void SysTick_Handler(void) {
-    if ((systemTime % 1000) == 0) {
-        printf("hello!\n");
-    }
     systemTime++;
+}
+
+ void setup_uart0() {
+    rcu_periph_clock_enable(RCU_GPIOA);
+    rcu_periph_clock_enable(RCU_USART0);
+
+    gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
+
+    usart_baudrate_set(USART0, 115200U);
+    usart_word_length_set(USART0, USART_WL_8BIT);
+    usart_stop_bit_set(USART0, USART_STB_1BIT);
+    usart_parity_config(USART0, USART_PM_NONE);
+    usart_hardware_flow_rts_config(USART0, USART_RTS_DISABLE);
+    usart_hardware_flow_cts_config(USART0, USART_CTS_DISABLE);
+    usart_transmit_config(USART0, USART_TRANSMIT_ENABLE);
+
+    usart_enable(USART0);
+    
+    printf("System start: UART0 running.\n");
 }
 
 static void setup_systick(void) {
@@ -74,13 +91,29 @@ static void enet_mac_dma_config(void)
     /* reset ethernet on AHB bus */
     enet_deinit();
 
-    enet_software_reset();
+    ErrStatus reval_state = enet_software_reset();
+    if(reval_state == ERROR){
+        while(1){}
+    }
 
-    enet_init(ENET_AUTO_NEGOTIATION, ENET_AUTOCHECKSUM_DROP_FAILFRAMES, ENET_BROADCAST_FRAMES_PASS);
+#ifdef CHECKSUM_BY_HARDWARE
+    uint32_t enet_init_status = enet_init(ENET_AUTO_NEGOTIATION, ENET_AUTOCHECKSUM_DROP_FAILFRAMES, ENET_BROADCAST_FRAMES_PASS);
+#else  
+    uint32_t enet_init_status = enet_init(ENET_AUTO_NEGOTIATION, ENET_NO_AUTOCHECKSUM, ENET_BROADCAST_FRAMES_PASS);
+#endif
+
+    if (enet_init_status == 0){
+        while(1){
+        }
+    }
+
+    printf("System start: ENET MAC config done.\n");
 }
 
 static void enet_gpio_config(void)
 {
+    printf("System start: ENET hardware starting.\n");
+
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
@@ -130,6 +163,8 @@ static void enet_gpio_config(void)
 
     /* PB15: nRST, set high*/
     gpio_bit_set(GPIOB, GPIO_PIN_15);
+
+    printf("System start: ENET hardware running.\n");
 }
 
 static void enet_system_setup(void) {
@@ -138,8 +173,8 @@ static void enet_system_setup(void) {
     enet_mac_dma_config();
 }
 
-
 void config_hardware() {
+    setup_uart0();
     setup_systick();
     enet_system_setup();
 }

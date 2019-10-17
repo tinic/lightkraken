@@ -62,7 +62,7 @@ file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
 # LwIP
 include_directories(GD32F10x_lwip)
 
-set(COMMON_FLAGS "-DGD32 -D${GD32ARCH} -D${GD32MCU} -Werror -Wall -Wextra -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
+set(COMMON_FLAGS "-DGD32 -D${GD32ARCH} -D${GD32MCU} -Werror -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
 
 set(CMAKE_ASM_FLAGS "-mcpu=${ARM_ARCH}")
 set(CMAKE_ASM_FLAGS_RELEASE "")
@@ -76,7 +76,7 @@ set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Werror -Wall -Wextra -Wno-strict-aliasing 
 set(CMAKE_CXX_FLAGS_RELEASE "-Os")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 
-set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T${CMAKE_SOURCE_DIR}/${LINKLDPATH}")
+set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T${CMAKE_SOURCE_DIR}/${LINKLDPATH}")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "")

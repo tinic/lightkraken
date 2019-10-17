@@ -39,6 +39,7 @@ OF SUCH DAMAGE.
 #ifndef LWIPOPTS_H
 #define LWIPOPTS_H
 
+#include <stdio.h>
 
 #define SYS_LIGHTWEIGHT_PROT    0                        /* SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection 
                                                             for certain critical regions during buffer allocation,
@@ -107,7 +108,6 @@ OF SUCH DAMAGE.
 #define LWIP_UDP                1
 #define UDP_TTL                 255
 
-
 /* statistics options */
 #define LWIP_STATS              0
 #define LWIP_PROVIDE_ERRNO      1
@@ -122,25 +122,61 @@ OF SUCH DAMAGE.
 /* socket options */
 #define LWIP_SOCKET             0                        /* set to 1 to enable socket API (require to use sockets.c) */
 
-/* Lwip debug options */
-//#define LWIP_DEBUG            1
-#define LWIP_HTTPD_SUPPORT_REST 1
-#define LWIP_HTTPD_DYNAMIC_HEADERS 1
-#define LWIP_HTTPD_DYNAMIC_FILE_READ 1
-#define LWIP_NETIF_HOSTNAME 	1
+#define LWIP_ETHERNET           1
+#define IP_SOF_BROADCAST        1
+#define IP_SOF_BROADCAST_RECV   1
+#define LWIP_BROADCAST_PING     1
+#define LWIP_MULTICAST_PING     1
+#define LWIP_DNS_SECURE         7
+#define LWIP_DHCP_DOES_ACD_CHECK 0
 
-/* CHECKSUM_GEN_IP==0: generate checksums by hardware for outgoing IP packets.*/
-#define CHECKSUM_GEN_IP                 0
-/* CHECKSUM_GEN_UDP==0: generate checksums by hardware for outgoing UDP packets.*/
-#define CHECKSUM_GEN_UDP                0
-/* CHECKSUM_GEN_TCP==0: generate checksums by hardware for outgoing TCP packets.*/
-#define CHECKSUM_GEN_TCP                0 
-/* CHECKSUM_CHECK_IP==0: check checksums by hardware for incoming IP packets.*/
-#define CHECKSUM_CHECK_IP               0
-/* CHECKSUM_CHECK_UDP==0: check checksums by hardware for incoming UDP packets.*/
-#define CHECKSUM_CHECK_UDP              0
-/* CHECKSUM_CHECK_TCP==0: check checksums by hardware for incoming TCP packets.*/
-#define CHECKSUM_CHECK_TCP              0
-#define CHECKSUM_GEN_ICMP               0
+//#define LWIP_HTTPD_SUPPORT_REST 1
+//#define LWIP_HTTPD_DYNAMIC_HEADERS 1
+//#define LWIP_HTTPD_DYNAMIC_FILE_READ 1
+#define LWIP_NETIF_HOSTNAME 1
+
+#ifdef CHECKSUM_BY_HARDWARE
+    /* CHECKSUM_GEN_IP==0: generate checksums by hardware for outgoing IP packets.*/
+    #define CHECKSUM_GEN_IP                 0
+    /* CHECKSUM_GEN_UDP==0: generate checksums by hardware for outgoing UDP packets.*/
+    #define CHECKSUM_GEN_UDP                0
+    /* CHECKSUM_GEN_TCP==0: generate checksums by hardware for outgoing TCP packets.*/
+    #define CHECKSUM_GEN_TCP                0 
+    /* CHECKSUM_CHECK_IP==0: check checksums by hardware for incoming IP packets.*/
+    #define CHECKSUM_CHECK_IP               0
+    /* CHECKSUM_CHECK_UDP==0: check checksums by hardware for incoming UDP packets.*/
+    #define CHECKSUM_CHECK_UDP              0
+    /* CHECKSUM_CHECK_TCP==0: check checksums by hardware for incoming TCP packets.*/
+    #define CHECKSUM_CHECK_TCP              0
+//    #define CHECKSUM_GEN_ICMP               0
+#else
+    /* CHECKSUM_GEN_IP==1: generate checksums in software for outgoing IP packets.*/
+    #define CHECKSUM_GEN_IP                 1
+    /* CHECKSUM_GEN_UDP==1: generate checksums in software for outgoing UDP packets.*/
+    #define CHECKSUM_GEN_UDP                1
+    /* CHECKSUM_GEN_TCP==1: generate checksums in software for outgoing TCP packets.*/
+    #define CHECKSUM_GEN_TCP                1
+    /* CHECKSUM_CHECK_IP==1: check checksums in software for incoming IP packets.*/
+    #define CHECKSUM_CHECK_IP               1
+    /* CHECKSUM_CHECK_UDP==1: check checksums in software for incoming UDP packets.*/
+    #define CHECKSUM_CHECK_UDP              1
+    /* CHECKSUM_CHECK_TCP==1: check checksums in software for incoming TCP packets.*/
+    #define CHECKSUM_CHECK_TCP              1
+//    #define CHECKSUM_GEN_ICMP               1
+#endif
+
+/* Lwip debug options */
+//#define LWIP_DEBUG 1
+//#define LWIP_PLATFORM_DIAG(x)   do {printf x;} while(0)
+//#define NETIF_DEBUG LWIP_DBG_ON
+//#define SOCKETS_DEBUG LWIP_DBG_ON
+//#define ICMP_DEBUG LWIP_DBG_ON
+//#define INET_DEBUG LWIP_DBG_ON
+//#define IP_DEBUG LWIP_DBG_ON
+//#define UDP_DEBUG LWIP_DBG_ON
+//#define DHCP_DEBUG LWIP_DBG_ON
+//#define TCPIP_DEBUG LWIP_DBG_ON
+//#define PING_DEBUG LWIP_DBG_ON
+
 
 #endif /* LWIPOPTS_H */

@@ -955,7 +955,7 @@ ErrStatus enet_frame_transmit(uint8_t *buffer, uint32_t length)
             dma_current_txdesc = (enet_descriptors_struct*) (uint32_t)((uint32_t)dma_current_txdesc + ETH_DMATXDESC_SIZE + (GET_DMA_BCTL_DPSL(ENET_DMA_BCTL)));
         }
     }
-
+    
     return SUCCESS;
 }
 

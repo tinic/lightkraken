@@ -98,6 +98,7 @@ void lwip_periodic_handle(__IO uint32_t localtime) {
         etharp_tmr();
     }
 
+#if LWIP_DHCP
     if (localtime - dhcp_fine_timer >= DHCP_FINE_TIMER_MSECS){
         dhcp_fine_timer =  localtime;
         dhcp_fine_tmr();
@@ -110,10 +111,11 @@ void lwip_periodic_handle(__IO uint32_t localtime) {
         dhcp_coarse_timer =  localtime;
         dhcp_coarse_tmr();
     }
+#endif  // #if LWIP_DHCP
 }
 
+#if LWIP_DHCP
 void lwip_dhcp_process_handle(void) {
-    ip_addr_t ipaddr;
     ip_addr_t netmask;
     ip_addr_t gw;
     struct dhcp *dhcp_client;
@@ -122,22 +124,21 @@ void lwip_dhcp_process_handle(void) {
     
     switch (dhcp_state){
     case DHCP_START:
+        printf("DHCP start...\n");
         dhcp_start(&netif);
         ip_address.addr = 0;
         dhcp_state = DHCP_WAIT_ADDRESS;
         break;
-
     case DHCP_WAIT_ADDRESS:
         ip_address.addr = netif.ip_addr.addr;
-
         if (ip_address.addr != 0){ 
+            printf("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address));
             dhcp_state = DHCP_ADDRESS_ASSIGNED;
-            dhcp_stop(&netif);
-        }else{
+        } else {
             if (dhcp_client->tries > MAX_DHCP_TRIES){
                 dhcp_state = DHCP_TIMEOUT;
                 dhcp_stop(&netif);
-
+                ip_addr_t ipaddr;
                 IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
                 IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
                 IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
@@ -145,11 +146,13 @@ void lwip_dhcp_process_handle(void) {
             }
         }
         break;
-
+    case DHCP_TIMEOUT:
+        printf("DHCP timeout.\n");
     default: 
         break;
     }
 }
+#endif  // #if LWIP_DHCP
 
 void lwip_stack_init(void) {
     ip_addr_t ipaddr;
@@ -158,22 +161,31 @@ void lwip_stack_init(void) {
 
     lwip_init();
 
-    ipaddr.addr = 0;
-    netmask.addr = 0;
-    gw.addr = 0;
+#if LWIP_DHCP
+    if (1) {
+      ipaddr.addr = 0;
+      netmask.addr = 0;
+      gw.addr = 0;
+    } else 
+#endif  // #if LWIP_DHCP
+    {
+      IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
+      IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1 , NETMASK_ADDR2, NETMASK_ADDR3);
+      IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
+    }
 
     netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
 
     netif_set_default(&netif);
 
     if (netif_is_link_up(&netif)) {
+        printf("ENET link is up.\n");
         netif_set_up(&netif);
     } else {
         netif_set_down(&netif);
+        printf("ENET link is down.\n");
     }
 
-    dhcp_start(&netif);
-
-	httpd_init();
+	//httpd_init();
 }
 
