@@ -55,7 +55,7 @@ void SPI_0::dma_setup(const uint8_t *buf, size_t len) {
     spi_init_struct.frame_size           = SPI_FRAMESIZE_8BIT;
     spi_init_struct.clock_polarity_phase = SPI_CK_PL_LOW_PH_1EDGE;
     spi_init_struct.nss                  = SPI_NSS_SOFT;
-    spi_init_struct.prescale             = SPI_PSC_16;
+    spi_init_struct.prescale             = SPI_PSC_32;
     spi_init_struct.endian               = SPI_ENDIAN_MSB;
     spi_init(SPI0, &spi_init_struct);
     
