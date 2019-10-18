@@ -18,6 +18,8 @@ StatusLED &StatusLED::instance() {
 }
 
 void StatusLED::init() {
+    rcu_periph_clock_enable(RCU_GPIOB);
+
     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_6);    
     gpio_bit_reset(GPIOB, GPIO_PIN_6);
 
@@ -85,12 +87,21 @@ void StatusLED::setUserLED(uint8_t r, uint8_t g, uint8_t b) {
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
+            SET; SET; SET; SET; 
             
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
+            SET; SET; SET; SET; 
 
+            RST; RST; RST; RST;
+            RST; RST; RST; RST;
+            RST; RST; RST; RST;
+            RST; RST; RST; RST;
+            RST; RST; RST; RST;
+
+            RST; RST; RST; RST;
             RST; RST; RST; RST;
             RST; RST; RST; RST;
             RST; RST; RST; RST;
@@ -101,12 +112,21 @@ void StatusLED::setUserLED(uint8_t r, uint8_t g, uint8_t b) {
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
+            SET; SET; SET; SET; 
             
             RST; RST; RST; RST;
             RST; RST; RST; RST;
             RST; RST; RST; RST;
             RST; RST; RST; RST;
+            RST; RST; RST; RST;
 
+            RST; RST; RST; RST;
+            RST; RST; RST; RST;
+            RST; RST; RST; RST;
+            RST; RST; RST; RST;
+            RST; RST; RST; RST;
+
+            RST; RST; RST; RST;
             RST; RST; RST; RST;
             RST; RST; RST; RST;
             RST; RST; RST; RST;

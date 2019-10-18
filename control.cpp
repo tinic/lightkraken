@@ -117,7 +117,7 @@ void Control::init() {
         return false;
 	};
 
-    printf("Control up.");
+    printf("Control up.\n");
 }
 
 }  // namespace lightguy {
