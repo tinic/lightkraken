@@ -6,20 +6,241 @@
 	<meta content='Tinic Uro - http://github.com/tinic/' name=DC.creator />
 	<meta content=en name=DC.language />
 	<meta content='width=device-width,initial-scale=1' name=viewport />
-	<link href=style.css rel=stylesheet />
 	<script src="vue.js"></script>
 </head>
 <body>
+<style>
+span.left {
+    clear:left;
+    float:left;
+    width:20%;
+    min-width:120px;
+    max-width:300px;
+    margin:0 0 .6em;
+    padding:0;
+    text-align:right;
+}
+span.right {
+    overflow:auto;
+    margin:0 0 .6em .4em;
+    padding-left:.6em;
+    text-align:left
+}
+</style>
 <div id="app">
-  {{ message }}
+<div v-if="page==0">
+	<form id="app" @submit="checkForm" action="" method="post" novalidate="true">
+	<p>
+		<h3>Interface settings</h3>
+		<span class="left"><input type="checkbox" id="broadcast" v-model="broadcast"></span><span class="right"><label style="float:left" for="broadcast">Allow DMX broadcast</label></span><br><br>
+		<span class="left"><input type="checkbox" id="usedhcp" v-model="usedhcp"></span><span class="right"><label style="float:left" for="usedhcp">Use DHCP</label></span><br><br>
+		<p v-if="usedhcp==false">
+			<span class="left">IPv4 Address</span><span class="right"><input v-model="ip4address" type="text"></span><br><br>
+			<span class="left">IPv4 Netmask</span><span class="right"><input v-model="ip4netmask" type="text"></span><br><br>
+			<span class="left">IPv4 Gateway</span><span class="right"><input v-model="ip4gateway" type="text"></span><br><br>
+		</p>
+		<h3>Output settings</h3>
+		<p>
+			<span>Output Mode</span>
+			<select v-model="mainMode">
+			  <option v-for="mode in mainModes" v-bind:value="mode.value">{{ mode.text }}</option>
+			</select>
+		</p>
+		<p>Terminal A</p>
+		<p v-if="mainMode==0 || mainMode==1">
+			<span class="left">LED type</span>
+			<span class="right">
+				<select v-model="strips[0].type">
+				  	<option v-for="type in stripTypes" v-bind:value="type.value">{{ type.text }}</option>
+				</select>
+			</span>
+			<br><br>
+			<span class="left">Number of LEDs</span>
+			<span class="right">
+				<strip-length-item v-bind:strip="strips[0]"></strip-length-item>
+			</span>
+			<br><br>
+			<span class="left">Universes</span>
+			<span class="right">
+				<universe-item v-for="item in universes.slice(0,6)" v-bind:universe="item" v-bind:key="item.id"></universe-item>
+			</span>
+			<br><br>
+		</p>
+		<span v-if="mainMode==0 || mainMode==1">{{ pinsSchematic[stripTypes[strips[0].type].schematic].text }}</span>
+		<span v-if="mainMode==2">{{ pinsSchematic[2].text }}</span>
+		<span v-if="mainMode==3">{{ pinsSchematic[3].text }}</span>
+		<span v-if="mainMode==4">{{ pinsSchematic[4].text }}</span>
+		<p>Terminal B</p>
+		<p v-if="mainMode==0">
+			<span class="left">LED type</span>
+			<span class="right">
+				<select v-model="strips[1].type">
+				  <option v-for="type in stripTypes" v-bind:value="type.value">{{ type.text }}</option>
+				</select>
+			</span>
+			<br><br>
+			<span class="left">Number of LEDs</span>
+			<span class="right">
+				<strip-length-item v-bind:strip="strips[0]"></strip-length-item>
+			</span>
+			<br><br>
+			<span class="left">Universes</span>
+			<span class="right">
+				<universe-item v-for="item in universes.slice(6,12)" v-bind:universe="item" v-bind:key="item.id"></universe-item>
+			</span>
+			<br><br>
+		</p>
+		<span v-if="mainMode==0">{{ pinsSchematic[stripTypes[strips[1].type].schematic].text }}</span>
+		<span v-if="mainMode>=1">{{ pinsSchematic[2].text }}</span>
+	</p>
+	<p v-if="errors.length">
+		<b>Please correct the following error(s):</b>vue
+		<ul>
+			<li v-for="error in errors">{{ error }}</li>
+		</ul>
+	</p>
+	<p>
+		<input type="submit" value="Save">
+	</p>
+	</form>
+</div>
 </div>
 <script>
+
+function validateIPv4(address)  {
+ 	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(address)) {
+    	return (true)
+    }
+    return false;
+}
+
+Vue.component('strip-length-item', {
+	props: ['strip'],
+	template: '<input v-model=strip.length type="number">',
+})
+
+Vue.component('universe-item', {
+	props: ['universe'],
+	template: '<input v-if="universe.visible==true" v-model=universe.universe type="number">'
+})
+
 var app = new Vue({
-  el: '#app',
-  data: {
-    message: 'Hello Vue!'
+  	el: '#app',
+  	data: {
+  		page: 0,
+    	errors: [],
+
+    	usedhcp: false,
+    	broadcast: true,
+    	
+    	ip4address: '192.168.1.2',
+    	ip4netmask: '255.255.255.0',
+    	ip4gateway: '192.168.1.1',
+    	
+    	universes: [
+    		{ id:  0, universe :  0, visible : true },
+    		{ id:  1, universe :  1, visible : true },
+    		{ id:  2, universe :  2, visible : true },
+    		{ id:  3, universe :  3, visible : true },
+    		{ id:  4, universe :  4, visible : true },
+    		{ id:  5, universe :  5, visible : true },
+    		{ id:  6, universe :  6, visible : true },
+    		{ id:  7, universe :  7, visible : true },
+    		{ id:  8, universe :  8, visible : true },
+    		{ id:  9, universe :  9, visible : true },
+    		{ id: 10, universe : 10, visible : true },
+    		{ id: 11, universe : 11, visible : true },
+    	],
+
+    	rgb_universes: [
+    		{ universe: 0, startIndex: 0 },
+    		{ universe: 0, startIndex: 3 },
+    	],
+    	
+    	mainMode: 0,
+    	mainModes: [ 
+    		{ text: '2 x Programmable Strip', value : 0 },
+    		{ text: '1 x Programmable Strip +  1 x Single Color RGB', value : 1 },
+    		{ text: '2 x Single Color RGB', value : 2 },
+    		{ text: '1 x Single Color RGB+W LED', value : 3 },
+    		{ text: '1 x Single Color RGB+W+W LED', value : 4 },
+    	],
+    	
+		strips: [
+    		{ type: 0, length: 512, uindex: 0 },
+    		{ type: 0, length: 512, uindex: 6 }
+    	],
+
+    	stripTypes: [
+    		{ text: 'WS2812 (RGB)', value : 0, schematic : 0, components: 3 },
+    		{ text: 'SK6812 (RGB)', value : 1, schematic : 0, components: 3  },
+    		{ text: 'TM1804 (RGB)', value : 2, schematic : 0, components: 3  },
+    		{ text: 'UCS1904 (RGB)', value : 3, schematic : 0, components: 3  },
+    		{ text: 'GS8208 (RGB)', value : 4, schematic : 0, components: 3  },
+    		{ text: 'SK6812 (RGBW)', value : 5, schematic : 0, components: 4  },
+    		{ text: 'APA102 (RGB)', value : 6, schematic : 1, components: 3  },
+    		{ text: 'APA107 (RGB)', value : 7, schematic : 1, components: 3  },
+    		{ text: 'P9813 (RGB)', value : 8, schematic : 1, components: 3  },
+    		{ text: 'SK9822 (RGB)', value : 9, schematic : 1, components: 3  },
+    		{ text: 'HDS107S (RGB)', value : 10, schematic : 1, components: 3  },
+    		{ text: 'LPD8806 (RGB)', value : 11, schematic : 0, components: 3  },
+    		{ text: 'TLS3001 (RGB)', value : 12, schematic : 0, components: 3  },
+    		{ text: 'TM1829 (RGB)', value : 13, schematic : 0, components: 3  }
+    	],
+
+    	pinsSchematic: [
+    		{ text: '0: Power, 1: Data, 3: Ground', image : '' },
+    		{ text: '0: Power, 1: Data, 2: Clock, 3: Ground', image : '' },
+    		{ text: '0: Power, 1: Red, 2: Green, 3: Blue', image : '' }, 
+    		{ text: '0: Power, 3: White', image : '' }, 
+    		{ text: '0: Power, 2: White A, 3: White B', image : '' },
+    	],
+
+  	},
+	watch: {
+ 		strips: {
+ 			handler: function(newValue) {
+ 				for (strip in newValue) {
+ 					var ledsPerUniverse = parseInt(512 / this.stripTypes[newValue[strip].type].components);
+ 					var length = newValue[strip].length == 0 ? 1 : newValue[strip].length;
+					for (var i = 0; i < 6; i++) {
+						this.universes[newValue[strip].uindex + i].visible = (i * ledsPerUniverse) < length ? true : false;
+					}
+				}
+ 			},
+			deep: true
+ 		}
+	},
+  	methods:{
+    universesForLEDs: function(strip) {
+		var ledsPerUniverse = parseInt(512 / this.stripTypes[newValue[strip].type].components);
+		return parseInt(newValue[strip].length / ledsPerUniverse);
+    },  	
+	checkForm: function (e) {
+      	this.errors = [];
+      	switch(page) {
+      	case 0: {
+		  	if (!this.usedhcp) {
+			  	if (!validateIPv4(this.ip4address)) {
+					this.errors.push('Invalid IP4 address!');
+			  	}
+			  	if (!validateIPv4(this.ip4netmask)) {
+					this.errors.push('Invalid IP4 netmask!');
+			  	}
+			  	if (!validateIPv4(this.ip4gateway)) {
+					this.errors.push('Invalid IP4 gateway!');
+			  	}
+		  	} 
+		} break;
+	  	}
+      	if (!this.errors.length) {
+        	return true;
+      	}
+      	e.preventDefault();
+    }
   }
 })
+
 </script>
 </body>
 </html>
