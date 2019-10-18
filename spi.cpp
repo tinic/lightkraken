@@ -81,11 +81,10 @@ void SPI_0::dma_setup(const uint8_t *buf, size_t len) {
 }
 
 void SPI_0::init() {
-    rcu_periph_clock_enable(RCU_GPIOC);
+    rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_AF);
-    rcu_periph_clock_enable(RCU_SPI2);
+    rcu_periph_clock_enable(RCU_SPI0);
     rcu_periph_clock_enable(RCU_DMA0);
-    rcu_periph_clock_enable(RCU_DMA1);
 
     gpio_pin_remap_config(GPIO_SPI0_REMAP, ENABLE);
     gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_5 | GPIO_PIN_3);
@@ -168,7 +167,6 @@ void SPI_2::init() {
     rcu_periph_clock_enable(RCU_GPIOC);
     rcu_periph_clock_enable(RCU_AF);
     rcu_periph_clock_enable(RCU_SPI2);
-    rcu_periph_clock_enable(RCU_DMA0);
     rcu_periph_clock_enable(RCU_DMA1);
 
     gpio_pin_remap_config(GPIO_SPI2_REMAP, ENABLE);

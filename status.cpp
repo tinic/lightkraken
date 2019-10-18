@@ -26,7 +26,7 @@ void StatusLED::init() {
     gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_3);
     gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_5);
     gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_4);
-    gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
+    gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
 }
 
 void StatusLED::update() {
@@ -48,28 +48,31 @@ void StatusLED::update() {
                             (( bt_state)?0x0:0x1));
     }
     if (power_class != pclass) {
-      power_class = pclass;
-      switch(pclass) {
-          default:
-          setUserLED(0x00, 0x00, 0xff);
-          break;
-          case PSE_TYPE_3_4_CLASS_0_3:
-          case PSE_TYPE_1_2_CLASS_0_3:
-          printf("POE Power Class 0-3 (0-12.5W)\n");
-          setUserLED(0x1f, 0x0f, 0x00);
-          break;
-          case PSE_TYPE_3_4_CLASS_4:
-          case PSE_TYPE_2_CLASS_4:
-          printf("POE Power Class 4 (0-25.5W)\n");
-          setUserLED(0x1f, 0x1f, 0x00);
-          break;
-          case PSE_TYPE_3_4_CLASS_5_6:
-          case PSE_TYPE_4_CLASS_7_8:
-          printf("POE Power Class 5-8 (0-71.3W)\n");
-          setUserLED(0x00, 0x1f, 0x00);
-          break;
-      }
-   }
+        power_class = pclass;
+        switch(power_class) {
+        default:
+            setUserLED(0x00, 0x00, 0xff);
+            break;
+        case PSE_TYPE_3_4_CLASS_0_3:
+        case PSE_TYPE_1_2_CLASS_0_3:
+            printf("POE Power Class 0-3 (0-12.5W)\n");
+            setUserLED(0x1f, 0x0f, 0x00);
+            break;
+        case PSE_TYPE_3_4_CLASS_4:
+        case PSE_TYPE_2_CLASS_4:
+            printf("POE Power Class 4 (0-25W)\n");
+            setUserLED(0x1f, 0x1f, 0x00);
+            break;
+        case PSE_TYPE_3_4_CLASS_5_6:
+            printf("POE Power Class 5-6 (0-50W)\n");
+            setUserLED(0x0f, 0x1f, 0x00);
+            break;
+        case PSE_TYPE_4_CLASS_7_8:
+            printf("POE Power Class 7-8 (0-70W)\n");
+            setUserLED(0x00, 0x1f, 0x00);
+            break;
+        }
+    }
 }
 
 __attribute__ ((hot, optimize("O2")))
