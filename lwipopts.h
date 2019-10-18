@@ -135,6 +135,8 @@ OF SUCH DAMAGE.
 #define LWIP_HTTPD_DYNAMIC_FILE_READ 	1
 #define LWIP_NETIF_HOSTNAME 			1
 
+#define HTTPD_FSDATA_FILE "../fsdata.c"
+
 #ifdef CHECKSUM_BY_HARDWARE
     /* CHECKSUM_GEN_IP==0: generate checksums by hardware for outgoing IP packets.*/
     #define CHECKSUM_GEN_IP                 0
