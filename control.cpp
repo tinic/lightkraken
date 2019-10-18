@@ -104,14 +104,14 @@ void Control::init() {
 	}
 
 	lightguy::Strip::get(0).dmaTransferFunc = [](const uint8_t *data, size_t len) {
-		SPI_0::instance().dma_transfer(data, len);
+		SPI_2::instance().transfer(data, len);
 	};
 	lightguy::Strip::get(0).dmaBusyFunc = []() {
         return false;
 	};
 
 	lightguy::Strip::get(1).dmaTransferFunc = [](const uint8_t *data, size_t len) {
-		SPI_2::instance().dma_transfer(data, len);
+		SPI_0::instance().transfer(data, len);
 	};
 	lightguy::Strip::get(1).dmaBusyFunc = []() {
         return false;

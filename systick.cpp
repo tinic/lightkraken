@@ -27,9 +27,9 @@ Systick &Systick::instance() {
 }
 
 void Systick::handler() {
-	static int32_t status_led = 0;
-	if ((status_led++ & 0xFF) == 0) {
-		lightguy::StatusLED::instance().update();
+	static uint32_t status_led = 0;
+	if ((status_led++ & 0xF) == 0x0) {
+		lightguy::StatusLED::instance().schedule();
 	}
     system_time++;
 }
@@ -38,7 +38,8 @@ void Systick::init() {
     systick_clksource_set(SYSTICK_CLKSOURCE_HCLK);
     SysTick_Config(rcu_clock_freq_get(CK_AHB) / 1000); 
 
-    printf("SysTick up.");
+    printf("SysTick up.\n");
+    
 }
 
 }

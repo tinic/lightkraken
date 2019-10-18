@@ -18,10 +18,16 @@ int __io_putchar(int ch){
 }
 
 int _write(int, char *ptr, int len) {
+  
+    __disable_irq();
+  
     int DataIdx;
     for (DataIdx = 0; DataIdx < len; DataIdx++) {
         __io_putchar(*ptr++);
     }
+
+    __enable_irq();
+
     return len;
 }
 
@@ -42,6 +48,9 @@ void UART::transmit(int ch) {
 }
 
 void UART::init() {
+
+  __disable_irq();
+
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_USART0);
 
@@ -56,8 +65,9 @@ void UART::init() {
     usart_transmit_config(USART0, USART_TRANSMIT_ENABLE);
 
     usart_enable(USART0);
+
+    __enable_irq();
     
-    printf("System start: UART0 running.\n");
 }
 
 }  // namespace lightguy {

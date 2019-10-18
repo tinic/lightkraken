@@ -30,10 +30,15 @@ extern "C" {
 
 #include "./netconf.h"
 #include "./model.h"
+#include "./status.h"
+#include "./spi.h"
 
 int main() {
     while (1) {
     	 lightguy::NetConf::instance().update();
+         lightguy::StatusLED::instance().update();
+         lightguy::SPI_2::instance().update();
+         lightguy::SPI_0::instance().update();
     }
     return 0;
 }

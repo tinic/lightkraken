@@ -4,6 +4,13 @@
  *  Created on: Sep 17, 2019
  *      Author: Tinic Uro
  */
+
+#include <stdio.h>
+
+extern "C" {
+#include "gd32f10x.h"
+}
+
 #include "./driver.h"
 
 static const uint16_t cie_lookup[256] = {
@@ -193,6 +200,22 @@ void Driver::setPulse(size_t idx, uint16_t pulse) {
 }
 
 void Driver::init() {
+    rcu_periph_clock_enable(RCU_GPIOA);
+    rcu_periph_clock_enable(RCU_GPIOB);
+    rcu_periph_clock_enable(RCU_GPIOC);
+
+    gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0 | GPIO_PIN_10);
+    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7 | GPIO_PIN_8 | GPIO_PIN_9);
+    gpio_init(GPIOC, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
+    
+    gpio_bit_set(GPIOA, GPIO_PIN_0);
+    gpio_bit_set(GPIOA, GPIO_PIN_10);
+    gpio_bit_set(GPIOB, GPIO_PIN_7);
+    gpio_bit_set(GPIOB, GPIO_PIN_8);
+    gpio_bit_set(GPIOB, GPIO_PIN_9);
+    gpio_bit_set(GPIOC, GPIO_PIN_7);
+    
+    printf("Driver up.\n");
 }
 
 }
