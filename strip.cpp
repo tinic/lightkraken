@@ -459,17 +459,18 @@ namespace lightguy {
 	__attribute__ ((hot, optimize("O2")))
 	void Strip::ws2812_alike_convert(size_t start, size_t end) {
 		uint32_t *dst = (uint32_t *)(spi_buf + start * 4);
-		// convert pixel data
-		size_t lim = std::min(end, comp_len - 1);
-		for (size_t c = start; c <= lim; c++) {
+		size_t head_len = compLatchLen / 2;
+		for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
+			*dst++ = 0x00;
+		}
+		for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, comp_len - 1 + 1); c ++) {
 			uint32_t p = uint32_t(comp_buf[c]);
 			*dst++ = 0x88888888UL |
 					 (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
 					 (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
 		}
-		// latch bits
-		for (size_t c = comp_len; c <= end; c++) {
-			*dst++ = 0;
+		for (size_t c = std::max(start, comp_len); c <= end; c++) {
+			*dst++ = 0x00;
 		}
 	}
 

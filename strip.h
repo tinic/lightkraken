@@ -39,7 +39,7 @@ namespace lightguy {
 
 		static constexpr size_t dmxMaxLen = 512;
 		static constexpr size_t compMaxLen = (dmxMaxLen*lightguy::Model::universeN);
-		static constexpr size_t compLatchLen = 32;
+		static constexpr size_t compLatchLen = 64;
 		static constexpr size_t spiMaxLen = (compMaxLen+compLatchLen)*sizeof(uint32_t);
 		static constexpr size_t burstHeadLen = 64;
 
