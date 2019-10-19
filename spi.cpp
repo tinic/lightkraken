@@ -18,7 +18,6 @@ SPI_0 &SPI_0::instance() {
 }
 
 void SPI_0::transfer(const uint8_t *buf, size_t len) {
-  
     if (active) {
         if(!dma_flag_get(DMA0, DMA_CH2, DMA_FLAG_FTF) ||
             dma_transfer_number_get(DMA0, DMA_CH2)) {
@@ -86,7 +85,9 @@ void SPI_0::init() {
     rcu_periph_clock_enable(RCU_SPI0);
     rcu_periph_clock_enable(RCU_DMA0);
 
+    gpio_pin_remap_config(GPIO_SWJ_SWDPENABLE_REMAP, ENABLE);
     gpio_pin_remap_config(GPIO_SPI0_REMAP, ENABLE);
+    
     gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_5 | GPIO_PIN_3);
 }
 

@@ -18,7 +18,7 @@ namespace lightguy {
 class Model {
 public:
 	static constexpr size_t stripN = 2;
-	static constexpr size_t universeN = 6;
+	static constexpr size_t universeN = 4;
 
 	enum OutputConfig {
 		OUTPUT_CONFIG_DUAL_STRIP, 	// channel0: strip 	channel1: strip
