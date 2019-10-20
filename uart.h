@@ -5,13 +5,13 @@ namespace lightguy {
 
 class UART {
 public:
-	static UART &instance();
+    static UART &instance();
 
-	void transmit(int ch);
+    void transmit(int ch);
 
 private:
-	bool initialized = false;
-	void init();
+    bool initialized = false;
+    void init();
 };
 
 }

@@ -9,12 +9,12 @@ extern "C" {
 namespace lightguy {
 
 SPI_0 &SPI_0::instance() {
-	static SPI_0 spi0;
-	if (!spi0.initialized) {
-		spi0.initialized = true;
-		spi0.init();
-	}
-	return spi0;
+    static SPI_0 spi0;
+    if (!spi0.initialized) {
+        spi0.initialized = true;
+        spi0.init();
+    }
+    return spi0;
 }
 
 void SPI_0::transfer(const uint8_t *buf, size_t len) {
@@ -28,13 +28,13 @@ void SPI_0::transfer(const uint8_t *buf, size_t len) {
 
     dma_channel_disable(DMA0, DMA_CH2);
     active = false;
-  
+
     if (cbuf != buf || clen != len) {
         cbuf = buf;
         clen = len;
         dma_setup(buf, len);
     }
-  
+
     dma_channel_enable(DMA0, DMA_CH2);
     active = true;
 }
@@ -92,12 +92,12 @@ void SPI_0::init() {
 }
 
 SPI_2 &SPI_2::instance() {
-	static SPI_2 spi2;
-	if (!spi2.initialized) {
-		spi2.initialized = true;
-		spi2.init();
-	}
-	return spi2;
+    static SPI_2 spi2;
+    if (!spi2.initialized) {
+        spi2.initialized = true;
+        spi2.init();
+    }
+    return spi2;
 }
 
 void SPI_2::transfer(const uint8_t *buf, size_t len) {
@@ -112,13 +112,13 @@ void SPI_2::transfer(const uint8_t *buf, size_t len) {
     
     dma_channel_disable(DMA1, DMA_CH1);
     active = false;
-  
+
     if (cbuf != buf || clen != len) {
         cbuf = buf;
         clen = len;
         dma_setup(buf, len);
     }
-  
+
     dma_channel_enable(DMA1, DMA_CH1);
     active = true;
 

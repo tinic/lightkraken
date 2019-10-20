@@ -16,13 +16,13 @@
 are permitted provided that the following conditions are met:
 
     1. Redistributions of source code must retain the above copyright notice, this 
-       list of conditions and the following disclaimer.
+    list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright notice, 
-       this list of conditions and the following disclaimer in the documentation 
-       and/or other materials provided with the distribution.
+    this list of conditions and the following disclaimer in the documentation 
+    and/or other materials provided with the distribution.
     3. Neither the name of the copyright holder nor the names of its contributors 
-       may be used to endorse or promote products derived from this software without 
-       specific prior written permission.
+    may be used to endorse or promote products derived from this software without 
+    specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
@@ -66,20 +66,20 @@ extern "C" {
 namespace lightguy {
 
 NetConf &NetConf::instance() {
-	static NetConf netconf;
-	if (!netconf.initialized) {
-		netconf.initialized = true;
-		netconf.init();
-	}
-	return netconf;
+    static NetConf netconf;
+    if (!netconf.initialized) {
+        netconf.initialized = true;
+        netconf.init();
+    }
+    return netconf;
 }
 
 static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *, u16_t) {
-	struct pbuf *i = p;
-	for( ; i != NULL ; i = i->next) {
-		lightguy::ArtNetPacket::dispatch(reinterpret_cast<uint8_t *>(p->payload), p->len);
-	}
-	pbuf_free(p);
+    struct pbuf *i = p;
+    for( ; i != NULL ; i = i->next) {
+        lightguy::ArtNetPacket::dispatch(reinterpret_cast<uint8_t *>(p->payload), p->len);
+    }
+    pbuf_free(p);
 }
 
 void NetConf::init() {
@@ -92,15 +92,15 @@ void NetConf::init() {
 
 #if LWIP_DHCP
     if (lightguy::Model::instance().dhcpEnabled()) {
-      address.addr = 0;
-      netmask.addr = 0;
-      gateway.addr = 0;
+    address.addr = 0;
+    netmask.addr = 0;
+    gateway.addr = 0;
     } else 
 #endif  // #if LWIP_DHCP
     {
-	  address.addr = lightguy::Model::instance().ip4Address()->addr;
-	  netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
-	  gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
+    address.addr = lightguy::Model::instance().ip4Address()->addr;
+    netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
+    gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
     }
 
     netif_add(&netif, &address, &netmask, &gateway, NULL, &EthernetIf::ethernetif_init, &ethernet_input);
@@ -115,75 +115,75 @@ void NetConf::init() {
         printf("ENET link is down.\n");
     }
 
-   	static struct udp_pcb *upcb_artnet = 0;
-	upcb_artnet = udp_new();
-	if (udp_bind(upcb_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
-		udp_recv(upcb_artnet, udp_receive_artnet_callback, NULL);
-	} else {
-		udp_remove(upcb_artnet);
-		upcb_artnet = 0;
-	}
-	
-	httpd_init();
+    static struct udp_pcb *upcb_artnet = 0;
+    upcb_artnet = udp_new();
+    if (udp_bind(upcb_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
+        udp_recv(upcb_artnet, udp_receive_artnet_callback, NULL);
+    } else {
+        udp_remove(upcb_artnet);
+        upcb_artnet = 0;
+    }
+    
+    httpd_init();
 }
 
 void NetConf::update() {
 
-	uint32_t localtime = lightguy::Systick::instance().systemTime();
+    uint32_t localtime = lightguy::Systick::instance().systemTime();
 
     if (enet_rxframe_size_get()){
-	    EthernetIf::ethernetif_input(&netif);
-	}
+        EthernetIf::ethernetif_input(&netif);
+    }
 
     if (localtime - tcp_timer >= TCP_TMR_INTERVAL){
         tcp_timer =  localtime;
         tcp_tmr();
     }
-  
+
     if ((localtime - arp_timer) >= ARP_TMR_INTERVAL){ 
         arp_timer =  localtime;
         etharp_tmr();
     }
 
 #if LWIP_DHCP
-	const int32_t MAX_DHCP_TRIES = 4;
+    const int32_t MAX_DHCP_TRIES = 4;
 
     if (localtime - dhcp_fine_timer >= DHCP_FINE_TIMER_MSECS){
         dhcp_fine_timer =  localtime;
         dhcp_fine_tmr();
         if ((dhcp_state != DHCP_ADDRESS_ASSIGNED) && (dhcp_state != DHCP_TIMEOUT)){ 
-			struct dhcp *dhcp_client = netif_dhcp_data(&netif);
-			switch (dhcp_state){
-			case DHCP_START:
-				printf("DHCP start...\n");
-				dhcp_start(&netif);
-				dhcp_state = DHCP_WAIT_ADDRESS;
-				break;
-			case DHCP_WAIT_ADDRESS:
-				ip_addr_t address;
-				ip_address.addr = netif.ip_addr.addr;
-				if (ip_address.addr != 0){ 
-					printf("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address));
-					dhcp_state = DHCP_ADDRESS_ASSIGNED;
-				} else {
-					if (dhcp_client->tries > MAX_DHCP_TRIES){
-						dhcp_state = DHCP_TIMEOUT;
-						dhcp_stop(&netif);
-						printf("DHCP timeout.\n");
+            struct dhcp *dhcp_client = netif_dhcp_data(&netif);
+            switch (dhcp_state){
+            case DHCP_START:
+                printf("DHCP start...\n");
+                dhcp_start(&netif);
+                dhcp_state = DHCP_WAIT_ADDRESS;
+                break;
+            case DHCP_WAIT_ADDRESS:
+                ip_addr_t address;
+                ip_address.addr = netif.ip_addr.addr;
+                if (ip_address.addr != 0){ 
+                    printf("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address));
+                    dhcp_state = DHCP_ADDRESS_ASSIGNED;
+                } else {
+                    if (dhcp_client->tries > MAX_DHCP_TRIES){
+                        dhcp_state = DHCP_TIMEOUT;
+                        dhcp_stop(&netif);
+                        printf("DHCP timeout.\n");
 
-						ip_addr_t netmask;
-						ip_addr_t gateway;
-						address.addr = lightguy::Model::instance().ip4Address()->addr;
-						netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
-						gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
+                        ip_addr_t netmask;
+                        ip_addr_t gateway;
+                        address.addr = lightguy::Model::instance().ip4Address()->addr;
+                        netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
+                        gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
 
-						netif_set_addr(&netif, &address , &netmask, &gateway);
-					}
-				}
-				break;
-			default: 
-				break;
-			}
+                        netif_set_addr(&netif, &address , &netmask, &gateway);
+                    }
+                }
+                break;
+            default: 
+                break;
+            }
         }
     }
 

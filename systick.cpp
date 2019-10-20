@@ -12,25 +12,25 @@ void SysTick_Handler(void);
 #include "./status.h"
 
 void SysTick_Handler(void) {
-	lightguy::Systick::instance().handler();
+    lightguy::Systick::instance().handler();
 }
 
 namespace lightguy {
 
 Systick &Systick::instance() {
-	static Systick systick;
-	if (!systick.initialized) {
-		systick.initialized = true;
-		systick.init();
-	}
-	return systick;
+    static Systick systick;
+    if (!systick.initialized) {
+        systick.initialized = true;
+        systick.init();
+    }
+    return systick;
 }
 
 void Systick::handler() {
-	static uint32_t status_led = 0;
-	if ((status_led++ & 0xF) == 0x0) {
-		lightguy::StatusLED::instance().schedule();
-	}
+    static uint32_t status_led = 0;
+    if ((status_led++ & 0xF) == 0x0) {
+        lightguy::StatusLED::instance().schedule();
+    }
     system_time++;
 }
 

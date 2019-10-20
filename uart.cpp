@@ -13,14 +13,14 @@ int _write(int file, char *ptr, int len);
 #include "./uart.h"
 
 int __io_putchar(int ch){
-	lightguy::UART::instance().transmit(ch);
+    lightguy::UART::instance().transmit(ch);
     return(ch);
 }
 
 int _write(int, char *ptr, int len) {
-  
+
     __disable_irq();
-  
+
     int DataIdx;
     for (DataIdx = 0; DataIdx < len; DataIdx++) {
         __io_putchar(*ptr++);
@@ -34,12 +34,12 @@ int _write(int, char *ptr, int len) {
 namespace lightguy {
 
 UART &UART::instance() {
-	static UART uart;
-	if (!uart.initialized) {
-		uart.initialized = true;
-		uart.init();
-	}
-	return uart;
+    static UART uart;
+    if (!uart.initialized) {
+        uart.initialized = true;
+        uart.init();
+    }
+    return uart;
 }
 
 void UART::transmit(int ch) {
@@ -49,7 +49,7 @@ void UART::transmit(int ch) {
 
 void UART::init() {
 
-  __disable_irq();
+    __disable_irq();
 
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_USART0);

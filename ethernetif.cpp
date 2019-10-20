@@ -1,6 +1,6 @@
 /*
 Copyright 2019 Tinic Uro
- 
+
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
 "Software"), to deal in the Software without restriction, including
@@ -8,10 +8,10 @@ without limitation the rights to use, copy, modify, merge, publish,
 distribute, sublicense, and/or sell copies of the Software, and to
 permit persons to whom the Software is furnished to do so, subject to
 the following conditions:
-  
+
 The above copyright notice and this permission notice shall be included
 in all copies or substantial portions of the Software.
-  
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -39,25 +39,25 @@ const int32_t build_number =
 ;
 
 extern "C" {
-	extern enet_descriptors_struct rxdesc_tab[ENET_RXBUF_NUM];
-	extern enet_descriptors_struct txdesc_tab[ENET_TXBUF_NUM];
+    extern enet_descriptors_struct rxdesc_tab[ENET_RXBUF_NUM];
+    extern enet_descriptors_struct txdesc_tab[ENET_TXBUF_NUM];
 
-	extern uint8_t rx_buff[ENET_RXBUF_NUM][ENET_RXBUF_SIZE]; 
-	extern uint8_t tx_buff[ENET_TXBUF_NUM][ENET_TXBUF_SIZE]; 
+    extern uint8_t rx_buff[ENET_RXBUF_NUM][ENET_RXBUF_SIZE]; 
+    extern uint8_t tx_buff[ENET_TXBUF_NUM][ENET_TXBUF_SIZE]; 
 
-	extern enet_descriptors_struct  *dma_current_txdesc;
-	extern enet_descriptors_struct  *dma_current_rxdesc;
+    extern enet_descriptors_struct  *dma_current_txdesc;
+    extern enet_descriptors_struct  *dma_current_rxdesc;
 };
 
 namespace lightguy {
 
 EthernetIf &EthernetIf::instance() {
-	static EthernetIf ethernetif;
-	if (!ethernetif.initialized) {
-		ethernetif.initialized = true;
-		ethernetif.init();
-	}
-	return ethernetif;
+    static EthernetIf ethernetif;
+    if (!ethernetif.initialized) {
+        ethernetif.initialized = true;
+        ethernetif.init();
+    }
+    return ethernetif;
 }
 
 void EthernetIf::init() {
@@ -66,16 +66,16 @@ void EthernetIf::init() {
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
-  
+
     gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
 
     /* PB15: nRST, pull low*/
     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_15);    
     gpio_bit_reset(GPIOB, GPIO_PIN_15);
-  
+
     /* enable SYSCFG clock */
     rcu_periph_clock_enable(RCU_AF);
-  
+
     rcu_pll2_config(RCU_PLL2_MUL10);
     rcu_osci_on(RCU_PLL2_CK);
     rcu_osci_stab_wait(RCU_PLL2_CK);
@@ -163,9 +163,9 @@ void EthernetIf::low_level_init(struct netif *netif, uint32_t mac_addr) {
     enet_descriptors_chain_init(ENET_DMA_TX);
     enet_descriptors_chain_init(ENET_DMA_RX);
 
-	for(uint32_t i=0; i<ENET_RXBUF_NUM; i++){ 
-	   enet_desc_receive_complete_bit_enable(&rxdesc_tab[i]);
-	}
+    for(uint32_t i=0; i<ENET_RXBUF_NUM; i++){ 
+        enet_desc_receive_complete_bit_enable(&rxdesc_tab[i]);
+    }
 
 #ifdef CHECKSUM_BY_HARDWARE
     for(uint32_t i=0; i < ENET_TXBUF_NUM; i++){
@@ -177,7 +177,7 @@ void EthernetIf::low_level_init(struct netif *netif, uint32_t mac_addr) {
 }
 
 err_t EthernetIf::low_level_output(struct netif *netif, struct pbuf *p) {
-	(void)netif;
+    (void)netif;
     
     while((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_DAV)) { }  
     
@@ -196,19 +196,19 @@ err_t EthernetIf::low_level_output(struct netif *netif, struct pbuf *p) {
 
 struct pbuf *EthernetIf::low_level_input(struct netif *netif) {
     (void)netif;
-     
+    
     u16_t len = enet_desc_information_get(dma_current_rxdesc, RXDESC_FRAME_LENGTH);
     uint8_t *buffer = (uint8_t *)(enet_desc_information_get(dma_current_rxdesc, RXDESC_BUFFER_1_ADDR));
     
     struct pbuf *p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
     if (p != NULL){
-    	int32_t l = 0;
+        int32_t l = 0;
         for (struct pbuf *q = p; q != NULL; q = q->next){ 
             memcpy((uint8_t *)q->payload, (u8_t*)&buffer[l], q->len);
             l = l + q->len;
         }    
     }
-  
+
     ENET_NOCOPY_FRAME_RECEIVE();
 
     return p;
@@ -218,7 +218,7 @@ err_t EthernetIf::ethernetif_input(struct netif *netif) {
     struct pbuf *p = low_level_input(netif);
 
     if (p == NULL) {
-    	return ERR_MEM;
+        return ERR_MEM;
     }
 
     err_t err = netif->input(p, netif);
@@ -231,16 +231,16 @@ err_t EthernetIf::ethernetif_input(struct netif *netif) {
 }
 
 err_t EthernetIf::ethernetif_init(struct netif *netif) {
-  
-	uint32_t uid[3];
-	uid[0] = instance().get_uid0();
-	uid[1] = instance().get_uid1();
-	uid[2] = instance().get_uid2();
+
+    uint32_t uid[3];
+    uid[0] = instance().get_uid0();
+    uid[1] = instance().get_uid1();
+    uid[2] = instance().get_uid2();
     uint32_t mac_addr  = instance().murmur3_32(reinterpret_cast<uint8_t *>(&uid[0]), sizeof(uid), 0x66cf8031);
 
 #if LWIP_NETIF_HOSTNAME
-  	static char s_hostname[64];
-  	sprintf(s_hostname, "lightguy-%08x", int(mac_addr));
+    static char s_hostname[64];
+    sprintf(s_hostname, "lightguy-%08x", int(mac_addr));
 
     printf("Hostname is %s\n", s_hostname);
 
@@ -259,52 +259,52 @@ err_t EthernetIf::ethernetif_init(struct netif *netif) {
 }
 
 uint32_t EthernetIf::get_uid0() const { 
-	return *reinterpret_cast<uint32_t*>(0x1FFFF7E8); 
+    return *reinterpret_cast<uint32_t*>(0x1FFFF7E8); 
 }
 
 uint32_t EthernetIf::get_uid1() const { 
-	return *reinterpret_cast<uint32_t*>(0x1FFFF7EC); 
+    return *reinterpret_cast<uint32_t*>(0x1FFFF7EC); 
 }
 
 uint32_t EthernetIf::get_uid2() const  { 
-	return *reinterpret_cast<uint32_t*>(0x1FFFF7F0); 
+    return *reinterpret_cast<uint32_t*>(0x1FFFF7F0); 
 }
 
 uint32_t EthernetIf::murmur3_32(const uint8_t* key, size_t len, uint32_t seed) const {
-	uint32_t h = seed;
-	if (len > 3) {
-		size_t i = len >> 2;
-		do {
-			uint32_t k;
-			memcpy(&k, key, sizeof(uint32_t));
-			key += sizeof(uint32_t);
-			k *= 0xcc9e2d51;
-			k = (k << 15) | (k >> 17);
-			k *= 0x1b873593;
-			h ^= k;
-			h = (h << 13) | (h >> 19);
-			h = h * 5 + 0xe6546b64;
-		} while (--i);
-	}
-	if (len & 3) {
-		size_t i = len & 3;
-		uint32_t k = 0;
-		do {
-			k <<= 8;
-			k |= key[i - 1];
-		} while (--i);
-		k *= 0xcc9e2d51;
-		k = (k << 15) | (k >> 17);
-		k *= 0x1b873593;
-		h ^= k;
-	}
-	h ^= len;
-	h ^= h >> 16;
-	h *= 0x85ebca6b;
-	h ^= h >> 13;
-	h *= 0xc2b2ae35;
-	h ^= h >> 16;
-	return h;
+    uint32_t h = seed;
+    if (len > 3) {
+        size_t i = len >> 2;
+        do {
+            uint32_t k;
+            memcpy(&k, key, sizeof(uint32_t));
+            key += sizeof(uint32_t);
+            k *= 0xcc9e2d51;
+            k = (k << 15) | (k >> 17);
+            k *= 0x1b873593;
+            h ^= k;
+            h = (h << 13) | (h >> 19);
+            h = h * 5 + 0xe6546b64;
+        } while (--i);
+    }
+    if (len & 3) {
+        size_t i = len & 3;
+        uint32_t k = 0;
+        do {
+            k <<= 8;
+            k |= key[i - 1];
+        } while (--i);
+        k *= 0xcc9e2d51;
+        k = (k << 15) | (k >> 17);
+        k *= 0x1b873593;
+        h ^= k;
+    }
+    h ^= len;
+    h ^= h >> 16;
+    h *= 0x85ebca6b;
+    h ^= h >> 13;
+    h *= 0xc2b2ae35;
+    h ^= h >> 16;
+    return h;
 }
 
 }

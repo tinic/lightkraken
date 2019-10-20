@@ -9,12 +9,12 @@ extern "C" {
 namespace lightguy {
 
 StatusLED &StatusLED::instance() {
-	static StatusLED status_led;
-	if (!status_led.initialized) {
-		status_led.initialized = true;
-		status_led.init();
-	}
-	return status_led;
+    static StatusLED status_led;
+    if (!status_led.initialized) {
+        status_led.initialized = true;
+        status_led.init();
+    }
+    return status_led;
 }
 
 void StatusLED::init() {
@@ -36,14 +36,14 @@ void StatusLED::update() {
     }
     
     scheduled = false;
-  
-	readPowerState();
- 
+
+    readPowerState();
+
     PowerClass pclass = PSE_TYPE_INVALID;
-	if (!powergood_state) {
-      pclass = PSE_TYPE_POWER_BAD;
+    if (!powergood_state) {
+    pclass = PSE_TYPE_POWER_BAD;
     } else {
-      pclass = (PowerClass)(((tph_state)?0x4:0x0)|
+    pclass = (PowerClass)(((tph_state)?0x4:0x0)|
                             ((tpl_state)?0x2:0x0)|
                             (( bt_state)?0x0:0x1));
     }
@@ -77,14 +77,14 @@ void StatusLED::update() {
 
 __attribute__ ((hot, optimize("O2")))
 void StatusLED::setUserLED(uint8_t r, uint8_t g, uint8_t b) {
-  
+
     __disable_irq();
     
-	uint32_t bits = (uint32_t(g)<<16) | (uint32_t(r)<<8) | uint32_t(b);
-	for (int32_t d=23; d>=0; d--) {
+    uint32_t bits = (uint32_t(g)<<16) | (uint32_t(r)<<8) | uint32_t(b);
+    for (int32_t d=23; d>=0; d--) {
 #define SET GPIO_BOP(GPIOB) = GPIO_PIN_6;
 #define RST GPIO_BC(GPIOB) = GPIO_PIN_6;
-      if ((1UL<<d) & bits) {
+    if ((1UL<<d) & bits) {
             // one
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
@@ -109,8 +109,8 @@ void StatusLED::setUserLED(uint8_t r, uint8_t g, uint8_t b) {
             RST; RST; RST; RST;
             RST; RST; RST; RST;
             RST; RST; RST; RST;
-		} else {
-			// zero
+        } else {
+            // zero
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
             SET; SET; SET; SET; 
@@ -135,18 +135,18 @@ void StatusLED::setUserLED(uint8_t r, uint8_t g, uint8_t b) {
             RST; RST; RST; RST;
             RST; RST; RST; RST;
         }
-	}
-	
+    }
+    
     GPIO_BC(GPIOB) = GPIO_PIN_6;
 
     __enable_irq();
 }
 
 void StatusLED::readPowerState() {
-	bt_state = gpio_input_bit_get(GPIOA, GPIO_PIN_3) == RESET ? false : true;
-	tpl_state = gpio_input_bit_get(GPIOA, GPIO_PIN_5) == RESET ? false : true;
-	tph_state = gpio_input_bit_get(GPIOA, GPIO_PIN_4) == RESET ? false : true;
-	powergood_state = gpio_input_bit_get(GPIOB, GPIO_PIN_0) == RESET ? false : true;
+    bt_state = gpio_input_bit_get(GPIOA, GPIO_PIN_3) == RESET ? false : true;
+    tpl_state = gpio_input_bit_get(GPIOA, GPIO_PIN_5) == RESET ? false : true;
+    tph_state = gpio_input_bit_get(GPIOA, GPIO_PIN_4) == RESET ? false : true;
+    powergood_state = gpio_input_bit_get(GPIOB, GPIO_PIN_0) == RESET ? false : true;
 }
 
 }  // namespace lightguy {

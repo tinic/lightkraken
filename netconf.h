@@ -17,31 +17,31 @@ class NetConf {
 
 public:
 
-	static NetConf &instance();
+    static NetConf &instance();
 
-	void update();
+    void update();
 
 private:
 
-	typedef enum 
-	{ 
-		DHCP_START=0,
-		DHCP_WAIT_ADDRESS,
-		DHCP_ADDRESS_ASSIGNED,
-		DHCP_TIMEOUT
-	} dhcp_state_enum;
+    typedef enum 
+    { 
+        DHCP_START=0,
+        DHCP_WAIT_ADDRESS,
+        DHCP_ADDRESS_ASSIGNED,
+        DHCP_TIMEOUT
+    } dhcp_state_enum;
 
-	bool initialized = false;
-	void init();
+    bool initialized = false;
+    void init();
 
-	uint32_t dhcp_fine_timer = 0;
-	uint32_t dhcp_coarse_timer = 0;
-	dhcp_state_enum dhcp_state = DHCP_START;
+    uint32_t dhcp_fine_timer = 0;
+    uint32_t dhcp_coarse_timer = 0;
+    dhcp_state_enum dhcp_state = DHCP_START;
 
-	struct netif netif;
-	uint32_t tcp_timer = 0;
-	uint32_t arp_timer = 0;
-	ip_addr_t ip_address = {0};
+    struct netif netif;
+    uint32_t tcp_timer = 0;
+    uint32_t arp_timer = 0;
+    ip_addr_t ip_address = {0};
 };
 
 };

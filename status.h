@@ -7,7 +7,7 @@ class StatusLED {
 
 public:
 
-	static StatusLED &instance();
+    static StatusLED &instance();
 
     void update();
     void schedule() { scheduled = true; }
@@ -27,16 +27,16 @@ public:
     PowerClass powerClass() const { return power_class; }
     
 private:
-	bool initialized = false;
-	void init();
+    bool initialized = false;
+    void init();
 
     void readPowerState();
-	void setUserLED(uint8_t r, uint8_t g, uint8_t b);
+    void setUserLED(uint8_t r, uint8_t g, uint8_t b);
 
-  	bool bt_state = false;
-	bool tpl_state = false;
-	bool tph_state = false;
-	bool powergood_state = false;
+    bool bt_state = false;
+    bool tpl_state = false;
+    bool tph_state = false;
+    bool powergood_state = false;
     bool scheduled = false;
     PowerClass power_class = PSE_TYPE_INVALID;
 

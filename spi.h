@@ -5,36 +5,36 @@ namespace lightguy {
 
 class SPI_0 {
 public:
-	static SPI_0 &instance();
+    static SPI_0 &instance();
 
-	void transfer(const uint8_t *buf, size_t len);
+    void transfer(const uint8_t *buf, size_t len);
     void update();
 
 private:
-	bool initialized = false;
-	void init();
+    bool initialized = false;
+    void init();
 
     void dma_setup(const uint8_t *buf, size_t len);
-	const uint8_t *cbuf = 0;
-	size_t clen = 0;
+    const uint8_t *cbuf = 0;
+    size_t clen = 0;
     bool active = false;
     bool scheduled = false;
 };
 
 class SPI_2 {
 public:
-	static SPI_2 &instance();
+    static SPI_2 &instance();
 
-	void transfer(const uint8_t *buf, size_t len);
+    void transfer(const uint8_t *buf, size_t len);
     void update();
 
 private:
     bool initialized = false;
-	void init();
+    void init();
 
     void dma_setup(const uint8_t *buf, size_t len);
-	const uint8_t *cbuf = 0;
-	size_t clen = 0;
+    const uint8_t *cbuf = 0;
+    size_t clen = 0;
     bool active = false;
     bool scheduled = false;
 };
