@@ -18,6 +18,10 @@ SPI_0 &SPI_0::instance() {
 }
 
 void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
+
+    gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
+    gpio_bit_set(GPIOA, GPIO_PIN_10);
+    
     if (active) {
         if(!dma_flag_get(DMA0, DMA_CH2, DMA_FLAG_FTF) ||
             dma_transfer_number_get(DMA0, DMA_CH2)) {
@@ -108,6 +112,11 @@ SPI_2 &SPI_2::instance() {
 }
 
 void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
+    
+    printf("SPI2\n");
+
+    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
+    gpio_bit_set(GPIOB, GPIO_PIN_8);
 
     if (active) {
         if(!dma_flag_get(DMA1, DMA_CH1, DMA_FLAG_FTF) ||

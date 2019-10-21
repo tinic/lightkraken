@@ -79,7 +79,7 @@ void Model::init() {
     glob_illum = 0x1F;
     glob_comp_lim = 0xFF;
 
-    output_config = OUTPUT_CONFIG_RGB_STRIP;
+    output_config = OUTPUT_CONFIG_DUAL_STRIP;
 
     burst_mode = false;
 
