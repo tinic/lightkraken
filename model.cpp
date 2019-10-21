@@ -75,6 +75,7 @@ void Model::init() {
 
     ip_dhcp = true;
 
+    glob_pwmlimit = 1.0f;
     glob_illum = 0x1F;
     glob_comp_lim = 0xFF;
 

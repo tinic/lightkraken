@@ -77,6 +77,8 @@ public:
     void setRGB8CIE(size_t terminal, const rgb8 &rgb);
 
 private:
+    void maybeUpdateCIE();
+    
     void setPulse(size_t idx, uint16_t pulse);
 
     bool initialized = false;
@@ -84,6 +86,7 @@ private:
     
     rgb8 _rgb8[terminalN];
     uint16_t cie_lookup[256];
+    float pwm_limit = 0.0f;
 };
 
 };

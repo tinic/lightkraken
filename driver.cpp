@@ -28,6 +28,9 @@ Driver &Driver::instance() {
 }
 
 void Driver::setRGB8CIE(size_t terminal, const rgb8 &rgb) {
+
+    maybeUpdateCIE();
+
     terminal %= terminalN;
     _rgb8[terminal] = rgb;
     switch(Model::instance().outputConfig()) {
@@ -101,13 +104,19 @@ void Driver::setPulse(size_t idx, uint16_t pulse) {
     }
 }
 
-void Driver::init() {
-    
-    for (size_t c = 0; c<256; c++) {
-        float f = float(c) * (1.0f / 255.0f);
-        float v = (f > 0.08f) ? powf( (f + 0.160f) / 1.160f, 3.0f) : (f / 9.03296296296296296294f);
-        cie_lookup[c] = uint16_t(v * float(PwmTimer::pwmPeriod));
+void Driver::maybeUpdateCIE() {
+    if (Model::instance().globPWMLimit() != pwm_limit) {
+        pwm_limit = Model::instance().globPWMLimit();
+        for (size_t c = 0; c<256; c++) {
+            float f = float(c) * (1.0f / 255.0f);
+            float v = (f > 0.08f) ? powf( (f + 0.160f) / 1.160f, 3.0f) : (f / 9.03296296296296296294f);
+            cie_lookup[c] = uint16_t(v * float(PwmTimer::pwmPeriod) * pwm_limit);
+        }
     }
+}
+
+void Driver::init() {
+    maybeUpdateCIE();
     
     PwmTimer0::instance().setPulse(0x0);
     PwmTimer1::instance().setPulse(0x0);

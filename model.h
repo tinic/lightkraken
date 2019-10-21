@@ -33,6 +33,8 @@ public:
     static Model &instance();
 
     bool burstMode() const { return burst_mode; }
+    
+    float globPWMLimit() const { return glob_pwmlimit; }
 
     uint8_t globIllum() const { return glob_illum; }
     uint8_t globCompLimit() const { return glob_comp_lim; }
@@ -75,6 +77,7 @@ private:
 
     OutputConfig output_config;
     bool burst_mode;
+    float glob_pwmlimit;
     uint8_t glob_illum;
     uint8_t glob_comp_lim;
     uint32_t strip_type[stripN];
