@@ -8,6 +8,7 @@ void SysTick_Handler(void);
 
 }; //extern "C" {
 
+#include "./main.h"
 #include "./systick.h"
 #include "./status.h"
 
@@ -37,11 +38,8 @@ void Systick::handler() {
 void Systick::init() {
     systick_clksource_set(SYSTICK_CLKSOURCE_HCLK);
     SysTick_Config(rcu_clock_freq_get(CK_AHB) / 1000); 
-
-#ifndef BOOTLOADER
-    printf("SysTick up.\n");
-#endif  // #ifndef BOOTLOADER
-    
+    DEBUG_PRINTF(("SysTick up.\n"));
 }
 
 }
+

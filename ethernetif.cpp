@@ -31,12 +31,15 @@ extern "C" {
 #include "netif/etharp.h"
 }; // extern "C" {
 
+#include "./main.h"
 #include "./ethernetif.h"
 #include "./netconf.h"
 
+#ifndef BOOTLOADER
 const int32_t build_number = 
 #include "./build_number.h"
 ;
+#endif // #ifndef BOOTLOADER
 
 extern "C" {
     extern enet_descriptors_struct rxdesc_tab[ENET_RXBUF_NUM];
@@ -61,9 +64,7 @@ EthernetIf &EthernetIf::instance() {
 }
 
 void EthernetIf::init() {
-#ifndef BOOTLOADER
-    printf("ENET hardware init.\n");
-#endif  // #ifndef BOOTLOADER
+    DEBUG_PRINTF(("ENET hardware init.\n"));
 
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
@@ -115,9 +116,7 @@ void EthernetIf::init() {
     /* PB15: nRST, set high*/
     gpio_bit_set(GPIOB, GPIO_PIN_15);
 
-#ifndef BOOTLOADER
-    printf("ENET hardware up.\n");
-#endif  // #ifndef BOOTLOADER
+    DEBUG_PRINTF(("ENET hardware up.\n"));
 
     /* enable ethernet clock  */
     rcu_periph_clock_enable(RCU_ENET);
@@ -144,9 +143,7 @@ void EthernetIf::init() {
         }
     }
 
-#ifndef BOOTLOADER
-    printf("ENET MAC config done.\n");
-#endif  // #ifndef BOOTLOADER
+    DEBUG_PRINTF(("ENET MAC config done.\n"));
 }
 
 void EthernetIf::low_level_init(struct netif *netif, uint32_t mac_addr) {
@@ -249,7 +246,7 @@ err_t EthernetIf::ethernetif_init(struct netif *netif) {
     static char s_hostname[64];
     sprintf(s_hostname, "lightguy-%08x", int(mac_addr));
 
-    printf("Hostname is %s\n", s_hostname);
+    DEBUG_PRINTF(("Hostname is %s\n", s_hostname));
 
     netif->hostname = s_hostname;
 #else  //#ifndef BOOTLOADER

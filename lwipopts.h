@@ -41,6 +41,8 @@ OF SUCH DAMAGE.
 
 #include <stdio.h>
 
+#define LWIP_TCPIP_CORE_LOCKING 0						 /* no threading */
+
 #define SYS_LIGHTWEIGHT_PROT    0                        /* SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection 
                                                             for certain critical regions during buffer allocation,
                                                             deallocation and memory allocation and deallocation */                                                            
@@ -121,6 +123,7 @@ OF SUCH DAMAGE.
 
 /* support hostname */
 #define LWIP_NETIF_HOSTNAME 	1
+
 
 /* Non-bootloader options */
 #ifndef BOOTLOADER

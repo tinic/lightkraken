@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <memory.h>
 
+#include "./main.h"
 #include "./control.h"
 #include "./driver.h"
 #include "./strip.h"
@@ -140,9 +141,7 @@ void Control::init() {
         return false;
     };
 
-#ifndef BOOTLOADER
-    printf("Control up.\n");
-#endif  // #ifndef BOOTLOADER
+    DEBUG_PRINTF(("Control up.\n"));
 }
 
 }  // namespace lightguy {

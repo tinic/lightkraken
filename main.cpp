@@ -28,6 +28,7 @@ extern "C" {
 #include "cmsis_gcc.h"
 }; //extern "C" {
 
+#include "./main.h"
 #include "./netconf.h"
 #include "./model.h"
 #include "./status.h"
@@ -63,9 +64,9 @@ int main() {
 
     while (1) {
         lightguy::NetConf::instance().update();
+        lightguy::StatusLED::instance().update();
         
 #ifndef BOOTLOADER
-        lightguy::StatusLED::instance().update();
         lightguy::SPI_2::instance().update();
         lightguy::SPI_0::instance().update();
 #endif  //#ifndef BOOTLOADER

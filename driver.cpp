@@ -12,6 +12,7 @@ extern "C" {
 #include "gd32f10x.h"
 }
 
+#include "./main.h"
 #include "./driver.h"
 #include "./pwmtimer.h"
 #include "./model.h"
@@ -119,9 +120,7 @@ void Driver::init() {
     PwmTimer5::instance().setPulse(0x0);
     PwmTimer6::instance().setPulse(0x0);
     
-#ifndef BOOTLOADER
-    printf("Driver up.\n");
-#endif  // #ifndef BOOTLOADER
+    DEBUG_PRINTF(("Driver up.\n"));
 }
 
 }

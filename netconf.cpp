@@ -56,6 +56,7 @@ extern "C" {
 #include "lwip/priv/tcp_priv.h"
 }; //extern "C" {
 
+#include "./main.h"
 #include "./ethernetif.h"
 #include "./netconf.h"
 #include "./artnet.h"
@@ -116,15 +117,11 @@ void NetConf::init() {
     netif_set_default(&netif);
 
     if (netif_is_link_up(&netif)) {
-#ifndef BOOTLOADER
-        printf("ENET link is up.\n");
-#endif  // #ifndef BOOTLOADER
+        DEBUG_PRINTF(("ENET link is up.\n"));
         netif_set_up(&netif);
     } else {
         netif_set_down(&netif);
-#ifndef BOOTLOADER
-        printf("ENET link is down.\n");
-#endif  // #ifndef BOOTLOADER
+        DEBUG_PRINTF(("ENET link is down.\n"));
     }
 
 #ifndef BOOTLOADER
@@ -169,9 +166,7 @@ void NetConf::update() {
             struct dhcp *dhcp_client = netif_dhcp_data(&netif);
             switch (dhcp_state){
             case DHCP_START:
-#ifndef BOOTLOADER
-                printf("DHCP start...\n");
-#endif  // #ifndef BOOTLOADER
+                DEBUG_PRINTF(("DHCP start...\n"));
                 dhcp_start(&netif);
                 dhcp_state = DHCP_WAIT_ADDRESS;
                 break;
@@ -179,17 +174,13 @@ void NetConf::update() {
                 ip_addr_t address;
                 ip_address.addr = netif.ip_addr.addr;
                 if (ip_address.addr != 0){ 
-#ifndef BOOTLOADER
-                    printf("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address));
-#endif  // #ifndef BOOTLOADER
+                    DEBUG_PRINTF(("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address)));
                     dhcp_state = DHCP_ADDRESS_ASSIGNED;
                 } else {
                     if (dhcp_client->tries > MAX_DHCP_TRIES){
                         dhcp_state = DHCP_TIMEOUT;
                         dhcp_stop(&netif);
-#ifndef BOOTLOADER
-                        printf("DHCP timeout.\n");
-#endif  // #ifndef BOOTLOADER
+                        DEBUG_PRINTF(("DHCP timeout.\n"));
 
                         ip_addr_t netmask;
                         ip_addr_t gateway;

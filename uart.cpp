@@ -10,6 +10,7 @@ int _write(int file, char *ptr, int len);
 
 }
 
+#include "./main.h"
 #include "./uart.h"
 
 int __io_putchar(int ch){
