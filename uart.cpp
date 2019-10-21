@@ -17,6 +17,7 @@ int __io_putchar(int ch){
     return(ch);
 }
 
+__attribute__((used)) // required for -flto
 int _write(int, char *ptr, int len) {
 
     __disable_irq();

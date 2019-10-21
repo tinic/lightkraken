@@ -69,11 +69,11 @@ set(CMAKE_ASM_FLAGS_RELEASE "")
 set(CMAKE_ASM_FLAGS_DEBUG "")
 
 set(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
-set(CMAKE_C_FLAGS_RELEASE "-Os")
+set(CMAKE_C_FLAGS_RELEASE "-flto -Wl,-flto -O2")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g3")
 
 set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Werror -Wall -Wextra -Wno-strict-aliasing -Wdouble-promotion -Wshadow -Wfloat-conversion -Wnull-dereference -Wformat=2 -std=c++17 -fno-rtti -fno-exceptions")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os")
+set(CMAKE_CXX_FLAGS_RELEASE "-flto -Wl,-flto -O2")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 
 set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T${CMAKE_SOURCE_DIR}/${LINKLDPATH}")
@@ -85,16 +85,16 @@ set(CMAKE_C_LINK_FLAGS "")
 set(CMAKE_CXX_LINK_FLAGS "")
 set(CMAKE_LINKER_FLAGS "")
 
-set(SOURCE_FILES main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
-
 set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip-ajax)
 set(LWIP_INCLUDE_DIRS "${LWIP_DIR}/src/include")
 include(${LWIP_DIR}/src/Filelists.cmake)
 
+set(SOURCE_FILES ${lwipnoapps_SRCS} ${lwipallapps_SRCS} main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
+
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE ${LWIP_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME}.elf lwipallapps lwipcore)
+#target_link_libraries(${PROJECT_NAME}.elf lwipallapps lwipcore)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.map")
 set(HEX_FILE ${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.hex)

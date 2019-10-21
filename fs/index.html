@@ -46,7 +46,7 @@ span.right {
 			  <option v-for="mode in mainModes" v-bind:value="mode.value">{{ mode.text }}</option>
 			</select>
 		</p>
-		<p>Terminal A</p>
+		<p><h4>Terminal A</h4></p>
 		<p v-if="mainMode==0 || mainMode==1">
 			<span class="left">LED type</span>
 			<span class="right">
@@ -70,7 +70,7 @@ span.right {
 		<span v-if="mainMode==2">{{ pinsSchematic[2].text }}</span>
 		<span v-if="mainMode==3">{{ pinsSchematic[3].text }}</span>
 		<span v-if="mainMode==4">{{ pinsSchematic[4].text }}</span>
-		<p>Terminal B</p>
+		<p><h4>Terminal B</h4></p>
 		<p v-if="mainMode==0">
 			<span class="left">LED type</span>
 			<span class="right">
