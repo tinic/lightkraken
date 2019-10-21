@@ -90,13 +90,17 @@ void Model::init() {
     int32_t counter = 0;
     for (size_t c = 0; c < stripN; c++) {
         for (size_t d = 0; d < universeN; d++) {
-            uni[c][d] = counter++;
+            uniStp[c][d] = counter++;
         }
+    }
+    
+    counter = 0;
+    for (size_t c = 0; c < channelN; c++) {
+        uniOff[c].universe = 0;
+        uniOff[c].offset = counter++;
     }
 
     readFlash();
-
-    Driver::instance().setRGBW16(0x0000, 0x0000, 0x0000, 0x0000);
 }
 
 void Model::setOutputConfig(OutputConfig outputConfig) {

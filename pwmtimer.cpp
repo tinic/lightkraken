@@ -22,14 +22,13 @@ void PwmTimer0::init() {
     rcu_periph_clock_enable(RCU_AF);
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_TIMER0);
-    gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
 
     timer_deinit(TIMER0);
     timer_parameter_struct timer_initpara;
     timer_initpara.prescaler         = 0;
     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
-    timer_initpara.period            = 0x7fff;
+    timer_initpara.period            = pwmPeriod;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
     timer_initpara.repetitioncounter = 0;
     timer_init(TIMER0, &timer_initpara);
@@ -69,10 +68,12 @@ void PwmTimer0::init() {
 void PwmTimer0::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_disable(TIMER0);
+        gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
     } else {
         if (pulse > TIMER_CAR(TIMER0)-1) {
             pulse = TIMER_CAR(TIMER0)-1;
         }
+        gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
         timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, pulse);
         timer_enable(TIMER0);
     }
@@ -92,14 +93,13 @@ void PwmTimer1::init() {
     rcu_periph_clock_enable(RCU_AF);
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_TIMER1);
-    gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
 
     timer_deinit(TIMER1);
     timer_parameter_struct timer_initpara;
     timer_initpara.prescaler         = 0;
     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
-    timer_initpara.period            = 0x7fff;
+    timer_initpara.period            = pwmPeriod;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
     timer_initpara.repetitioncounter = 0;
     timer_init(TIMER1,&timer_initpara);
@@ -128,10 +128,12 @@ void PwmTimer1::init() {
 void PwmTimer1::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_disable(TIMER1);
+        gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
     } else {
         if (pulse > TIMER_CAR(TIMER1)-1) {
             pulse = TIMER_CAR(TIMER1)-1;
         }
+        gpio_init(GPIOA, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
         timer_channel_output_pulse_value_config(TIMER1, TIMER_CH_0, pulse);
         timer_enable(TIMER1);
     }
@@ -151,7 +153,6 @@ void PwmTimer2::init() {
     rcu_periph_clock_enable(RCU_AF);
     rcu_periph_clock_enable(RCU_GPIOC);
     rcu_periph_clock_enable(RCU_TIMER2);
-    gpio_init(GPIOC, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
 
     gpio_pin_remap_config(GPIO_TIMER2_FULL_REMAP, ENABLE);
     
@@ -160,7 +161,7 @@ void PwmTimer2::init() {
     timer_initpara.prescaler         = 0;
     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
-    timer_initpara.period            = 0x7fff;
+    timer_initpara.period            = pwmPeriod;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
     timer_initpara.repetitioncounter = 0;
     timer_init(TIMER2, &timer_initpara);
@@ -189,10 +190,12 @@ void PwmTimer2::init() {
 void PwmTimer2::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_disable(TIMER2);
+        gpio_init(GPIOC, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
     } else {
         if (pulse > TIMER_CAR(TIMER2)-1) {
             pulse = TIMER_CAR(TIMER2)-1;
         }
+        gpio_init(GPIOC, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
         timer_channel_output_pulse_value_config(TIMER2, TIMER_CH_1, pulse);
         timer_enable(TIMER2);
     }
@@ -207,20 +210,18 @@ PwmTimer &PwmTimer3::instance() {
     return timer;
 }
 
-// WHITE A
+// WHITE A (RED)
 void PwmTimer3::init() {
     rcu_periph_clock_enable(RCU_AF);
     rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_TIMER3);
-
-    gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
 
     timer_deinit(TIMER3);
     timer_parameter_struct timer_initpara;
     timer_initpara.prescaler         = 0;
     timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
     timer_initpara.counterdirection  = TIMER_COUNTER_UP;
-    timer_initpara.period            = 0x7fff;
+    timer_initpara.period            = pwmPeriod;
     timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
     timer_initpara.repetitioncounter = 0;
     timer_init(TIMER3, &timer_initpara);
@@ -260,16 +261,18 @@ void PwmTimer3::init() {
 void PwmTimer3::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_disable(TIMER3);
+        gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
     } else {
         if (pulse > TIMER_CAR(TIMER3)-1) {
             pulse = TIMER_CAR(TIMER3)-1;
         }
+        gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
         timer_channel_output_pulse_value_config(TIMER3, TIMER_CH_2, pulse);
         timer_enable(TIMER3);
     }
 }
 
-// WHITE B
+// WHITE B (GREEN)
 PwmTimer &PwmTimer5::instance() {
     static PwmTimer5 timer;
     if (!timer.initialized) {
@@ -311,7 +314,7 @@ void PwmTimer5::setPulse(uint16_t pulse) {
     }
 }
 
-// WHITE C
+// WHITE C (BLUE)
 PwmTimer &PwmTimer6::instance() {
     static PwmTimer6 timer;
     if (!timer.initialized) {

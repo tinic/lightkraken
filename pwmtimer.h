@@ -7,6 +7,8 @@ namespace lightguy {
 
 class PwmTimer {
 public:
+    constexpr static uint16_t pwmPeriod = 0x7fff;
+
     virtual void setPulse(uint16_t pulse) = 0;
 protected:
     bool initialized = false;

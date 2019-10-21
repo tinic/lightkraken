@@ -18,13 +18,16 @@ namespace lightguy {
 class Model {
 public:
     static constexpr size_t stripN = 2;
-    static constexpr size_t universeN = 4;
+    static constexpr size_t universeN = 6;
+    static constexpr size_t channelN = 6;
 
     enum OutputConfig {
-        OUTPUT_CONFIG_DUAL_STRIP, 	// channel0: strip 	channel1: strip
-        OUTPUT_CONFIG_RGB_STRIP, 	// channel0: rgb 	channel1: strip
-        OUTPUT_CONFIG_RGBW_STRIP, 	// channel0: rgbw	channel1: single data line strip
-        OUTPUT_CONFIG_RGBW  		// channel0: rgbw 	channel1: n/a
+        OUTPUT_CONFIG_DUAL_STRIP, 	// channel0: strip      channel1: strip
+        OUTPUT_CONFIG_RGB_STRIP, 	// channel0: rgb 	    channel1: strip
+        OUTPUT_CONFIG_RGBW_STRIP, 	// channel0: rgbw	    channel1: single data line strip
+        OUTPUT_CONFIG_RGBW,  		// channel0: rgbw 	    channel1: n/a
+        OUTPUT_CONFIG_RGBWW,  		// channel0: rgbww 	    channel1: n/a
+        OUTPUT_CONFIG_RGB_RGB, 	    // channel0: rgb 	    channel1: rgb
     };
 
     static Model &instance();
@@ -43,7 +46,17 @@ public:
     OutputConfig outputConfig() const { return output_config; }
     void setOutputConfig(OutputConfig outputConfig);
     
-    uint16_t universe(int32_t strip, int32_t index) const { return uni[strip][index]; }
+    uint16_t universeOffset(int32_t channel, size_t &uniOffset) const { 
+        channel %= 6;
+        uniOffset = uniOff[channel].offset; 
+        return uniOff[channel].universe;
+    }
+
+    uint16_t universeStrip(int32_t strip, int32_t dmx512Index) const { 
+        strip %= stripN;
+        dmx512Index %= universeN;
+        return uniStp[strip][dmx512Index]; 
+    }
 
 private:
     Model() {};
@@ -65,7 +78,14 @@ private:
     uint8_t glob_illum;
     uint8_t glob_comp_lim;
     uint32_t strip_type[stripN];
-    uint16_t uni[stripN][universeN];
+    uint16_t uniStp[stripN][universeN];
+
+    struct UniverseOffsetMapping {
+        uint16_t universe;
+        uint8_t offset;
+    };
+    
+    UniverseOffsetMapping uniOff[channelN];
 };
 
 } /* namespace model */
