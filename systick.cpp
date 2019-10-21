@@ -32,6 +32,12 @@ void Systick::handler() {
     if ((status_led++ & 0xF) == 0x0) {
         lightguy::StatusLED::instance().schedule();
     }
+    if (nvic_reset_delay > 0) {
+    	nvic_reset_delay--;
+    }
+    if (nvic_reset_delay == 1) {
+		NVIC_SystemReset();
+    }
     system_time++;
 }
 
