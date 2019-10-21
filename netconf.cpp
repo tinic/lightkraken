@@ -74,6 +74,7 @@ NetConf &NetConf::instance() {
     return netconf;
 }
 
+#ifndef BOOTLOADER
 static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *, u16_t) {
     struct pbuf *i = p;
     for( ; i != NULL ; i = i->next) {
@@ -81,6 +82,7 @@ static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p
     }
     pbuf_free(p);
 }
+#endif  // #ifndef BOOTLOADER
 
 void NetConf::init() {
 
@@ -90,6 +92,7 @@ void NetConf::init() {
     ip_addr_t netmask;
     ip_addr_t gateway;
 
+#ifndef BOOTLOADER
 #if LWIP_DHCP
     if (lightguy::Model::instance().dhcpEnabled()) {
     address.addr = 0;
@@ -102,19 +105,29 @@ void NetConf::init() {
     netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
     gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
     }
+#else  // #ifndef BOOTLOADER
+    address.addr = 0;
+    netmask.addr = 0;
+    gateway.addr = 0;
+#endif  // #ifndef BOOTLOADER
 
     netif_add(&netif, &address, &netmask, &gateway, NULL, &EthernetIf::ethernetif_init, &ethernet_input);
 
     netif_set_default(&netif);
 
     if (netif_is_link_up(&netif)) {
+#ifndef BOOTLOADER
         printf("ENET link is up.\n");
+#endif  // #ifndef BOOTLOADER
         netif_set_up(&netif);
     } else {
         netif_set_down(&netif);
+#ifndef BOOTLOADER
         printf("ENET link is down.\n");
+#endif  // #ifndef BOOTLOADER
     }
 
+#ifndef BOOTLOADER
     static struct udp_pcb *upcb_artnet = 0;
     upcb_artnet = udp_new();
     if (udp_bind(upcb_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
@@ -123,6 +136,7 @@ void NetConf::init() {
         udp_remove(upcb_artnet);
         upcb_artnet = 0;
     }
+#endif  // #ifndef BOOTLOADER
     
     httpd_init();
 }
@@ -155,7 +169,9 @@ void NetConf::update() {
             struct dhcp *dhcp_client = netif_dhcp_data(&netif);
             switch (dhcp_state){
             case DHCP_START:
+#ifndef BOOTLOADER
                 printf("DHCP start...\n");
+#endif  // #ifndef BOOTLOADER
                 dhcp_start(&netif);
                 dhcp_state = DHCP_WAIT_ADDRESS;
                 break;
@@ -163,19 +179,26 @@ void NetConf::update() {
                 ip_addr_t address;
                 ip_address.addr = netif.ip_addr.addr;
                 if (ip_address.addr != 0){ 
+#ifndef BOOTLOADER
                     printf("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address));
+#endif  // #ifndef BOOTLOADER
                     dhcp_state = DHCP_ADDRESS_ASSIGNED;
                 } else {
                     if (dhcp_client->tries > MAX_DHCP_TRIES){
                         dhcp_state = DHCP_TIMEOUT;
                         dhcp_stop(&netif);
+#ifndef BOOTLOADER
                         printf("DHCP timeout.\n");
+#endif  // #ifndef BOOTLOADER
 
                         ip_addr_t netmask;
                         ip_addr_t gateway;
+
+#ifndef BOOTLOADER
                         address.addr = lightguy::Model::instance().ip4Address()->addr;
                         netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
                         gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
+#endif  // #ifndef BOOTLOADER
 
                         netif_set_addr(&netif, &address , &netmask, &gateway);
                     }

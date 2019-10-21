@@ -61,7 +61,9 @@ EthernetIf &EthernetIf::instance() {
 }
 
 void EthernetIf::init() {
+#ifndef BOOTLOADER
     printf("ENET hardware init.\n");
+#endif  // #ifndef BOOTLOADER
 
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
@@ -113,7 +115,9 @@ void EthernetIf::init() {
     /* PB15: nRST, set high*/
     gpio_bit_set(GPIOB, GPIO_PIN_15);
 
+#ifndef BOOTLOADER
     printf("ENET hardware up.\n");
+#endif  // #ifndef BOOTLOADER
 
     /* enable ethernet clock  */
     rcu_periph_clock_enable(RCU_ENET);
@@ -140,7 +144,9 @@ void EthernetIf::init() {
         }
     }
 
+#ifndef BOOTLOADER
     printf("ENET MAC config done.\n");
+#endif  // #ifndef BOOTLOADER
 }
 
 void EthernetIf::low_level_init(struct netif *netif, uint32_t mac_addr) {
@@ -239,12 +245,16 @@ err_t EthernetIf::ethernetif_init(struct netif *netif) {
     uint32_t mac_addr  = instance().murmur3_32(reinterpret_cast<uint8_t *>(&uid[0]), sizeof(uid), 0x66cf8031);
 
 #if LWIP_NETIF_HOSTNAME
+#ifndef BOOTLOADER
     static char s_hostname[64];
     sprintf(s_hostname, "lightguy-%08x", int(mac_addr));
 
     printf("Hostname is %s\n", s_hostname);
 
     netif->hostname = s_hostname;
+#else  //#ifndef BOOTLOADER
+    netif->hostname = "lightguy";
+#endif  // #ifndef BOOTLOADER
 #endif  // #if LWIP_NETIF_HOSTNAME
 
     netif->name[0] = IFNAME0;

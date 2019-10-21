@@ -33,12 +33,43 @@ extern "C" {
 #include "./status.h"
 #include "./spi.h"
 
+#ifdef BOOTLOADER
+#include "./bootloader.h"
+
+typedef  void (*pFunction)(void);
+static pFunction Jump_To_Application;
+static uint32_t JumpAddress;
+#endif  // #ifdef BOOTLOADER
+
 int main() {
+
+#ifdef BOOTLOADER
+	// Check user button
+    gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
+	if (gpio_input_bit_get(GPIOA, GPIO_PIN_0) != RESET) {
+		/* Check if valid stack address (RAM address) then jump to user application */
+		if (((*(__IO uint32_t*)USER_FLASH_FIRST_PAGE_ADDRESS) & 0x2FFE0000 ) == 0x20000000) {
+			/* Jump to user application */
+			JumpAddress = *(__IO uint32_t*) (USER_FLASH_FIRST_PAGE_ADDRESS + 4);
+			Jump_To_Application = (pFunction) JumpAddress;
+			/* Initialize user application's Stack Pointer */
+			__set_MSP(*(__IO uint32_t*) USER_FLASH_FIRST_PAGE_ADDRESS);
+			Jump_To_Application();
+		} else {
+			// Flash status LED
+		}
+	}
+#endif  // #ifdef BOOTLOADER
+
     while (1) {
         lightguy::NetConf::instance().update();
+        
+#ifndef BOOTLOADER
         lightguy::StatusLED::instance().update();
         lightguy::SPI_2::instance().update();
         lightguy::SPI_0::instance().update();
+#endif  //#ifndef BOOTLOADER
+
     }
     return 0;
 }

@@ -38,7 +38,9 @@ void Systick::init() {
     systick_clksource_set(SYSTICK_CLKSOURCE_HCLK);
     SysTick_Config(rcu_clock_freq_get(CK_AHB) / 1000); 
 
+#ifndef BOOTLOADER
     printf("SysTick up.\n");
+#endif  // #ifndef BOOTLOADER
     
 }
 

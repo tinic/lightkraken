@@ -119,7 +119,9 @@ void Driver::init() {
     PwmTimer5::instance().setPulse(0x0);
     PwmTimer6::instance().setPulse(0x0);
     
+#ifndef BOOTLOADER
     printf("Driver up.\n");
+#endif  // #ifndef BOOTLOADER
 }
 
 }

@@ -1,0 +1,6 @@
+#ifndef BOOTLOADER_H_
+#define BOOTLOADER_H_
+
+#define USER_FLASH_FIRST_PAGE_ADDRESS 0x80008000
+
+#endif  // #ifndef BOOTLOADER_H_

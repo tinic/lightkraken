@@ -140,7 +140,9 @@ void Control::init() {
         return false;
     };
 
+#ifndef BOOTLOADER
     printf("Control up.\n");
+#endif  // #ifndef BOOTLOADER
 }
 
 }  // namespace lightguy {

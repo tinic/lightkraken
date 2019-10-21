@@ -72,7 +72,6 @@ OF SUCH DAMAGE.
 
 #define MEMP_NUM_SYS_TIMEOUT    10                        /* the number of simulateously active timeouts */
 
-
 /* Pbuf options */
 #define PBUF_POOL_SIZE          10                       /* the number of buffers in the pbuf pool */
 #define PBUF_POOL_BUFSIZE       1500                     /* the size of each pbuf in the pbuf pool */
@@ -95,26 +94,21 @@ OF SUCH DAMAGE.
 #define TCP_WND                 (2*TCP_MSS)              /* TCP receive window */
                                                 
 
-/* ICMP options */
-#define LWIP_ICMP               1
-
-
 /* DHCP options */
 #define LWIP_DHCP               1                        /* define to 1 if you want DHCP configuration of interfaces,
                                                             DHCP is not implemented in lwIP 0.5.1, however, so
                                                             turning this on does currently not work. */
+#define LWIP_DHCP_DOES_ACD_CHECK 0
 
-/* UDP options */
+/* UDP options, required for DHCP */
 #define LWIP_UDP                1
 #define UDP_TTL                 255
-
-/* statistics options */
-#define LWIP_STATS              0
-#define LWIP_PROVIDE_ERRNO      1
 
 /* checksum options */
 #define CHECKSUM_BY_HARDWARE                             /* computing and verifying the IP, UDP, TCP and ICMP
                                                             checksums by hardware */
+/* provide access to stats */
+#define LWIP_STATS              0
 
 /* sequential layer options */
 #define LWIP_NETCONN            0                        /* set to 1 to enable netconn API (require to use api_lib.c) */
@@ -122,20 +116,39 @@ OF SUCH DAMAGE.
 /* socket options */
 #define LWIP_SOCKET             0                        /* set to 1 to enable socket API (require to use sockets.c) */
 
+/* enable ethernet bridge */
 #define LWIP_ETHERNET           1
-#define IP_SOF_BROADCAST        1
-#define IP_SOF_BROADCAST_RECV   1
-#define LWIP_BROADCAST_PING     1
-#define LWIP_MULTICAST_PING     1
-#define LWIP_DNS_SECURE         7
-#define LWIP_DHCP_DOES_ACD_CHECK 0
+
+/* support hostname */
+#define LWIP_NETIF_HOSTNAME 	1
+
+/* Non-bootloader options */
+#ifndef BOOTLOADER
+
+#define LWIP_ICMP               		1
+#define IP_SOF_BROADCAST        		1
+#define IP_SOF_BROADCAST_RECV   		1
+#define LWIP_BROADCAST_PING     		1
+#define LWIP_MULTICAST_PING     		1
+#define LWIP_DNS_SECURE         		7
 
 #define LWIP_HTTPD_SUPPORT_REST 		1
 #define LWIP_HTTPD_DYNAMIC_HEADERS 		1
 #define LWIP_HTTPD_DYNAMIC_FILE_READ 	1
-#define LWIP_NETIF_HOSTNAME 			1
 
 #define HTTPD_FSDATA_FILE "../fsdata.c"
+
+#endif  // #ifndef BOOTLOADER
+
+/* Bootloader options */
+#ifdef BOOTLOADER
+
+#define LWIP_HTTPD_SUPPORT_POST			1
+#define LWIP_ICMP              		 	0
+
+#define HTTPD_FSDATA_FILE "../fsdata_bootloader.c"
+
+#endif  // #ifdef BOOTLOADER
 
 #ifdef CHECKSUM_BY_HARDWARE
     /* CHECKSUM_GEN_IP==0: generate checksums by hardware for outgoing IP packets.*/

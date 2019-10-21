@@ -19,9 +19,17 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+cmake_minimum_required(VERSION 3.10)
+
 set(PRJ_NAME lightguy)
 
-cmake_minimum_required(VERSION 3.10)
+if(BOOTLOADER)
+set(PRJ_NAME bootloader)
+endif(BOOTLOADER)
+
+if(FORBOOTLOADER)
+set(PRJ_NAME lightguy_bootload)
+endif(FORBOOTLOADER)
 
 project(${PRJ_NAME} C CXX ASM)
 
@@ -41,7 +49,16 @@ set(ARM_FLOAT_ABI softfp)
 set(CMSISDEVINC GD32F10x)
 set(CMSISSTARTUPS startup_gd32f10x_cl.s)
 set(CMSISSYSTEMC system_gd32f10x.c)
+
 set(CMSISLINKLD GD32F107RC_FLASH.ld)
+
+if(BOOTLOADER)
+set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADER.ld)
+endif(BOOTLOADER)
+
+if(FORBOOTLOADER)
+set(CMSISLINKLD GD32F107RC_FLASH_FORBOOTLOADER.ld)
+endif(FORBOOTLOADER)
 
 set(GD32ARCH GD32F10X_CL)
 set(GD32MCU GD32F107RC)
@@ -64,16 +81,20 @@ include_directories(GD32F10x_lwip)
 
 set(COMMON_FLAGS "-DGD32 -D${GD32ARCH} -D${GD32MCU} -Werror -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
 
+if(BOOTLOADER)
+set(COMMON_FLAGS "${COMMON_FLAGS} -D BOOTLOADER")
+endif( BOOTLOADER)
+
 set(CMAKE_ASM_FLAGS "-mcpu=${ARM_ARCH}")
 set(CMAKE_ASM_FLAGS_RELEASE "")
 set(CMAKE_ASM_FLAGS_DEBUG "")
 
 set(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
-set(CMAKE_C_FLAGS_RELEASE "-flto -Wl,-flto -O2")
+set(CMAKE_C_FLAGS_RELEASE "-flto -Wl,-flto -Os")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g3")
 
 set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Werror -Wall -Wextra -Wno-strict-aliasing -Wdouble-promotion -Wshadow -Wfloat-conversion -Wnull-dereference -Wformat=2 -std=c++17 -fno-rtti -fno-exceptions")
-set(CMAKE_CXX_FLAGS_RELEASE "-flto -Wl,-flto -O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-flto -Wl,-flto -Os")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 
 set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T${CMAKE_SOURCE_DIR}/${LINKLDPATH}")
@@ -89,12 +110,15 @@ set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip-ajax)
 set(LWIP_INCLUDE_DIRS "${LWIP_DIR}/src/include")
 include(${LWIP_DIR}/src/Filelists.cmake)
 
-set(SOURCE_FILES ${lwipnoapps_SRCS} ${lwipallapps_SRCS} main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
+if(BOOTLOADER)
+set(bootloader_SRCS bootloader.cpp multipartparser.cpp)
+endif(BOOTLOADER)
+
+set(SOURCE_FILES ${bootloader_SRCS} ${lwipnoapps_SRCS} ${lwipallapps_SRCS} main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
 
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE ${LWIP_INCLUDE_DIRS})
-#target_link_libraries(${PROJECT_NAME}.elf lwipallapps lwipcore)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.map")
 set(HEX_FILE ${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.hex)
