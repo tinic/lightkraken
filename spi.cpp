@@ -113,8 +113,6 @@ SPI_2 &SPI_2::instance() {
 
 void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
     
-    printf("SPI2\n");
-
     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
     gpio_bit_set(GPIOB, GPIO_PIN_8);
 
