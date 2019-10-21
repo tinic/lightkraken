@@ -68,6 +68,23 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
             }
         }
     } break;
+    case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
+
+        setUniverseOutputDataForDriver(3, uni, data, len);
+
+        for (size_t c = 0; c < Model::stripN; c++) {
+            bool set = false;
+            for (size_t d = 0; d < Model::universeN; d++) {
+                if (Model::instance().universeStrip(c,d) == uni) {
+                    lightguy::Strip::get(c).setUniverseData(d, data, len);
+                    set = true;
+                }
+            }
+            if (set) {
+                lightguy::Strip::get(c).transfer();
+            }
+        }
+    } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
 
         setUniverseOutputDataForDriver(3, uni, data, len);

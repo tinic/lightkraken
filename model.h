@@ -22,10 +22,11 @@ public:
     static constexpr size_t channelN = 4;
 
     enum OutputConfig {
-        OUTPUT_CONFIG_DUAL_STRIP, 	// channel0: strip      channel1: strip
-        OUTPUT_CONFIG_RGB_STRIP, 	// channel0: strip 	    channel1: rgb
-        OUTPUT_CONFIG_RGBW_STRIP, 	// channel0: single	    channel1: rgbw
-        OUTPUT_CONFIG_RGB_RGB, 	    // channel0: rgb 	    channel1: rgb
+        OUTPUT_CONFIG_DUAL_STRIP, 	    // channel0: strip      channel1: strip
+        OUTPUT_CONFIG_RGB_STRIP, 	    // channel0: strip 	    channel1: rgb
+        OUTPUT_CONFIG_RGB_DUAL_STRIP, 	// channel0: single	    channel1: single     channel2: rgb
+        OUTPUT_CONFIG_RGBW_STRIP, 	    // channel0: single	    channel1: rgbw
+        OUTPUT_CONFIG_RGB_RGB, 	        // channel0: rgb 	    channel1: rgb
     };
 
     static Model &instance();
