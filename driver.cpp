@@ -44,8 +44,7 @@ void Driver::setRGB8CIE(size_t terminal, const rgb8 &rgb) {
             setPulse(terminal*3 + 2, cie_lookup[_rgb8[terminal].b]);
         }
     } break;
-    case Model::OUTPUT_CONFIG_RGBW_STRIP:
-    case Model::OUTPUT_CONFIG_RGBW: {
+    case Model::OUTPUT_CONFIG_RGBW_STRIP: {
         if (terminal == 0) {
             // TODO: Convert through XYZ color space
             setPulse(terminal*3 + 0, cie_lookup[_rgb8[terminal].r]);
@@ -55,19 +54,6 @@ void Driver::setRGB8CIE(size_t terminal, const rgb8 &rgb) {
         if (terminal == 1) {
             // For now: No conversion
             setPulse(terminal*3 + 0, cie_lookup[_rgb8[terminal].r]);
-        }
-    } break;
-    case Model::OUTPUT_CONFIG_RGBWW: {
-        if (terminal == 0) {
-            // TODO: Convert through XYZ color space
-            setPulse(terminal*3 + 0, cie_lookup[_rgb8[terminal].r]);
-            setPulse(terminal*3 + 1, cie_lookup[_rgb8[terminal].g]);
-            setPulse(terminal*3 + 2, cie_lookup[_rgb8[terminal].b]);
-        }
-        if (terminal == 1) {
-            // For now: No conversion
-            setPulse(terminal*3 + 0, cie_lookup[_rgb8[terminal].r]);
-            setPulse(terminal*3 + 1, cie_lookup[_rgb8[terminal].g]);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {

@@ -102,12 +102,6 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
             }
         }
     } break;
-    case Model::OUTPUT_CONFIG_RGBW: {
-        setUniverseOutputDataForDriver(4, uni, data, len);
-    } break;
-    case Model::OUTPUT_CONFIG_RGBWW: {
-        setUniverseOutputDataForDriver(5, uni, data, len);
-    } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
         setUniverseOutputDataForDriver(6, uni, data, len);
     } break;

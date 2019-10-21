@@ -25,8 +25,6 @@ public:
         OUTPUT_CONFIG_DUAL_STRIP, 	// channel0: strip      channel1: strip
         OUTPUT_CONFIG_RGB_STRIP, 	// channel0: rgb 	    channel1: strip
         OUTPUT_CONFIG_RGBW_STRIP, 	// channel0: rgbw	    channel1: single data line strip
-        OUTPUT_CONFIG_RGBW,  		// channel0: rgbw 	    channel1: n/a
-        OUTPUT_CONFIG_RGBWW,  		// channel0: rgbww 	    channel1: n/a
         OUTPUT_CONFIG_RGB_RGB, 	    // channel0: rgb 	    channel1: rgb
     };
 
