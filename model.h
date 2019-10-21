@@ -18,8 +18,8 @@ namespace lightguy {
 class Model {
 public:
     static constexpr size_t stripN = 2;
-    static constexpr size_t universeN = 6;
-    static constexpr size_t channelN = 6;
+    static constexpr size_t universeN = 4;
+    static constexpr size_t channelN = 4;
 
     enum OutputConfig {
         OUTPUT_CONFIG_DUAL_STRIP, 	// channel0: strip      channel1: strip
@@ -81,6 +81,7 @@ private:
     uint8_t glob_illum;
     uint8_t glob_comp_lim;
     uint32_t strip_type[stripN];
+    uint32_t strip_len[stripN];
     uint16_t uniStp[stripN][universeN];
 
     struct UniverseOffsetMapping {

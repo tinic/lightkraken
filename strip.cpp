@@ -188,6 +188,7 @@ namespace lightguy {
             case WS2812_RGB:
             case SK6812_RGB:
             case TM1804_RGB:
+            case GS8208_RGB:
             case UCS1904_RGB: {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = Model::universeN * ( size_t(dmxMaxLen / pixsize) * pixsize );
@@ -206,8 +207,7 @@ namespace lightguy {
                     comp_buf[c + 2] = data[c+0];
                 }
             } break;
-            case TLS3001_RGB:
-            case GS8208_RGB: {
+            case TLS3001_RGB: {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = Model::universeN * ( size_t(dmxMaxLen / pixsize) * pixsize );
                 for (size_t c = 0; c < std::min(len, padlen); c += 3) {
@@ -253,6 +253,7 @@ namespace lightguy {
             case WS2812_RGB:
             case SK6812_RGB:
             case TM1804_RGB:
+            case GS8208_RGB:
             case UCS1904_RGB: {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
@@ -273,8 +274,7 @@ namespace lightguy {
                     zero[uniN] = data[c+0] | data[c+1] | data[c+2];
                 }
             } break;
-            case TLS3001_RGB:
-            case GS8208_RGB: {
+            case TLS3001_RGB: {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
                 for (size_t c = 0; c < std::min(len, padlen); c += 3) {
@@ -486,8 +486,8 @@ namespace lightguy {
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
         }
-        for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, comp_len - 1 + 1); c ++) {
-            uint32_t p = uint32_t(comp_buf[c]);
+        for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
+            uint32_t p = uint32_t(comp_buf[c-head_len]);
             *dst++ = 0x88888888UL |
                     (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
                     (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);

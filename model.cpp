@@ -79,13 +79,15 @@ void Model::init() {
     glob_illum = 0x1F;
     glob_comp_lim = 0xFF;
 
-    output_config = OUTPUT_CONFIG_RGBW_STRIP;
+    output_config = OUTPUT_CONFIG_RGB_STRIP;
 
-    burst_mode = true;
+    burst_mode = false;
 
     for (size_t c = 0; c < stripN; c++) {
-        strip_type[c] = Strip::WS2812_RGB;
+        strip_type[c] = Strip::GS8208_RGB;
         lightguy::Strip::get(c).setStripType(Strip::Type(strip_type[c]));
+        strip_len[c] = 256;
+        lightguy::Strip::get(c).setPixelLen(strip_len[c]);
     }
 
     int32_t counter = 0;

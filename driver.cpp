@@ -84,13 +84,13 @@ void Driver::setPulse(size_t idx, uint16_t pulse) {
     idx %= 6;
     switch(idx) {
     case 0: {
-        PwmTimer0::instance().setPulse(pulse);
-    } break;
-    case 1: {
         PwmTimer1::instance().setPulse(pulse);
     } break;
-    case 2: {
+    case 1: {
         PwmTimer2::instance().setPulse(pulse);
+    } break;
+    case 2: {
+        PwmTimer0::instance().setPulse(pulse);
     } break;
     case 3: {
         PwmTimer3::instance().setPulse(pulse);

@@ -115,10 +115,6 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
 }
 
 void Control::init() {
-    for (size_t c = 0; c < Model::stripN; c++) {
-        lightguy::Strip::get(c).setPixelLen(lightguy::Strip::get(c).getMaxPixelLen());
-    }
-
     lightguy::Strip::get(0).dmaTransferFunc = [](const uint8_t *data, size_t len) {
         SPI_2::instance().transfer(data, len, lightguy::Strip::get(0).needsClock());
     };
