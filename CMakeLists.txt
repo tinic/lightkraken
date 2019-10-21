@@ -85,7 +85,7 @@ set(CMAKE_C_LINK_FLAGS "")
 set(CMAKE_CXX_LINK_FLAGS "")
 set(CMAKE_LINKER_FLAGS "")
 
-set(SOURCE_FILES main.cpp control.cpp uart.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
+set(SOURCE_FILES main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
 
 set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip-ajax)
 set(LWIP_INCLUDE_DIRS "${LWIP_DIR}/src/include")

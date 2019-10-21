@@ -46,6 +46,7 @@ namespace lightguy {
         static Strip &get(size_t index);
 
         bool isBlack() const;
+        bool needsClock() const;
 
         void setStripType(Type type) { strip_type = type; }
 

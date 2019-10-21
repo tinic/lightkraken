@@ -17,7 +17,7 @@ SPI_0 &SPI_0::instance() {
     return spi0;
 }
 
-void SPI_0::transfer(const uint8_t *buf, size_t len) {
+void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
     if (active) {
         if(!dma_flag_get(DMA0, DMA_CH2, DMA_FLAG_FTF) ||
             dma_transfer_number_get(DMA0, DMA_CH2)) {
@@ -29,10 +29,11 @@ void SPI_0::transfer(const uint8_t *buf, size_t len) {
     dma_channel_disable(DMA0, DMA_CH2);
     active = false;
 
-    if (cbuf != buf || clen != len) {
+    if (cbuf != buf || clen != len || wantsSCLK != sclk) {
         cbuf = buf;
         clen = len;
-        dma_setup(buf, len);
+        sclk = wantsSCLK;
+        dma_setup();
     }
 
     dma_channel_enable(DMA0, DMA_CH2);
@@ -42,11 +43,19 @@ void SPI_0::transfer(const uint8_t *buf, size_t len) {
 void SPI_0::update() {
     if (scheduled) {
         scheduled = false;
-        transfer(cbuf, clen);
+        transfer(cbuf, clen, sclk);
     }
 }
 
-void SPI_0::dma_setup(const uint8_t *buf, size_t len) {
+void SPI_0::dma_setup() {
+    spi_disable(SPI0);
+
+    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
+    gpio_bit_set(GPIOB, GPIO_PIN_7);
+    
+    gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_5);
+    gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_3);
+    
     spi_parameter_struct spi_init_struct;
     spi_struct_para_init(&spi_init_struct);
     spi_init_struct.trans_mode           = SPI_TRANSMODE_FULLDUPLEX;
@@ -64,12 +73,12 @@ void SPI_0::dma_setup(const uint8_t *buf, size_t len) {
     dma_parameter_struct dma_init_struct;
     dma_struct_para_init(&dma_init_struct);
     dma_init_struct.periph_addr  = (uint32_t)&SPI_DATA(SPI0);
-    dma_init_struct.memory_addr  = (uint32_t)buf;
+    dma_init_struct.memory_addr  = (uint32_t)cbuf;
     dma_init_struct.direction    = DMA_MEMORY_TO_PERIPHERAL;
     dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;
     dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;
     dma_init_struct.priority     = DMA_PRIORITY_LOW;
-    dma_init_struct.number       = len;
+    dma_init_struct.number       = clen;
     dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
     dma_init(DMA0, DMA_CH2, &dma_init_struct);
@@ -87,8 +96,6 @@ void SPI_0::init() {
 
     gpio_pin_remap_config(GPIO_SWJ_SWDPENABLE_REMAP, ENABLE);
     gpio_pin_remap_config(GPIO_SPI0_REMAP, ENABLE);
-    
-    gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_5 | GPIO_PIN_3);
 }
 
 SPI_2 &SPI_2::instance() {
@@ -100,7 +107,7 @@ SPI_2 &SPI_2::instance() {
     return spi2;
 }
 
-void SPI_2::transfer(const uint8_t *buf, size_t len) {
+void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 
     if (active) {
         if(!dma_flag_get(DMA1, DMA_CH1, DMA_FLAG_FTF) ||
@@ -113,10 +120,11 @@ void SPI_2::transfer(const uint8_t *buf, size_t len) {
     dma_channel_disable(DMA1, DMA_CH1);
     active = false;
 
-    if (cbuf != buf || clen != len) {
+    if (cbuf != buf || clen != len || wantsSCLK != sclk) {
         cbuf = buf;
         clen = len;
-        dma_setup(buf, len);
+        sclk = wantsSCLK;
+        dma_setup();
     }
 
     dma_channel_enable(DMA1, DMA_CH1);
@@ -127,11 +135,19 @@ void SPI_2::transfer(const uint8_t *buf, size_t len) {
 void SPI_2::update() {
     if (scheduled) {
         scheduled = false;
-        transfer(cbuf, clen);
+        transfer(cbuf, clen, sclk);
     }
 }
 
-void SPI_2::dma_setup(const uint8_t *buf, size_t len) {
+void SPI_2::dma_setup() {
+    spi_disable(SPI2);
+
+    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
+    gpio_bit_set(GPIOB, GPIO_PIN_9);
+    
+    gpio_init(GPIOC, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_12);
+    gpio_init(GPIOC, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
+    
     spi_parameter_struct spi_init_struct;
     spi_struct_para_init(&spi_init_struct);
     spi_init_struct.trans_mode           = SPI_TRANSMODE_FULLDUPLEX;
@@ -149,12 +165,12 @@ void SPI_2::dma_setup(const uint8_t *buf, size_t len) {
     dma_parameter_struct dma_init_struct;
     dma_struct_para_init(&dma_init_struct);
     dma_init_struct.periph_addr  = (uint32_t)&SPI_DATA(SPI2);
-    dma_init_struct.memory_addr  = (uint32_t)buf;
+    dma_init_struct.memory_addr  = (uint32_t)cbuf;
     dma_init_struct.direction    = DMA_MEMORY_TO_PERIPHERAL;
     dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;
     dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;
     dma_init_struct.priority     = DMA_PRIORITY_LOW;
-    dma_init_struct.number       = len;
+    dma_init_struct.number       = clen;
     dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
     dma_init(DMA1, DMA_CH1, &dma_init_struct);
@@ -171,7 +187,6 @@ void SPI_2::init() {
     rcu_periph_clock_enable(RCU_DMA1);
 
     gpio_pin_remap_config(GPIO_SPI2_REMAP, ENABLE);
-    gpio_init(GPIOC, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10 | GPIO_PIN_12);
 }
 
 }  // namespace lightguy {

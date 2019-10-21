@@ -12,6 +12,7 @@ extern "C" {
 }
 
 #include "./driver.h"
+#include "./pwmtimer.h"
 
 static const uint16_t cie_lookup[256] = {
     0x0000, 0x0004, 0x0007, 0x000b, 0x000e, 0x0012, 0x0015, 0x0019,
@@ -73,147 +74,53 @@ void Driver::setRGBW16(uint16_t r, uint16_t g, uint16_t b, uint16_t w) {
 }
 
 void Driver::setRGB8CIE(uint8_t r, uint8_t g, uint8_t b) {
-    setPulse(1, cie_lookup[r]);
-    setPulse(2, cie_lookup[g]);
-    setPulse(0, cie_lookup[b]);
+    setPulse(1, cie_lookup[r]*4);
+    setPulse(2, cie_lookup[g]*4);
+    setPulse(0, cie_lookup[b]*4);
 }
 
 void Driver::setRGBW8CIE(uint8_t r, uint8_t g, uint8_t b, uint8_t w) {
-    setPulse(1, cie_lookup[r]);
-    setPulse(2, cie_lookup[g]);
-    setPulse(0, cie_lookup[b]);
-    setPulse(3, cie_lookup[w]);
+    setPulse(1, cie_lookup[r]*4);
+    setPulse(2, cie_lookup[g]*4);
+    setPulse(0, cie_lookup[b]*4);
+    setPulse(3, cie_lookup[w]*4);
 }
 
 void Driver::setPulse(size_t idx, uint16_t pulse) {
     (void)idx;
     (void)pulse;
-#if 0
     idx %= 4;
-
-    if (pulse > 0x1ffe) {
-        pulse = 0x1ffe;
-    }
 
     switch(idx) {
     case 0: {
-        static bool init = false;
-        static bool started = false;
-        if (pulse < 0x0002) {
-            if (started) HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
-            started = false;
-            init = false;
-        } else {
-            if (!init) {
-                init = true;
-                TIM_OC_InitTypeDef sConfigOC;
-                memset(&sConfigOC, 0, sizeof(sConfigOC));
-                sConfigOC.OCMode = TIM_OCMODE_PWM1;
-                sConfigOC.Pulse = pulse;
-                sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-                sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-                sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-                sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-                sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-                HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3);
-            } else {
-                htim1.Instance->CCR3 = pulse;
-            }
-            if (!started) HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-            started = true;
-        }
+        PwmTimer0::instance().setPulse(pulse);
     } break;
     case 1: {
-        static bool init = false;
-        static bool started = false;
-        if (pulse < 0x0002) {
-            if (started) HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
-            started = false;
-            init = false;
-        } else {
-            if (!init) {
-                init = true;
-                TIM_OC_InitTypeDef sConfigOC;
-                memset(&sConfigOC, 0, sizeof(sConfigOC));
-                sConfigOC.OCMode = TIM_OCMODE_PWM1;
-                sConfigOC.Pulse = pulse;
-                sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-                sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-                HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
-            } else {
-                htim2.Instance->CCR1 = pulse;
-            }
-            if (!started) HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-            started = true;
-        }
+        PwmTimer1::instance().setPulse(pulse);
     } break;
     case 2: {
-        static bool init = false;
-        static bool started = false;
-        if (pulse < 0x0002) {
-            if (started) HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
-            started = false;
-            init = false;
-        } else {
-            if (!init) {
-                init = true;
-                TIM_OC_InitTypeDef sConfigOC;
-                memset(&sConfigOC, 0, sizeof(sConfigOC));
-                sConfigOC.OCMode = TIM_OCMODE_PWM1;
-                sConfigOC.Pulse = pulse;
-                sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-                sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-                HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2);
-            } else {
-                htim3.Instance->CCR2 = pulse;
-            }
-            if (!started) HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-            started = true;
-        }
+        PwmTimer2::instance().setPulse(pulse);
     } break;
     case 3: {
-        static bool init = false;
-        static bool started = false;
-        if (pulse < 0x0002) {
-            if (started) HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4);
-            started = false;
-            init = false;
-        } else {
-            if (!init) {
-                init = true;
-                TIM_OC_InitTypeDef sConfigOC;
-                memset(&sConfigOC, 0, sizeof(sConfigOC));
-                sConfigOC.OCMode = TIM_OCMODE_PWM1;
-                sConfigOC.Pulse = pulse;
-                sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-                sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-                HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4);
-            } else {
-                htim4.Instance->CCR4 = pulse;
-            }
-            if (!started) HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
-            started = true;
-        }
+        PwmTimer3::instance().setPulse(pulse);
+    } break;
+    case 5: {
+        PwmTimer5::instance().setPulse(pulse);
+    } break;
+    case 6: {
+        PwmTimer6::instance().setPulse(pulse);
     } break;
     }
-#endif  // #if 0
 }
 
 void Driver::init() {
-    rcu_periph_clock_enable(RCU_GPIOA);
-    rcu_periph_clock_enable(RCU_GPIOB);
-    rcu_periph_clock_enable(RCU_GPIOC);
 
-    gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0 | GPIO_PIN_10);
-    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7 | GPIO_PIN_8 | GPIO_PIN_9);
-    gpio_init(GPIOC, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
-    
-    gpio_bit_set(GPIOA, GPIO_PIN_0);
-    gpio_bit_set(GPIOA, GPIO_PIN_10);
-    gpio_bit_set(GPIOB, GPIO_PIN_7);
-    gpio_bit_set(GPIOB, GPIO_PIN_8);
-    gpio_bit_set(GPIOB, GPIO_PIN_9);
-    gpio_bit_set(GPIOC, GPIO_PIN_7);
+    PwmTimer0::instance().setPulse(0x0);
+    PwmTimer1::instance().setPulse(0x0);
+    PwmTimer2::instance().setPulse(0x0);
+    PwmTimer3::instance().setPulse(0x0);
+    PwmTimer5::instance().setPulse(0x0);
+    PwmTimer6::instance().setPulse(0x0);
     
     printf("Driver up.\n");
 }

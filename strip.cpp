@@ -384,6 +384,29 @@ namespace lightguy {
         }
     }
 
+    bool Strip::needsClock() const {
+        switch(strip_type) {
+            default:
+            case TLS3001_RGB: 
+            case SK6812_RGB:
+            case SK6812_RGBW:
+            case WS2812_RGB:
+            case TM1804_RGB:
+            case UCS1904_RGB:
+            case TM1829_RGB:
+            case GS8208_RGB: {
+                return false;
+            } break;
+            case SK9822_RGB:
+            case HDS107S_RGB:
+            case P9813_RGB:
+            case APA107_RGB:
+            case APA102_RGB: {
+                return true;
+            } break;
+        }
+    }
+
     const uint8_t *Strip::prepare(size_t &len) {
         switch(strip_type) {
             case TLS3001_RGB: {
