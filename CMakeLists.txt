@@ -27,9 +27,9 @@ if(BOOTLOADER)
 set(PRJ_NAME bootloader)
 endif(BOOTLOADER)
 
-if(FORBOOTLOADER)
-set(PRJ_NAME lightguy_bootload)
-endif(FORBOOTLOADER)
+if(BOOTLOADED)
+set(PRJ_NAME lightguy_bootloaded)
+endif(BOOTLOADED)
 
 project(${PRJ_NAME} C CXX ASM)
 
@@ -52,14 +52,6 @@ set(CMSISSYSTEMC system_gd32f10x.c)
 
 set(CMSISLINKLD GD32F107RC_FLASH.ld)
 
-if(BOOTLOADER)
-set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADER.ld)
-endif(BOOTLOADER)
-
-if(FORBOOTLOADER)
-set(CMSISLINKLD GD32F107RC_FLASH_FORBOOTLOADER.ld)
-endif(FORBOOTLOADER)
-
 set(GD32ARCH GD32F10X_CL)
 set(GD32MCU GD32F107RC)
 
@@ -72,6 +64,22 @@ set(LINKLDPATH CMSIS/GD/GD32F10x/Source/GCC/linker/${CMSISLINKLD})
 set(DEVICESTARTUPPATH CMSIS/GD/GD32F10x/Source/GCC/${CMSISSTARTUPS})
 set(SYSTEMCPATH CMSIS/GD/GD32F10x/Source/${CMSISSYSTEMC})
 
+
+# Boot loader stuff
+
+# normal start address
+set(BASE_ADDRESS 0x08000000)
+
+if(BOOTLOADER)
+set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADER.ld)
+set(BASE_ADDRESS 0x08000000)
+endif(BOOTLOADER)
+
+if(BOOTLOADED)
+set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADED.ld)
+set(BASE_ADDRESS 0x08008000)
+endif(BOOTLOADED)
+
 # HAL
 include_directories(GD32F10x_standard_peripheral/Include)
 file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
@@ -79,7 +87,7 @@ file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
 # LwIP
 include_directories(GD32F10x_lwip)
 
-set(COMMON_FLAGS "-DGD32 -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
+set(COMMON_FLAGS "-DGD32 -DNVIC_BASE_ADDRESS=${BASE_ADDRESS} -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
 
 if(BOOTLOADER)
 set(COMMON_FLAGS "${COMMON_FLAGS} -D BOOTLOADER")
@@ -129,5 +137,5 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 		COMMAND ${CMAKE_SIZE} ${PROJECT_NAME}.elf
 		COMMENT "Building ${HEX_FILE} \nBuilding ${BIN_FILE}")
 
-set(PROGRAM_CMD "sudo openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c \"program ${PROJECT_NAME}.elf verify reset exit\"")
+set(PROGRAM_CMD "sudo openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c \"program ${PROJECT_NAME}.bin ${BASE_ADDRESS} verify reset exit\"")
 install(CODE "execute_process(COMMAND ${PROGRAM_CMD})")

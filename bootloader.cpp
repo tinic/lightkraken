@@ -7,6 +7,7 @@ extern "C" {
 #include "lwip/def.h"
 }
 
+#include "./status.h"
 #include "./main.h"
 #include "./systick.h"
 #include "./bootloader.h"
@@ -14,9 +15,9 @@ extern "C" {
 
 #define DEBUG_DO_ACTUALLY_FLASH 1
 
-constexpr static size_t page_num = (FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR) / FMC_PAGE_SIZE;
-constexpr static size_t word_num = ((FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR) >> 2);
-constexpr static size_t bytes_num = ((FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR));
+constexpr static size_t page_num = ((FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR) / FMC_PAGE_SIZE);
+constexpr static size_t word_num = (FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR);
+constexpr static size_t bytes_num = (FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR);
 
 static uint8_t buffer[8192];
 
@@ -30,19 +31,23 @@ static void write_flash(const char *data, size_t len) {
         return;
     }
     size_t to_write = bufferptr + len;
-    size_t off_write = bufferptr;
+    size_t off_write = 0;
     memcpy(&buffer[bufferptr], data, len);
     bufferptr += len;
     while(to_write >= sizeof(uint32_t)) {
 #if DEBUG_DO_ACTUALLY_FLASH
-        fmc_word_program(word_index,(buffer[off_write + 3] << 24) |
+        fmc_word_program(word_index + FMC_WRITE_START_ADDR,
+                                    (buffer[off_write + 3] << 24) |
                                     (buffer[off_write + 2] << 16) |
                                     (buffer[off_write + 1] <<  8) |
                                     (buffer[off_write + 0] <<  0) );
+        fmc_flag_clear(FMC_FLAG_BANK0_END);
+        fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+        fmc_flag_clear(FMC_FLAG_BANK0_PGERR); 
 #endif  // #if DEBUG_DO_ACTUALLY_FLASH
         to_write -= sizeof(uint32_t);
         off_write += sizeof(uint32_t);
-        word_index ++;
+        word_index += sizeof(uint32_t);
     }
     memcpy(&buffer[0], &buffer[off_write], to_write);
     bufferptr = to_write;
@@ -63,6 +68,8 @@ static int on_header_field(multipartparser *, const char *, size_t ) {
 static int on_header_value(multipartparser *, const char *data, size_t len) {
     if (strncmp(data, "application/octet-stream", len) == 0) {
 
+        lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::uploading);
+        
 #if DEBUG_DO_ACTUALLY_FLASH
         fmc_unlock();
 
@@ -91,7 +98,6 @@ static int on_headers_complete(multipartparser *) {
 }
 
 static int on_data(multipartparser *, const char *data, size_t len) {
-    
     if (ok_to_assemble) {
         write_flash(data, len);
     }
@@ -108,6 +114,10 @@ static int on_part_end(multipartparser *) {
 #if DEBUG_DO_ACTUALLY_FLASH
     fmc_lock();
 #endif  // #if DEBUG_DO_ACTUALLY_FLASH
+    
+    lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::done);
+
+    lightguy::Systick::instance().scheduleReset();
     
     return 0;
 }
@@ -134,12 +144,6 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
     
     DEBUG_PRINTF(("httpd_post_begin uri: %s\n", uri));
 
-    if (strcmp("/reset", uri) == 0) {
-        strcpy(response_uri, "/reset.html");
-        lightguy::Systick::instance().scheduleReset();
-        return ERR_OK;
-    }
-    
     if (strcmp("/upload", uri) == 0) {
     
         char *boundaryStr = lwip_strnstr(http_request,"boundary", http_request_len);

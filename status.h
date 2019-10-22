@@ -8,9 +8,9 @@ class StatusLED {
 public:
 
     static StatusLED &instance();
-
+    
     void update();
-    void schedule() { scheduled = true; }
+    void schedule();
 
     enum PowerClass {
         PSE_TYPE_INVALID        = 0b011,
@@ -25,8 +25,29 @@ public:
     };
     
     PowerClass powerClass() const { return power_class; }
+
+#ifdef BOOTLOADER
+    enum BootloaderStatus {
+        waiting,
+        uploading,
+        done,
+        reset
+    };
+
+    void setBootloaderStatus(BootloaderStatus s) {
+        status = s;
+        schedule();
+        update();
+    }
+    
+#endif  // #ifdef BOOTLOADER
     
 private:
+    
+#ifdef BOOTLOADER
+    BootloaderStatus status = waiting;
+#endif  // #ifdef BOOTLOADER
+    
     bool initialized = false;
     void init();
 

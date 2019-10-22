@@ -12,7 +12,6 @@ extern "C" {
 
 extern "C" {
 __attribute__((used)) // required for -flto
-__attribute__ ((interrupt))
 void SysTick_Handler(void) {
     lightguy::Systick::instance().handler();
 }
@@ -38,6 +37,9 @@ void Systick::handler() {
     	nvic_reset_delay--;
     }
     if (nvic_reset_delay == 1) {
+#ifdef BOOTLOADER
+        lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::reset);
+#endif  // #ifdef BOOTLOADER
 		NVIC_SystemReset();
     }
     system_time++;
@@ -45,7 +47,7 @@ void Systick::handler() {
 
 void Systick::init() {
     systick_clksource_set(SYSTICK_CLKSOURCE_HCLK);
-    SysTick_Config(rcu_clock_freq_get(CK_AHB) / 1000); 
+    SysTick_Config(rcu_clock_freq_get(CK_AHB) / 1000);
     DEBUG_PRINTF(("SysTick up.\n"));
 }
 

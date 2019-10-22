@@ -58,11 +58,11 @@ int main() {
 			/* Initialize user application's Stack Pointer */
 			__set_MSP(*(__IO uint32_t*) USER_FLASH_FIRST_PAGE_ADDRESS);
 			Jump_To_Application();
-		} else {
-			// Flash status LED
 		}
 	}
 #endif  // #ifdef BOOTLOADER
+
+    nvic_vector_table_set(NVIC_BASE_ADDRESS,0);
 
     while (1) {
         lightguy::NetConf::instance().update();
@@ -72,7 +72,6 @@ int main() {
         lightguy::SPI_2::instance().update();
         lightguy::SPI_0::instance().update();
 #endif  //#ifndef BOOTLOADER
-
     }
     return 0;
 }

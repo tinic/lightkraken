@@ -11,7 +11,7 @@ public:
     
     void handler();
     
-	void scheduleReset(uint32_t countdown = 1000) { nvic_reset_delay = countdown; }
+	void scheduleReset(int32_t countdown = 2000) { nvic_reset_delay = countdown; }
 	
 private:
 
@@ -19,7 +19,7 @@ private:
     void init();
 
     uint32_t system_time = 0;
-    uint32_t nvic_reset_delay = 0;
+    int32_t nvic_reset_delay = 0;
 };
 
 }
