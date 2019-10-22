@@ -79,7 +79,7 @@ file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
 # LwIP
 include_directories(GD32F10x_lwip)
 
-set(COMMON_FLAGS "-DGD32 -D${GD32ARCH} -D${GD32MCU} -Werror -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
+set(COMMON_FLAGS "-DGD32 -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
 
 if(BOOTLOADER)
 set(COMMON_FLAGS "${COMMON_FLAGS} -D BOOTLOADER")
@@ -93,7 +93,7 @@ set(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
 set(CMAKE_C_FLAGS_RELEASE "-flto -Wl,-flto -Os")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g3")
 
-set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Werror -Wall -Wextra -Wno-strict-aliasing -Wdouble-promotion -Wshadow -Wfloat-conversion -Wnull-dereference -Wformat=2 -std=c++17 -fno-rtti -fno-exceptions")
+set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Wall -Wextra -Wno-strict-aliasing -Wdouble-promotion -Wshadow -Wfloat-conversion -Wnull-dereference -Wformat=2 -std=c++17 -fno-rtti -fno-exceptions")
 set(CMAKE_CXX_FLAGS_RELEASE "-flto -Wl,-flto -Os")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 
@@ -114,7 +114,7 @@ if(BOOTLOADER)
 set(bootloader_SRCS bootloader.cpp multipartparser.cpp)
 endif(BOOTLOADER)
 
-set(SOURCE_FILES ${bootloader_SRCS} ${lwipnoapps_SRCS} ${lwipallapps_SRCS} main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC})
+set(SOURCE_FILES ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC} ${bootloader_SRCS} ${lwipnoapps_SRCS} ${lwipallapps_SRCS} main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
 

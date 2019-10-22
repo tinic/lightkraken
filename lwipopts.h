@@ -85,17 +85,6 @@ OF SUCH DAMAGE.
 #define TCP_QUEUE_OOSEQ         0                        /* controls if TCP should queue segments that arrive out of
                                                             order, Define to 0 if your device is low on memory. */
 
-#define TCP_MSS                 (1500 - 40)              /* TCP Maximum segment size, 
-                                                            TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
-
-#define TCP_SND_BUF             (2*TCP_MSS)              /* TCP sender buffer space (bytes) */
-
-#define TCP_SND_QUEUELEN        ((6* TCP_SND_BUF)/TCP_MSS)   /* TCP sender buffer space (pbufs), this must be at least
-                                                            as much as (2 * TCP_SND_BUF/TCP_MSS) for things to work */
-
-#define TCP_WND                 (2*TCP_MSS)              /* TCP receive window */
-                                                
-
 /* DHCP options */
 #define LWIP_DHCP               1                        /* define to 1 if you want DHCP configuration of interfaces,
                                                             DHCP is not implemented in lwIP 0.5.1, however, so

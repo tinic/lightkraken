@@ -88,7 +88,7 @@ static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p
 void NetConf::init() {
 
     lwip_init();
-
+    
     ip_addr_t address;
     ip_addr_t netmask;
     ip_addr_t gateway;

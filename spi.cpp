@@ -188,6 +188,7 @@ void SPI_2::dma_setup() {
 }
 
 void SPI_2::init() {
+    rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
     rcu_periph_clock_enable(RCU_AF);
     rcu_periph_clock_enable(RCU_SPI2);

@@ -88,13 +88,19 @@ void StatusLED::update() {
 	// Blink red
 	static int32_t direction = 1;
 	static int32_t counter = 0;
-	if (counter < 0) {
+	if (counter <= 0) {
 		direction = 1;
 	}
-	if (counter > 255) {
+	if (counter >= 255) {
 		direction = -1;
 	}
-	counter += direction;
+	counter += direction * 16;
+    if (counter > 255) {
+        counter = 255;
+    }
+    if (counter < 0) {
+        counter = 0;
+    }
 	setUserLED(counter, 0x00, 0x00);
 	
 #endif  // #ifndef BOOTLOADER
@@ -109,20 +115,21 @@ void StatusLED::setUserLED(uint8_t r, uint8_t g, uint8_t b) {
     for (int32_t d=23; d>=0; d--) {
 #define SET GPIO_BOP(GPIOB) = GPIO_PIN_6;
 #define RST GPIO_BC(GPIOB) = GPIO_PIN_6;
+#define SEG 8
     if ((1UL<<d) & bits) {
             // one
-            for (int32_t c=0; c<40; c++) {
+            for (int32_t c=0; c<SEG*2; c++) {
             	SET;
             }
-            for (int32_t c=0; c<40; c++) {
+            for (int32_t c=0; c<SEG*2; c++) {
             	RST;
             }
         } else {
             // zero
-            for (int32_t c=0; c<20; c++) {
+            for (int32_t c=0; c<SEG*1; c++) {
             	SET;
             }
-            for (int32_t c=0; c<60; c++) {
+            for (int32_t c=0; c<SEG*3; c++) {
             	RST;
             }
         }

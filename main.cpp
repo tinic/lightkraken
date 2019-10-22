@@ -46,8 +46,10 @@ int main() {
 
 #ifdef BOOTLOADER
 	// Check user button
-    gpio_init(GPIOA, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
-	if (gpio_input_bit_get(GPIOA, GPIO_PIN_0) != RESET) {
+    rcu_periph_clock_enable(RCU_GPIOB);
+    gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
+    enet_delay(100);
+	if (gpio_input_bit_get(GPIOB, GPIO_PIN_1) != RESET) {
 		/* Check if valid stack address (RAM address) then jump to user application */
 		if (((*(__IO uint32_t*)USER_FLASH_FIRST_PAGE_ADDRESS) & 0x2FFE0000 ) == 0x20000000) {
 			/* Jump to user application */

@@ -4,16 +4,18 @@ extern "C" {
 #include "gd32f10x.h"
 #include "cmsis_gcc.h"
 
-void SysTick_Handler(void);
-
 }; //extern "C" {
 
 #include "./main.h"
 #include "./systick.h"
 #include "./status.h"
 
+extern "C" {
+__attribute__((used)) // required for -flto
+__attribute__ ((interrupt))
 void SysTick_Handler(void) {
     lightguy::Systick::instance().handler();
+}
 }
 
 namespace lightguy {
@@ -48,4 +50,5 @@ void Systick::init() {
 }
 
 }
+
 
