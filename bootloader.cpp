@@ -4,6 +4,7 @@
 extern "C" {
 #include "gd32f10x.h"
 #include "lwip/apps/httpd.h"
+#include "lwip/def.h"
 }
 
 #include "./main.h"
@@ -196,8 +197,6 @@ static int on_headers_complete(multipartparser *) {
 }
 
 static int on_data(multipartparser *, const char *data, size_t len) {
-	(void) data;
-	(void) len;
     DEBUG_PRINTF(("on_header_value %.*s\n", len, data));
     bufferptr += base64_decode_block(data, len, (char *)&buffer[bufferptr], &decodestate);
     write_flash();
@@ -241,6 +240,54 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
     }
     
     if (strcmp("/upload", uri) == 0) {
+    
+    	char *boundaryStr = lwip_strnstr(http_request,"boundary", http_request_len);
+    	if (boundaryStr == 0) {
+		  	return ERR_ARG;
+    	}
+
+    	char *boundaryEnd = lwip_strnstr(boundaryStr,"\r\n", http_request_len - (boundaryStr - http_request));
+    	if (boundaryEnd == 0) {
+		  	return ERR_ARG;
+    	}
+    	
+    	boundaryStr += strlen("boundary") - 1;
+    	for (;;) {
+    		boundaryStr++;
+    		// stop right after quotes
+    		if (*boundaryStr == '"') {
+    			boundaryStr++;
+    			break;
+    		}
+    		// skip starting spaces
+    		if (*boundaryStr == ' ' ||
+    		    *boundaryStr == '=') {
+    		    continue;
+    		}
+    		break;
+    	}
+
+    	for (;;) {
+    		boundaryStr--;
+    		// stop right after quotes
+    		if (*boundaryStr == '"') {
+    			boundaryStr--;
+    			break;
+    		}
+    		// skip trailing spaces
+    		if (*boundaryStr == ' ' ||
+    		    *boundaryStr == '=') {
+    		    continue;
+    		}
+    		break;
+    	}
+    	
+    	char boundary[70];
+    	memset(boundary, 0, sizeof(boundaryStr));
+    	strncpy(boundary, boundaryStr, boundaryEnd - boundaryStr);
+
+	    DEBUG_PRINTF(("boundary string: '%s'\n", boundary));
+    
     	uploading = true;
 		multipartparser_callbacks_init(&callbacks);
 		callbacks.on_body_begin = &on_body_begin;
@@ -251,7 +298,7 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
 		callbacks.on_data = &on_data;
 		callbacks.on_part_end = &on_part_end;
 		callbacks.on_body_end = &on_body_end;
-		multipartparser_init(&parser, "what?");
+		multipartparser_init(&parser, boundary);
     	return ERR_OK;
     }
 
