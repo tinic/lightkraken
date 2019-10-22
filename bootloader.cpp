@@ -282,7 +282,7 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
     		break;
     	}
     	
-    	char boundary[70];
+    	char boundary[71];
     	memset(boundary, 0, sizeof(boundaryStr));
     	strncpy(boundary, boundaryStr, boundaryEnd - boundaryStr);
 
