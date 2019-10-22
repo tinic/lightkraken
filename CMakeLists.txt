@@ -52,19 +52,6 @@ set(CMSISSYSTEMC system_gd32f10x.c)
 
 set(CMSISLINKLD GD32F107RC_FLASH.ld)
 
-set(GD32ARCH GD32F10X_CL)
-set(GD32MCU GD32F107RC)
-
-# CMSIS
-include_directories(.)
-include_directories(CMSIS/Include)
-include_directories(CMSIS/GD/GD32F10x/Include)
-
-set(LINKLDPATH CMSIS/GD/GD32F10x/Source/GCC/linker/${CMSISLINKLD})
-set(DEVICESTARTUPPATH CMSIS/GD/GD32F10x/Source/GCC/${CMSISSTARTUPS})
-set(SYSTEMCPATH CMSIS/GD/GD32F10x/Source/${CMSISSYSTEMC})
-
-
 # Boot loader stuff
 
 # normal start address
@@ -79,6 +66,19 @@ if(BOOTLOADED)
 set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADED.ld)
 set(BASE_ADDRESS 0x08008000)
 endif(BOOTLOADED)
+
+set(GD32ARCH GD32F10X_CL)
+set(GD32MCU GD32F107RC)
+
+# CMSIS
+include_directories(.)
+include_directories(CMSIS/Include)
+include_directories(CMSIS/GD/GD32F10x/Include)
+
+set(LINKLDPATH CMSIS/GD/GD32F10x/Source/GCC/linker/${CMSISLINKLD})
+set(DEVICESTARTUPPATH CMSIS/GD/GD32F10x/Source/GCC/${CMSISSTARTUPS})
+set(SYSTEMCPATH CMSIS/GD/GD32F10x/Source/${CMSISSYSTEMC})
+
 
 # HAL
 include_directories(GD32F10x_standard_peripheral/Include)
