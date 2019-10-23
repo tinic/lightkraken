@@ -1,6 +1,8 @@
 #include <string.h>
 #include <memory.h>
 
+#include <algorithm>
+
 extern "C" {
 #include "gd32f10x.h"
 #include "lwip/apps/httpd.h"
@@ -154,6 +156,10 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
             return ERR_ARG;
         }
 
+        if (boundaryEnd <= boundaryStr) {
+            return ERR_ARG;
+        }
+
         boundaryStr += strlen("boundary");
 
         for (;;) {
@@ -185,10 +191,14 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
             }
             break;
         }
+
+        if (boundaryEnd <= boundaryStr) {
+            return ERR_ARG;
+        }
         
         char boundary[71];
         memset(boundary, 0, sizeof(boundaryStr));
-        strncpy(boundary, boundaryStr, boundaryEnd - boundaryStr);
+        strncpy(boundary, boundaryStr, std::min(70, boundaryEnd - boundaryStr));
 
         uploading = true;
         multipartparser_callbacks_init(&callbacks);
