@@ -90,10 +90,10 @@ void Driver::setPulse(size_t idx, uint16_t pulse) {
     case 3: {
         PwmTimer3::instance().setPulse(pulse);
     } break;
-    case 5: {
+    case 4: {
         PwmTimer5::instance().setPulse(pulse);
     } break;
-    case 6: {
+    case 5: {
         PwmTimer6::instance().setPulse(pulse);
     } break;
     }

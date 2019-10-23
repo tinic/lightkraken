@@ -49,7 +49,6 @@ void Control::setUniverseOutputDataForDriver(size_t channels, uint16_t uni, cons
     }
     for (size_t c = 0; c < Driver::terminalN; c++) {
         Driver::instance().setRGB8CIE(c,rgb[c]);
-        
     }
 }
 
