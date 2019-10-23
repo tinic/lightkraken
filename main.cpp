@@ -37,6 +37,8 @@ extern "C" {
 #ifdef BOOTLOADER
 #include "./bootloader.h"
 
+static uint32_t __attribute__((section (".sentinel"))) sentinel;
+
 typedef  void (*pFunction)(void);
 static pFunction Jump_To_Application;
 static uint32_t JumpAddress;
@@ -45,21 +47,23 @@ static uint32_t JumpAddress;
 int main() {
 
 #ifdef BOOTLOADER
-	// Check user button
+    // Check user button
     rcu_periph_clock_enable(RCU_GPIOB);
     gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
     enet_delay(100);
-	if (gpio_input_bit_get(GPIOB, GPIO_PIN_1) != RESET) {
-		/* Check if valid stack address (RAM address) then jump to user application */
-		if (((*(__IO uint32_t*)USER_FLASH_FIRST_PAGE_ADDRESS) & 0x2FFE0000 ) == 0x20000000) {
-			/* Jump to user application */
-			JumpAddress = *(__IO uint32_t*) (USER_FLASH_FIRST_PAGE_ADDRESS + 4);
-			Jump_To_Application = (pFunction) JumpAddress;
-			/* Initialize user application's Stack Pointer */
-			__set_MSP(*(__IO uint32_t*) USER_FLASH_FIRST_PAGE_ADDRESS);
-			Jump_To_Application();
-		}
-	}
+    if (gpio_input_bit_get(GPIOB, GPIO_PIN_1) != RESET && sentinel != 0xFEEDC0DE) {
+        sentinel = 0;
+        /* Check if valid stack address (RAM address) then jump to user application */
+        if (((*(__IO uint32_t*)USER_FLASH_FIRST_PAGE_ADDRESS) & 0x2FFE0000 ) == 0x20000000) {
+            /* Jump to user application */
+            JumpAddress = *(__IO uint32_t*) (USER_FLASH_FIRST_PAGE_ADDRESS + 4);
+            Jump_To_Application = (pFunction) JumpAddress;
+            /* Initialize user application's Stack Pointer */
+            __set_MSP(*(__IO uint32_t*) USER_FLASH_FIRST_PAGE_ADDRESS);
+            Jump_To_Application();
+        }
+    }
+    sentinel = 0;
 #endif  // #ifdef BOOTLOADER
 
     nvic_vector_table_set(NVIC_BASE_ADDRESS,0);

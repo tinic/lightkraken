@@ -90,8 +90,12 @@ include_directories(GD32F10x_lwip)
 set(COMMON_FLAGS "-DGD32 -DNVIC_BASE_ADDRESS=${BASE_ADDRESS} -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
 
 if(BOOTLOADER)
-set(COMMON_FLAGS "${COMMON_FLAGS} -D BOOTLOADER")
-endif( BOOTLOADER)
+set(COMMON_FLAGS "${COMMON_FLAGS} -DBOOTLOADER=1")
+endif(BOOTLOADER)
+
+if(BOOTLOADED)
+set(COMMON_FLAGS "${COMMON_FLAGS} -DBOOTLOADED=1")
+endif(BOOTLOADED)
 
 set(CMAKE_ASM_FLAGS "-mcpu=${ARM_ARCH}")
 set(CMAKE_ASM_FLAGS_RELEASE "")

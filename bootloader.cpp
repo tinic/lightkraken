@@ -13,13 +13,11 @@ extern "C" {
 #include "./bootloader.h"
 #include "./multipartparser.h"
 
-#define DEBUG_DO_ACTUALLY_FLASH 1
-
 constexpr static size_t page_num = ((FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR) / FMC_PAGE_SIZE);
 constexpr static size_t word_num = (FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR);
 constexpr static size_t bytes_num = (FMC_WRITE_END_ADDR - FMC_WRITE_START_ADDR);
 
-static uint8_t buffer[8192];
+static uint8_t buffer[16384];
 
 static uintptr_t bufferptr = 0;
 static size_t word_index = 0;
@@ -27,15 +25,18 @@ static size_t bytes_in = 0;
 static bool ok_to_assemble = false;
 
 static void write_flash(const char *data, size_t len) {
+
     if (word_index >= word_num) {
         return;
     }
+
+    lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::flashing);
+    
     size_t to_write = bufferptr + len;
     size_t off_write = 0;
     memcpy(&buffer[bufferptr], data, len);
     bufferptr += len;
     while(to_write >= sizeof(uint32_t)) {
-#if DEBUG_DO_ACTUALLY_FLASH
         fmc_word_program(word_index + FMC_WRITE_START_ADDR,
                                     (buffer[off_write + 3] << 24) |
                                     (buffer[off_write + 2] << 16) |
@@ -44,7 +45,6 @@ static void write_flash(const char *data, size_t len) {
         fmc_flag_clear(FMC_FLAG_BANK0_END);
         fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
         fmc_flag_clear(FMC_FLAG_BANK0_PGERR); 
-#endif  // #if DEBUG_DO_ACTUALLY_FLASH
         to_write -= sizeof(uint32_t);
         off_write += sizeof(uint32_t);
         word_index += sizeof(uint32_t);
@@ -68,9 +68,8 @@ static int on_header_field(multipartparser *, const char *, size_t ) {
 static int on_header_value(multipartparser *, const char *data, size_t len) {
     if (strncmp(data, "application/octet-stream", len) == 0) {
 
-        lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::uploading);
+        lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::erasing);
         
-#if DEBUG_DO_ACTUALLY_FLASH
         fmc_unlock();
 
         fmc_flag_clear(FMC_FLAG_BANK0_END);
@@ -78,12 +77,13 @@ static int on_header_value(multipartparser *, const char *data, size_t len) {
         fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
 
         for(size_t c = 0; c < page_num; c++){
+            lightguy::StatusLED::instance().schedule();
+            lightguy::StatusLED::instance().update();
             fmc_page_erase(FMC_WRITE_START_ADDR + (FMC_PAGE_SIZE * c));
             fmc_flag_clear(FMC_FLAG_BANK0_END);
             fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
             fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
         }
-#endif  // #if DEBUG_DO_ACTUALLY_FLASH
 
         bufferptr = 0;
         word_index = 0;
@@ -111,9 +111,7 @@ static int on_part_end(multipartparser *) {
     bytes_in = 0;
     ok_to_assemble = false;
     
-#if DEBUG_DO_ACTUALLY_FLASH
     fmc_lock();
-#endif  // #if DEBUG_DO_ACTUALLY_FLASH
     
     lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::done);
 

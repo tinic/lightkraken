@@ -83,6 +83,14 @@ SECTIONS
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
+    /* place custom sentinel section */
+  .sentinel : 
+  {
+    . = ALIGN(4);
+    KEEP(*(.sentinel)) /* keep even if not referenced */
+    . = ALIGN(4);
+  } >RAM AT> FLASH
+
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data : 
   {
@@ -93,7 +101,7 @@ SECTIONS
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
-  } >RAM AT> FLASH
+  } >RAM
   
   /* Uninitialized data section */
   . = ALIGN(4);

@@ -34,12 +34,15 @@ void StatusLED::init() {
 
 }
 
+#ifndef BOOTLOADER
 void StatusLED::readPowerState() {
     bt_state = gpio_input_bit_get(GPIOA, GPIO_PIN_3) == RESET ? false : true;
     tpl_state = gpio_input_bit_get(GPIOA, GPIO_PIN_5) == RESET ? false : true;
     tph_state = gpio_input_bit_get(GPIOA, GPIO_PIN_4) == RESET ? false : true;
     powergood_state = gpio_input_bit_get(GPIOB, GPIO_PIN_0) == RESET ? false : true;
 }
+#endif  // #ifndef BOOTLOADER
+
 void StatusLED::schedule() {
     scheduled = true; 
 }
@@ -98,7 +101,10 @@ void StatusLED::update() {
         case waiting:
         setUserLED(v, 0x00, 0x00);
         break;
-        case uploading:
+        case erasing:
+        setUserLED(v, 0x00, v);
+        break;
+        case flashing:
         setUserLED(0x00, 0x00, v);
         break;
         default:

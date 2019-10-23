@@ -34,14 +34,18 @@ void Systick::handler() {
         lightguy::StatusLED::instance().schedule();
     }
     if (nvic_reset_delay > 0) {
-    	nvic_reset_delay--;
+        nvic_reset_delay--;
     }
     if (nvic_reset_delay == 1) {
 #ifdef BOOTLOADER
         lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::reset);
 #endif  // #ifdef BOOTLOADER
-		NVIC_SystemReset();
+        if (bootloader_after_reset) {
+            *((volatile uint32_t *)0x20000000) = 0xFEEDC0DE;
+        }
+        NVIC_SystemReset();
     }
+
     system_time++;
 }
 

@@ -12,6 +12,8 @@ public:
     void update();
     void schedule();
 
+#ifndef BOOTLOADER
+
     enum PowerClass {
         PSE_TYPE_INVALID        = 0b011,
         PSE_TYPE_POWER_BAD      = 0b001,
@@ -26,10 +28,12 @@ public:
     
     PowerClass powerClass() const { return power_class; }
 
-#ifdef BOOTLOADER
-    enum BootloaderStatus {
+#else  // #ifndef BOOTLOADER
+
+enum BootloaderStatus {
         waiting,
-        uploading,
+        erasing,
+        flashing,
         done,
         reset
     };
@@ -44,22 +48,27 @@ public:
     
 private:
     
-#ifdef BOOTLOADER
-    BootloaderStatus status = waiting;
-#endif  // #ifdef BOOTLOADER
-    
+    bool scheduled = false;
     bool initialized = false;
     void init();
 
-    void readPowerState();
     void setUserLED(uint8_t r, uint8_t g, uint8_t b);
+
+#ifndef BOOTLOADER
+    
+    void readPowerState();
 
     bool bt_state = false;
     bool tpl_state = false;
     bool tph_state = false;
     bool powergood_state = false;
-    bool scheduled = false;
     PowerClass power_class = PSE_TYPE_INVALID;
+    
+#else  // #ifndef BOOTLOADER
+    
+    BootloaderStatus status = waiting;
+    
+#endif  // #ifndef BOOTLOADER
 
 };
 

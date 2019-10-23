@@ -82,7 +82,7 @@ SECTIONS
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
-
+  
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data : 
   {

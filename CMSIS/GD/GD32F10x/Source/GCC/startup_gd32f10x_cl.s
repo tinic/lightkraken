@@ -56,6 +56,12 @@ Infinite_Loop:
   b Infinite_Loop
   .size Default_Handler, .-Default_Handler
 
+  .section .sentinel,"a",%progbits
+  .type g_sentinel, %object
+  .size g_sentinel, .-g_sentinel
+g_sentinel:
+  .word 0
+  
   .section .isr_vector,"a",%progbits
   .type g_pfnVectors, %object
   .size g_pfnVectors, .-g_pfnVectors
