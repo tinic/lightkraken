@@ -20,6 +20,8 @@ const int32_t build_number =
 
 #if LWIP_HTTPD_SUPPORT_REST
 
+#define CRLF "\r\n"
+
 using namespace lightguy;
 
 static char response_buf[2048];
@@ -63,12 +65,38 @@ err_t httpd_rest_begin(void *, rest_method_t method, const char *url, const char
     return ERR_REST_DISPATCH;
 }
 
+static char *addHeader(char *buf) {
+    return buf + sprintf(buf, "HTTP/1.0 200 OK" CRLF 
+                              "Content-Type: application/json; charset=utf-8" CRLF 
+                              "X-Content-Type-Options: nosniff" CRLF
+                              "Vary: Origin, Accept-Encoding" CRLF
+                              "Content-Length: @@@@@@@@@@@" CRLF
+                              "Access-Control-Allow-Origin: *" CRLF 
+                              "Cache-Control: no-cache" CRLF
+                              CRLF);
+}
+
+static void patchContentLength(char *buf, int32_t contentLength) {
+    char *contentLengthPtr = strstr(buf, "@@@@@@@@@@@");
+    if (!contentLengthPtr) {
+        return;
+    }
+    char numberStr[12];
+    memset(numberStr, 0, sizeof(numberStr));
+    sprintf(numberStr, "%d", int(contentLength));
+    for (size_t c = sizeof(numberStr)-1; c>0; c--) {
+        if (numberStr[c] == 0) numberStr[c] = ' ';
+    }
+    strncpy(contentLengthPtr, numberStr, 11);
+}
+
 err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
     switch(rest_method) {
         case MethodGetStatus: {
-            char *buf = response_buf;
+            char *contentBegin = addHeader(response_buf);
+            char *buf = contentBegin;
             buf += sprintf(buf, "{");
-            buf += sprintf(buf, "\"ipv4address:\"\"%d.%d.%d.%d\",", 
+            buf += sprintf(buf, "\"ipv4address\":\"%d.%d.%d.%d\",", 
                 ip4_addr1(&NetConf::instance().netInterface()->ip_addr),
                 ip4_addr2(&NetConf::instance().netInterface()->ip_addr),
                 ip4_addr3(&NetConf::instance().netInterface()->ip_addr),
@@ -87,14 +115,24 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
                 ip4_addr4(&NetConf::instance().netInterface()->gw)
             );
             buf += sprintf(buf, "\"systemtime\":%d,", int(Systick::instance().systemTime())); 
-            buf += sprintf(buf, "\"buildnumber\":%d", int(build_number)); 
+            buf += sprintf(buf, "\"buildnumber\":%d,", int(build_number)); 
+            buf += sprintf(buf, "\"hostname\":\"%s\",", NetConf::instance().netInterface()->hostname); 
+            buf += sprintf(buf, "\"macaddress\":\"%02x:%02x:%02x:%02x:%02x:%02x\"", 
+                        NetConf::instance().netInterface()->hwaddr[0],
+                        NetConf::instance().netInterface()->hwaddr[1],
+                        NetConf::instance().netInterface()->hwaddr[2],
+                        NetConf::instance().netInterface()->hwaddr[3],
+                        NetConf::instance().netInterface()->hwaddr[4],
+                        NetConf::instance().netInterface()->hwaddr[5]); 
             buf += sprintf(buf, "}");
+            patchContentLength(response_buf, buf - contentBegin);
             *data = response_buf;
             *dataLen = strlen(response_buf);
-            return ERR_REST_200_OK;
+            return ERR_OK;
         } break;
         case MethodGetSettings: {
-            char *buf = response_buf;
+            char *contentBegin = addHeader(response_buf);
+            char *buf = contentBegin;
             buf += sprintf(buf, "{");
             buf += sprintf(buf, "\"dhcp\":%s,",Model::instance().dhcpEnabled()?"true":"false"); 
             buf += sprintf(buf, "\"ipv4address\":\"%d.%d.%d.%d\",", 
@@ -138,9 +176,10 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
             }
             buf += sprintf(buf, "]");
             buf += sprintf(buf, "}");
+            patchContentLength(response_buf, buf - contentBegin);
             *data = response_buf;
             *dataLen = strlen(response_buf);
-            return ERR_REST_200_OK;
+            return ERR_OK;
         } break;
         case MethodSetSettings: {
         } break;
