@@ -120,7 +120,7 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
             patchContentLength(response_buf, buf - contentBegin);
             *data = response_buf;
             *dataLen = strlen(response_buf);
-            return ERR_REST_200_OK;
+            return ERR_OK;
         } break;
         case MethodGetSettings: {
             char *contentBegin = addHeader(response_buf);
@@ -171,7 +171,7 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
             patchContentLength(response_buf, buf - contentBegin);
             *data = response_buf;
             *dataLen = strlen(response_buf);
-            return ERR_REST_200_OK;
+            return ERR_OK;
         } break;
         case MethodSetSettings: {
         } break;
