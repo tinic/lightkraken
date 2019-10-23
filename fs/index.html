@@ -7,91 +7,276 @@
 	<meta content=en name=DC.language />
 	<meta content='width=device-width,initial-scale=1' name=viewport />
 	<script src="vue.js"></script>
+	<script src="axios.js"></script>
 </head>
 <body>
 <style>
+@import url(http://fonts.googleapis.com/css?family=Montserrat:400,600);
+body, div, table  {
+	background-color: #DDDDDD;
+	font: 16px "Montserrat", sans-serif; 
+	font-weight: 400;
+}
+
+p.status {
+    width:729px;
+    border-top: 1px solid black;
+	background-color: #DDEEDD;
+    border-bottom: 1px solid black;
+    padding:10px;
+}
+
+p.section {
+    width:729px;
+    border-top: 1px solid black;
+	background-color: #EEEEEE;
+    border-bottom: 1px solid black;
+    padding:10px;
+}
+
+span.header {
+	font-size: large;
+	font-weight: bold;
+}
+
 span.left {
     clear:left;
     float:left;
-    width:20%;
-    min-width:120px;
-    max-width:300px;
+    width:45%;
     margin:0 0 .6em;
     padding:0;
     text-align:right;
 }
+
 span.right {
     overflow:auto;
     margin:0 0 .6em .4em;
     padding-left:.6em;
     text-align:left
 }
+
+span.statusfield {
+	font-family : inherit;
+	font-size   : 100%;
+	font-weight : 600;
+    width:30%;
+	float:left;
+	background-color: #EEFFEE;
+    overflow:auto;
+    margin:0 0 .6em .4em;
+    padding-left:.6em;
+    text-align:left
+}
+
+span.terminalB {
+	width: 245px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+	left: 100px;
+    text-align:center;
+}
+
+span.terminalA {
+	width: 245px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+	left: 410px;
+    text-align:center;
+}
+
+span.pin0 {
+	width: 50px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+	left: 100px;
+    text-align:center;
+}
+
+span.pin1 {
+	width: 50px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+	left: 165px;
+    text-align:center;
+}
+
+span.pin2 {
+	width: 50px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+	left: 230px;
+    text-align:center;
+}
+
+span.pin3 {
+	width: 50px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+	left: 295px;
+    text-align:center;
+}
+
+span.pin4 {
+	width: 50px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+	left: 410px;
+    text-align:center;
+}
+
+span.pin5 {
+	width: 50px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+    text-align:center;
+	left: 480px;
+}
+
+span.pin6 {
+	width: 50px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+    text-align:center;
+	left: 540px;
+}
+
+span.pin7 {
+	width: 50px;
+	font-family: monospace;
+	font-weight: bold;
+	font-size: 20px;
+	position: absolute;
+    text-align:center;
+	left: 610px;
+}
+
+span.pin* {
+}
+
+button, input, select, textarea {
+  font-family : inherit;
+  font-size   : 100%;
+  font-weight : 600;
+}
+
+input.smallnumber {
+    width:70px;
+}
+
 </style>
 <div id="app">
 <div v-if="page==0">
 	<form id="app" @submit="checkForm" action="" method="post" novalidate="true">
-	<p>
-		<h3>Interface settings</h3>
-		<span class="left"><input type="checkbox" id="broadcast" v-model="broadcast"></span><span class="right"><label style="float:left" for="broadcast">Allow DMX broadcast</label></span><br><br>
-		<span class="left"><input type="checkbox" id="usedhcp" v-model="usedhcp"></span><span class="right"><label style="float:left" for="usedhcp">Use DHCP</label></span><br><br>
-		<p v-if="usedhcp==false">
-			<span class="left">IPv4 Address</span><span class="right"><input v-model="ip4address" type="text"></span><br><br>
-			<span class="left">IPv4 Netmask</span><span class="right"><input v-model="ip4netmask" type="text"></span><br><br>
-			<span class="left">IPv4 Gateway</span><span class="right"><input v-model="ip4gateway" type="text"></span><br><br>
-		</p>
-		<h3>Output settings</h3>
-		<p>
-			<span>Output Mode</span>
-			<select v-model="mainMode">
-			  <option v-for="mode in mainModes" v-bind:value="mode.value">{{ mode.text }}</option>
+	<p v-if="status.buildnumber > 0" class="status">
+		<span class="header">Current Status</span><br><br>
+		<span class="left">Firmware revision</span>
+		<span class="statusfield">{{ status.buildnumber }}</span><br><br>
+		<span class="left">IPv4 address</span>
+		<span class="statusfield">{{ status.ipv4address }}</span><br><br>
+		<span class="left">IPv4 netmask</span>
+		<span class="statusfield">{{ status.ipv4netmask }}</span><br><br>
+		<span class="left">IPv4 gateway</span>
+		<span class="statusfield">{{ status.ipv4gateway }}</span><br><br>
+		<span class="left">MAC Address</span>
+		<span class="statusfield">{{ status.macaddress }}</span><br><br>
+		<span class="left">Hostname</span>
+		<span class="statusfield">{{ status.hostname }}</span><br><br>
+	</p>
+	<p v-if="settings.dhcp !== undefined" class="section">
+		<span class="header">Network Interface</span><br><br>
+		<span class="right"><input type="checkbox" id="broadcast" v-model="broadcast"></span><span class="left"><label for="broadcast">Allow DMX broadcast</label></span><br><br>
+		<span class="right"><input type="checkbox" id="dhcp" v-model="settings.dhcp"></span><span class="left"><label for="dhcp">Use DHCP</label></span>
+		<span v-if="settings.dhcp !== undefined && settings.dhcp == false">
+			<br><br>
+			<span class="left">IPv4 Address</span><span class="right"><input v-model="settings.ipv4address" type="text"></span><br><br>
+			<span class="left">IPv4 Netmask</span><span class="right"><input v-model="settings.ipv4netmask" type="text"></span><br><br>
+			<span class="left">IPv4 Gateway</span><span class="right"><input v-model="settings.ipv4gateway" type="text"></span>
+		</span>
+	</p>
+	<p v-if="settings.dhcp !== undefined" class="section">
+		<span class="header">Output</span><br><br>
+		<span class="left">Output Mode</span><span class="right"><select v-model="mainMode"><option v-for="mode in mainModes" v-bind:value="mode.value">{{ mode.text }}</option></select></span><br><br>
+	</p>
+	<p v-if="settings.dhcp !== undefined">
+	<img src="front.png"></img><br>
+	<span class="pin0">{{ pinsSchematic[mainMode][stripTypes[strips[1].type].signaltype][0] }}</span>
+	<span class="pin1">{{ pinsSchematic[mainMode][stripTypes[strips[1].type].signaltype][1] }}</span>
+	<span class="pin2">{{ pinsSchematic[mainMode][stripTypes[strips[1].type].signaltype][2] }}</span>
+	<span class="pin3">{{ pinsSchematic[mainMode][stripTypes[strips[1].type].signaltype][3] }}</span>
+	<span class="pin4">{{ pinsSchematic[mainMode][stripTypes[strips[0].type].signaltype][4] }}</span>
+	<span class="pin5">{{ pinsSchematic[mainMode][stripTypes[strips[0].type].signaltype][5] }}</span>
+	<span class="pin6">{{ pinsSchematic[mainMode][stripTypes[strips[0].type].signaltype][6] }}</span>
+	<span class="pin7">{{ pinsSchematic[mainMode][stripTypes[strips[0].type].signaltype][7] }}</span>
+	<br><br>
+	<span class="terminalB">TERMINAL B</span>
+	<span class="terminalA">TERMINAL A</span>
+	<br><br>
+	</p>
+	<p v-if="settings.dhcp !== undefined && (mainMode==0 || mainMode==1)" class="section">
+		<span class="header">Terminal A</span><br><br>
+		<span class="left">LED type</span>
+		<span class="right">
+			<select v-model="strips[0].type">
+				<option v-for="type in stripTypes" v-bind:value="type.value">{{ type.text }}</option>
 			</select>
-		</p>
-		<p><h4>Terminal A</h4></p>
-		<p v-if="mainMode==0 || mainMode==1">
-			<span class="left">LED type</span>
-			<span class="right">
-				<select v-model="strips[0].type">
-				  	<option v-for="type in stripTypes" v-bind:value="type.value">{{ type.text }}</option>
-				</select>
-			</span>
-			<br><br>
-			<span class="left">Number of LEDs</span>
-			<span class="right">
-				<strip-length-item v-bind:strip="strips[0]"></strip-length-item>
-			</span>
-			<br><br>
-			<span class="left">Universes</span>
-			<span class="right">
-				<universe-item v-for="item in universes.slice(0,6)" v-bind:universe="item" v-bind:key="item.id"></universe-item>
-			</span>
-			<br><br>
-		</p>
-		<span v-if="mainMode==0 || mainMode==1">{{ pinsSchematic[stripTypes[strips[0].type].schematic].text }}</span>
-		<span v-if="mainMode==2">{{ pinsSchematic[2].text }}</span>
-		<span v-if="mainMode==3">{{ pinsSchematic[3].text }}</span>
-		<span v-if="mainMode==4">{{ pinsSchematic[4].text }}</span>
-		<p><h4>Terminal B</h4></p>
-		<p v-if="mainMode==0">
-			<span class="left">LED type</span>
-			<span class="right">
-				<select v-model="strips[1].type">
-				  <option v-for="type in stripTypes" v-bind:value="type.value">{{ type.text }}</option>
-				</select>
-			</span>
-			<br><br>
-			<span class="left">Number of LEDs</span>
-			<span class="right">
-				<strip-length-item v-bind:strip="strips[0]"></strip-length-item>
-			</span>
-			<br><br>
-			<span class="left">Universes</span>
-			<span class="right">
-				<universe-item v-for="item in universes.slice(6,12)" v-bind:universe="item" v-bind:key="item.id"></universe-item>
-			</span>
-			<br><br>
-		</p>
-		<span v-if="mainMode==0">{{ pinsSchematic[stripTypes[strips[1].type].schematic].text }}</span>
-		<span v-if="mainMode>=1">{{ pinsSchematic[2].text }}</span>
+		</span>
+		<br><br>
+		<span class="left">Number of LEDs</span>
+		<span class="right">
+			<strip-length-item v-bind:strip="strips[0]"></strip-length-item>
+		</span>
+		<br><br>
+		<span class="left">Universes</span>
+		<span class="right">
+			<universe-item v-for="item in universes.slice(0,3)" v-bind:universe="item" v-bind:key="item.id"></universe-item>
+		</span>
+		<br>
+		<span class="right">
+			<universe-item v-for="item in universes.slice(3,6)" v-bind:universe="item" v-bind:key="item.id"></universe-item>
+		</span>
+		<br><br>
+	</p>
+	<p v-if="settings.dhcp !== undefined && (mainMode==0)" class="section">
+		<span class="header">Terminal B</span><br><br>
+		<span class="left">LED type</span>
+		<span class="right">
+			<select v-model="strips[1].type">
+			  <option v-for="type in stripTypes" v-bind:value="type.value">{{ type.text }}</option>
+			</select>
+		</span>
+		<br><br>
+		<span class="left">Number of LEDs</span>
+		<span class="right">
+			<strip-length-item v-bind:strip="strips[1]"></strip-length-item>
+		</span>
+		<br><br>
+		<span class="left">Universes</span>
+		<span class="right">
+			<universe-item v-for="item in universes.slice(6,9)" v-bind:universe="item" v-bind:key="item.id"></universe-item>
+		</span>
+		<br>
+		<span class="right">
+			<universe-item v-for="item in universes.slice(9,12)" v-bind:universe="item" v-bind:key="item.id"></universe-item>
+		</span>
+		<br><br>
 	</p>
 	<p v-if="errors.length">
 		<b>Please correct the following error(s):</b>vue
@@ -106,7 +291,6 @@ span.right {
 </div>
 </div>
 <script>
-
 function validateIPv4(address)  {
  	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(address)) {
     	return (true)
@@ -116,13 +300,35 @@ function validateIPv4(address)  {
 
 Vue.component('strip-length-item', {
 	props: ['strip'],
-	template: '<input v-model=strip.length type="number">',
+	template: '<input class="smallnumber" v-model=strip.length type="number">',
 })
 
 Vue.component('universe-item', {
 	props: ['universe'],
-	template: '<input v-if="universe.visible==true" v-model=universe.universe type="number">'
+	template: '<input class="smallnumber" v-if="universe.visible==true" v-model=universe.universe type="number">'
 })
+
+axios.get('/status')
+	.then(response => {
+	  app.status = response.data;
+	  console.log(app.status);
+  	  axios.get('/settings')
+		.then(response => {
+		  app.settings = response.data;
+		  console.log(app.settings);
+		})
+		.catch(function (error) {
+		  console.log(error);
+		})
+		.finally(function () {
+		});
+	})
+	.catch(function (error) {
+	  console.log(error);
+	})
+	.finally(function () {
+	});
+
 
 var app = new Vue({
   	el: '#app',
@@ -130,8 +336,10 @@ var app = new Vue({
   		page: 0,
     	errors: [],
 
-    	usedhcp: false,
     	broadcast: true,
+		
+		status: {},
+		settings: {},
     	
     	ip4address: '192.168.1.2',
     	ip4netmask: '255.255.255.0',
@@ -159,11 +367,11 @@ var app = new Vue({
     	
     	mainMode: 0,
     	mainModes: [ 
-    		{ text: '2 x Programmable Strip', value : 0 },
-    		{ text: '1 x Programmable Strip +  1 x Single Color RGB', value : 1 },
-    		{ text: '2 x Single Color RGB', value : 2 },
-    		{ text: '1 x Single Color RGB+W LED', value : 3 },
-    		{ text: '1 x Single Color RGB+W+W LED', value : 4 },
+    		{ text: '2 x RGB Strip', value : 0 },
+    		{ text: '1 x RGB Strip + 1 x RGB Analog', value : 1 },
+    		{ text: '2 x RGB Strip + 1 x RGB Analog', value : 2 },
+    		{ text: '1 x RGB Strip + 1 x RGB+W Analog', value : 3 },
+    		{ text: '2 x RGB Analog', value : 4 },
     	],
     	
 		strips: [
@@ -172,30 +380,29 @@ var app = new Vue({
     	],
 
     	stripTypes: [
-    		{ text: 'WS2812 (RGB)', value : 0, schematic : 0, components: 3 },
-    		{ text: 'SK6812 (RGB)', value : 1, schematic : 0, components: 3  },
-    		{ text: 'TM1804 (RGB)', value : 2, schematic : 0, components: 3  },
-    		{ text: 'UCS1904 (RGB)', value : 3, schematic : 0, components: 3  },
-    		{ text: 'GS8208 (RGB)', value : 4, schematic : 0, components: 3  },
-    		{ text: 'SK6812 (RGBW)', value : 5, schematic : 0, components: 4  },
-    		{ text: 'APA102 (RGB)', value : 6, schematic : 1, components: 3  },
-    		{ text: 'APA107 (RGB)', value : 7, schematic : 1, components: 3  },
-    		{ text: 'P9813 (RGB)', value : 8, schematic : 1, components: 3  },
-    		{ text: 'SK9822 (RGB)', value : 9, schematic : 1, components: 3  },
-    		{ text: 'HDS107S (RGB)', value : 10, schematic : 1, components: 3  },
-    		{ text: 'LPD8806 (RGB)', value : 11, schematic : 0, components: 3  },
-    		{ text: 'TLS3001 (RGB)', value : 12, schematic : 0, components: 3  },
-    		{ text: 'TM1829 (RGB)', value : 13, schematic : 0, components: 3  }
+    		{ text: 'WS2812 (RGB)', value : 0, signaltype : 0, components: 3 },
+    		{ text: 'SK6812 (RGB)', value : 1, signaltype : 0, components: 3  },
+    		{ text: 'TM1804 (RGB)', value : 2, signaltype : 0, components: 3  },
+    		{ text: 'UCS1904 (RGB)', value : 3, signaltype : 0, components: 3  },
+    		{ text: 'GS8208 (RGB)', value : 4, signaltype : 0, components: 3  },
+    		{ text: 'SK6812 (RGBW)', value : 5, signaltype : 0, components: 4  },
+    		{ text: 'APA102 (RGB)', value : 6, signaltype : 1, components: 3  },
+    		{ text: 'APA107 (RGB)', value : 7, signaltype : 1, components: 3  },
+    		{ text: 'P9813 (RGB)', value : 8, signaltype : 1, components: 3  },
+    		{ text: 'SK9822 (RGB)', value : 9, signaltype : 1, components: 3  },
+    		{ text: 'HDS107S (RGB)', value : 10, signaltype : 1, components: 3  },
+    		{ text: 'LPD8806 (RGB)', value : 11, signaltype : 0, components: 3  },
+    		{ text: 'TLS3001 (RGB)', value : 12, signaltype : 0, components: 3  },
+    		{ text: 'TM1829 (RGB)', value : 13, signaltype : 0, components: 3  }
     	],
 
     	pinsSchematic: [
-    		{ text: '0: Power, 1: Data, 3: Ground', image : '' },
-    		{ text: '0: Power, 1: Data, 2: Clock, 3: Ground', image : '' },
-    		{ text: '0: Power, 1: Red, 2: Green, 3: Blue', image : '' }, 
-    		{ text: '0: Power, 3: White', image : '' }, 
-    		{ text: '0: Power, 2: White A, 3: White B', image : '' },
-    	],
-
+			[[ 'GND', '---', 'DAT1', 'VCC', 'GND', '---', 'DAT0', 'VCC' ], [ 'GND', 'CLK1', 'DAT1', 'VCC', 'GND', 'CLK0', 'DAT0', 'VCC' ]],
+			[[ 'BLU', 'GRN', 'RED', 'VCC', 'GND', '---', 'DAT', 'VCC' ], [ 'BLU', 'GRN', 'RED', 'VCC', 'GND', 'CLK', 'DAT', 'VCC' ]],
+			[[ 'BLU', 'GRN', 'DAT1', 'VCC', 'GND', 'RED', 'DAT0', 'VCC' ], [ 'BLU', 'GRN', 'DAT1', 'VCC', 'GND', 'RED', 'DAT0', 'VCC' ]],
+			[[ 'BLU', 'GRN', 'RED', 'VCC', 'GND', 'WHT', 'DAT', 'VCC' ], [ 'BLU', 'GRN', 'RED', 'VCC', 'GND', 'WHT', 'DAT', 'VCC' ]],
+			[[ 'BLU1', 'GRN1', 'RED1', 'VCC', 'BLU0', 'GRN0', 'RED0', 'VCC' ], [ 'BLU1', 'GRN1', 'RED1', 'VCC', 'BLU0', 'GRN0', 'RED0', 'VCC' ]]
+		],
   	},
 	watch: {
  		strips: {
@@ -220,14 +427,14 @@ var app = new Vue({
       	this.errors = [];
       	switch(page) {
       	case 0: {
-		  	if (!this.usedhcp) {
-			  	if (!validateIPv4(this.ip4address)) {
+		  	if (!this.settings.dhcp) {
+			  	if (!validateIPv4(this.settings.ipv4address)) {
 					this.errors.push('Invalid IP4 address!');
 			  	}
-			  	if (!validateIPv4(this.ip4netmask)) {
+			  	if (!validateIPv4(this.settings.ipv4netmask)) {
 					this.errors.push('Invalid IP4 netmask!');
 			  	}
-			  	if (!validateIPv4(this.ip4gateway)) {
+			  	if (!validateIPv4(this.settings.ipv4gateway)) {
 					this.errors.push('Invalid IP4 gateway!');
 			  	}
 		  	} 
