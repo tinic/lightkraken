@@ -115,7 +115,15 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
                 ip4_addr4(&NetConf::instance().netInterface()->gw)
             );
             buf += sprintf(buf, "\"systemtime\":%d,", int(Systick::instance().systemTime())); 
-            buf += sprintf(buf, "\"buildnumber\":%d", int(build_number)); 
+            buf += sprintf(buf, "\"buildnumber\":%d,", int(build_number)); 
+            buf += sprintf(buf, "\"hostname\":\"%s\",", NetConf::instance().netInterface()->hostname); 
+            buf += sprintf(buf, "\"macaddress\":\"%02x:%02x:%02x:%02x:%02x:%02x\"", 
+                        NetConf::instance().netInterface()->hwaddr[0],
+                        NetConf::instance().netInterface()->hwaddr[1],
+                        NetConf::instance().netInterface()->hwaddr[2],
+                        NetConf::instance().netInterface()->hwaddr[3],
+                        NetConf::instance().netInterface()->hwaddr[4],
+                        NetConf::instance().netInterface()->hwaddr[5]); 
             buf += sprintf(buf, "}");
             patchContentLength(response_buf, buf - contentBegin);
             *data = response_buf;
