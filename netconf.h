@@ -20,6 +20,8 @@ public:
     static NetConf &instance();
 
     void update();
+    
+    const struct netif *netInterface() const { return &netif; };
 
 private:
 

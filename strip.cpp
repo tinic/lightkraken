@@ -464,8 +464,9 @@ namespace lightguy {
             *dst++ = 0x00;
             *dst++ = 0x00;
         }
+        int32_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
         for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, comp_len - 1 + 1); c += 3) {
-            *dst++ = 0b11100000 | std::min(uint8_t(0x1F), Model::instance().globIllum());
+            *dst++ = illum;
             *dst++ = comp_buf[c-head_len+0];
             *dst++ = comp_buf[c-head_len+1];
             *dst++ = comp_buf[c-head_len+2];

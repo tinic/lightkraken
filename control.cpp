@@ -31,17 +31,17 @@ void Control::setUniverseOutputDataForDriver(size_t channels, uint16_t uni, cons
     }
     for (size_t c = 0; c < channels; c++) {
         size_t offset = 0;
-        if (Model::instance().universeOffset(c,offset) == uni) {
+        if (Model::instance().analogRGBMap(c).universe == uni) {
             if (len >= offset) {
                 switch(c%3) {
                 case 0: {
-                    rgb[c/3].r = data[offset];
+                    rgb[c/3].r = data[Model::instance().analogRGBMap(c).offset];
                     } break;
                 case 1: {
-                    rgb[c/3].g = data[offset];
+                    rgb[c/3].g = data[Model::instance().analogRGBMap(c).offset];
                     } break;
                 case 2: {
-                    rgb[c/3].b = data[offset];
+                    rgb[c/3].b = data[Model::instance().analogRGBMap(c).offset];
                     } break;
                 }
             }

@@ -99,8 +99,8 @@ void Model::init() {
     
     counter = 0;
     for (size_t c = 0; c < channelN; c++) {
-        uniOff[c].universe = 0;
-        uniOff[c].offset = counter++;
+        rgbMap[c].universe = 0;
+        rgbMap[c].offset = counter++;
     }
 
     readFlash();

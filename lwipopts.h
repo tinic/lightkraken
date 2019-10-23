@@ -175,6 +175,7 @@ OF SUCH DAMAGE.
 /* Lwip debug options */
 //#define LWIP_DEBUG 1
 //#define LWIP_PLATFORM_DIAG(x)   do {printf x;} while(0)
+//#define HTTPD_DEBUG LWIP_DBG_ON
 //#define NETIF_DEBUG LWIP_DBG_ON
 //#define SOCKETS_DEBUG LWIP_DBG_ON
 //#define ICMP_DEBUG LWIP_DBG_ON

@@ -54,8 +54,8 @@ void SPI_0::update() {
 void SPI_0::dma_setup() {
     spi_disable(SPI0);
 
-    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
-    gpio_bit_set(GPIOB, GPIO_PIN_7);
+    gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
+    gpio_bit_set(GPIOA, GPIO_PIN_10);
     
     gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_5);
     gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_3);

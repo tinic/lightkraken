@@ -35,12 +35,6 @@ extern "C" {
 #include "./ethernetif.h"
 #include "./netconf.h"
 
-#ifndef BOOTLOADER
-const int32_t build_number = 
-#include "./build_number.h"
-;
-#endif // #ifndef BOOTLOADER
-
 extern "C" {
     extern enet_descriptors_struct rxdesc_tab[ENET_RXBUF_NUM];
     extern enet_descriptors_struct txdesc_tab[ENET_TXBUF_NUM];

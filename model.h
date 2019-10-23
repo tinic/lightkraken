@@ -19,7 +19,12 @@ class Model {
 public:
     static constexpr size_t stripN = 2;
     static constexpr size_t universeN = 6;
-    static constexpr size_t channelN = 4;
+    static constexpr size_t channelN = 6;
+
+    struct AnalogRGBUniverseEntry {
+        uint16_t universe;
+        uint8_t offset;
+    };
 
     enum OutputConfig {
         OUTPUT_CONFIG_DUAL_STRIP, 	    // channel0: strip      channel1: strip
@@ -34,9 +39,8 @@ public:
     bool burstMode() const { return burst_mode; }
     
     float globPWMLimit() const { return glob_pwmlimit; }
-
-    uint8_t globIllum() const { return glob_illum; }
-    uint8_t globCompLimit() const { return glob_comp_lim; }
+    float globIllum() const { return glob_illum; }
+    float globCompLimit() const { return glob_comp_lim; }
 
     bool dhcpEnabled() const { return ip_dhcp; }
 
@@ -47,10 +51,8 @@ public:
     OutputConfig outputConfig() const { return output_config; }
     void setOutputConfig(OutputConfig outputConfig);
     
-    uint16_t universeOffset(int32_t channel, size_t &uniOffset) const { 
-        channel %= 6;
-        uniOffset = uniOff[channel].offset; 
-        return uniOff[channel].universe;
+    const AnalogRGBUniverseEntry &analogRGBMap(int32_t channel) const { 
+        return rgbMap[channel];
     }
 
     uint16_t universeStrip(int32_t strip, int32_t dmx512Index) const { 
@@ -77,18 +79,13 @@ private:
     OutputConfig output_config;
     bool burst_mode;
     float glob_pwmlimit;
-    uint8_t glob_illum;
-    uint8_t glob_comp_lim;
+    float glob_illum;
+    float glob_comp_lim;
     uint32_t strip_type[stripN];
     uint32_t strip_len[stripN];
     uint16_t uniStp[stripN][universeN];
 
-    struct UniverseOffsetMapping {
-        uint16_t universe;
-        uint8_t offset;
-    };
-    
-    UniverseOffsetMapping uniOff[channelN];
+    AnalogRGBUniverseEntry rgbMap[channelN];
 };
 
 } /* namespace model */
