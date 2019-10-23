@@ -85,7 +85,7 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
                 ip4_addr4(&lightguy::NetConf::instance().netInterface()->gw)
             );
             buf += sprintf(buf, "\"systemtime\":%d,", int(lightguy::Systick::instance().systemTime())); 
-            buf += sprintf(buf, "\"buildnumber\":%d,", int(build_number)); 
+            buf += sprintf(buf, "\"buildnumber\":%d", int(build_number)); 
             buf += sprintf(buf, "}");
             *data = response_buf;
             *dataLen = strlen(response_buf);
@@ -94,7 +94,7 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
         case MethodGetSettings: {
             char *buf = response_buf;
             buf += sprintf(buf, "{");
-            buf += sprintf(buf, "\"dhcp\":%d,",lightguy::Model::instance().dhcpEnabled()?1:0); 
+            buf += sprintf(buf, "\"dhcp\":%s,",lightguy::Model::instance().dhcpEnabled()?"true":"false"); 
             buf += sprintf(buf, "\"ipv4address\":\"%d.%d.%d.%d\",", 
                 ip4_addr1(lightguy::Model::instance().ip4Address()),
                 ip4_addr2(lightguy::Model::instance().ip4Address()),
@@ -117,7 +117,7 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
             buf += sprintf(buf, "\"globpwmlimit\":%d,",int(lightguy::Model::instance().globPWMLimit()*65536)); 
             buf += sprintf(buf, "\"globcomplimit\":%d,",int(lightguy::Model::instance().globCompLimit()*65536)); 
             buf += sprintf(buf, "\"globillum\":%d,",int(lightguy::Model::instance().globIllum()*65536)); 
-            buf += sprintf(buf, "\"rgbuniverse\":["); 
+            buf += sprintf(buf, "\"rgbuniverses\":["); 
             for (size_t c=0; c<lightguy::Model::channelN; c++) {
                 buf += sprintf(buf, "{\"universe\":%d,\"offset\":%d}%c", lightguy::Model::instance().analogRGBMap(c).universe, 
                                                 lightguy::Model::instance().analogRGBMap(c).offset,
@@ -125,7 +125,7 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
                               ); 
             }
             buf += sprintf(buf, "],");
-            buf += sprintf(buf, "\"stripuniverse\":["); 
+            buf += sprintf(buf, "\"stripuniverses\":["); 
             for (size_t c=0; c<lightguy::Model::stripN; c++) {
                 buf += sprintf(buf, "[");
                 for (size_t d=0; d<lightguy::Model::universeN; d++) {
