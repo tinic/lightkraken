@@ -20,6 +20,8 @@ const int32_t build_number =
 
 #if LWIP_HTTPD_SUPPORT_REST
 
+using namespace lightguy;
+
 static char response_buf[2048];
 
 enum RestMethod {
@@ -67,24 +69,24 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
             char *buf = response_buf;
             buf += sprintf(buf, "{");
             buf += sprintf(buf, "\"ipv4address:\"\"%d.%d.%d.%d\",", 
-                ip4_addr1(&lightguy::NetConf::instance().netInterface()->ip_addr),
-                ip4_addr2(&lightguy::NetConf::instance().netInterface()->ip_addr),
-                ip4_addr3(&lightguy::NetConf::instance().netInterface()->ip_addr),
-                ip4_addr4(&lightguy::NetConf::instance().netInterface()->ip_addr)
+                ip4_addr1(&NetConf::instance().netInterface()->ip_addr),
+                ip4_addr2(&NetConf::instance().netInterface()->ip_addr),
+                ip4_addr3(&NetConf::instance().netInterface()->ip_addr),
+                ip4_addr4(&NetConf::instance().netInterface()->ip_addr)
             );
             buf += sprintf(buf, "\"ipv4netmask\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(&lightguy::NetConf::instance().netInterface()->netmask),
-                ip4_addr2(&lightguy::NetConf::instance().netInterface()->netmask),
-                ip4_addr3(&lightguy::NetConf::instance().netInterface()->netmask),
-                ip4_addr4(&lightguy::NetConf::instance().netInterface()->netmask)
+                ip4_addr1(&NetConf::instance().netInterface()->netmask),
+                ip4_addr2(&NetConf::instance().netInterface()->netmask),
+                ip4_addr3(&NetConf::instance().netInterface()->netmask),
+                ip4_addr4(&NetConf::instance().netInterface()->netmask)
             );
             buf += sprintf(buf, "\"ipv4gateway\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(&lightguy::NetConf::instance().netInterface()->gw),
-                ip4_addr2(&lightguy::NetConf::instance().netInterface()->gw),
-                ip4_addr3(&lightguy::NetConf::instance().netInterface()->gw),
-                ip4_addr4(&lightguy::NetConf::instance().netInterface()->gw)
+                ip4_addr1(&NetConf::instance().netInterface()->gw),
+                ip4_addr2(&NetConf::instance().netInterface()->gw),
+                ip4_addr3(&NetConf::instance().netInterface()->gw),
+                ip4_addr4(&NetConf::instance().netInterface()->gw)
             );
-            buf += sprintf(buf, "\"systemtime\":%d,", int(lightguy::Systick::instance().systemTime())); 
+            buf += sprintf(buf, "\"systemtime\":%d,", int(Systick::instance().systemTime())); 
             buf += sprintf(buf, "\"buildnumber\":%d", int(build_number)); 
             buf += sprintf(buf, "}");
             *data = response_buf;
@@ -94,45 +96,45 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
         case MethodGetSettings: {
             char *buf = response_buf;
             buf += sprintf(buf, "{");
-            buf += sprintf(buf, "\"dhcp\":%s,",lightguy::Model::instance().dhcpEnabled()?"true":"false"); 
+            buf += sprintf(buf, "\"dhcp\":%s,",Model::instance().dhcpEnabled()?"true":"false"); 
             buf += sprintf(buf, "\"ipv4address\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(lightguy::Model::instance().ip4Address()),
-                ip4_addr2(lightguy::Model::instance().ip4Address()),
-                ip4_addr3(lightguy::Model::instance().ip4Address()),
-                ip4_addr4(lightguy::Model::instance().ip4Address())
+                ip4_addr1(Model::instance().ip4Address()),
+                ip4_addr2(Model::instance().ip4Address()),
+                ip4_addr3(Model::instance().ip4Address()),
+                ip4_addr4(Model::instance().ip4Address())
             );
             buf += sprintf(buf, "\"ipv4netmask\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(lightguy::Model::instance().ip4Netmask()),
-                ip4_addr2(lightguy::Model::instance().ip4Netmask()),
-                ip4_addr3(lightguy::Model::instance().ip4Netmask()),
-                ip4_addr4(lightguy::Model::instance().ip4Netmask())
+                ip4_addr1(Model::instance().ip4Netmask()),
+                ip4_addr2(Model::instance().ip4Netmask()),
+                ip4_addr3(Model::instance().ip4Netmask()),
+                ip4_addr4(Model::instance().ip4Netmask())
             );
             buf += sprintf(buf, "\"ipv4gateway\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(lightguy::Model::instance().ip4Gateway()),
-                ip4_addr2(lightguy::Model::instance().ip4Gateway()),
-                ip4_addr3(lightguy::Model::instance().ip4Gateway()),
-                ip4_addr4(lightguy::Model::instance().ip4Gateway())
+                ip4_addr1(Model::instance().ip4Gateway()),
+                ip4_addr2(Model::instance().ip4Gateway()),
+                ip4_addr3(Model::instance().ip4Gateway()),
+                ip4_addr4(Model::instance().ip4Gateway())
             );
-            buf += sprintf(buf, "\"outputmode\":%d,",lightguy::Model::instance().outputConfig()); 
-            buf += sprintf(buf, "\"globpwmlimit\":%d,",int(lightguy::Model::instance().globPWMLimit()*65536)); 
-            buf += sprintf(buf, "\"globcomplimit\":%d,",int(lightguy::Model::instance().globCompLimit()*65536)); 
-            buf += sprintf(buf, "\"globillum\":%d,",int(lightguy::Model::instance().globIllum()*65536)); 
+            buf += sprintf(buf, "\"outputmode\":%d,",Model::instance().outputConfig()); 
+            buf += sprintf(buf, "\"globpwmlimit\":%d,",int(Model::instance().globPWMLimit()*65536)); 
+            buf += sprintf(buf, "\"globcomplimit\":%d,",int(Model::instance().globCompLimit()*65536)); 
+            buf += sprintf(buf, "\"globillum\":%d,",int(Model::instance().globIllum()*65536)); 
             buf += sprintf(buf, "\"rgbuniverses\":["); 
-            for (size_t c=0; c<lightguy::Model::channelN; c++) {
-                buf += sprintf(buf, "{\"universe\":%d,\"offset\":%d}%c", lightguy::Model::instance().analogRGBMap(c).universe, 
-                                                lightguy::Model::instance().analogRGBMap(c).offset,
-                                                (c==lightguy::Model::channelN-1)?' ':','
+            for (size_t c=0; c<Model::channelN; c++) {
+                buf += sprintf(buf, "{\"universe\":%d,\"offset\":%d}%c", Model::instance().analogRGBMap(c).universe, 
+                                                Model::instance().analogRGBMap(c).offset,
+                                                (c==Model::channelN-1)?' ':','
                               ); 
             }
             buf += sprintf(buf, "],");
             buf += sprintf(buf, "\"stripuniverses\":["); 
-            for (size_t c=0; c<lightguy::Model::stripN; c++) {
+            for (size_t c=0; c<Model::stripN; c++) {
                 buf += sprintf(buf, "[");
-                for (size_t d=0; d<lightguy::Model::universeN; d++) {
-                    buf += sprintf(buf, "%d%c", lightguy::Model::instance().universeStrip(c,d),
-                                                (d==lightguy::Model::universeN-1)?' ':','); 
+                for (size_t d=0; d<Model::universeN; d++) {
+                    buf += sprintf(buf, "%d%c", Model::instance().universeStrip(c,d),
+                                                (d==Model::universeN-1)?' ':','); 
                 }
-                buf += sprintf(buf, "]%c",(c==lightguy::Model::stripN-1)?' ':',');
+                buf += sprintf(buf, "]%c",(c==Model::stripN-1)?' ':',');
             }
             buf += sprintf(buf, "]");
             buf += sprintf(buf, "}");
