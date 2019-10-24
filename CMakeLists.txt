@@ -87,7 +87,7 @@ file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
 # LwIP
 include_directories(GD32F10x_lwip)
 
-set(COMMON_FLAGS "-DGD32 -DNVIC_BASE_ADDRESS=${BASE_ADDRESS} -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI} -mlong-calls")
+set(COMMON_FLAGS "-DGD32 -DNVIC_BASE_ADDRESS=${BASE_ADDRESS} -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI}")
 
 if(BOOTLOADER)
 set(COMMON_FLAGS "${COMMON_FLAGS} -DBOOTLOADER=1")
@@ -123,10 +123,12 @@ set(LWIP_INCLUDE_DIRS "${LWIP_DIR}/src/include")
 include(${LWIP_DIR}/src/Filelists.cmake)
 
 if(BOOTLOADER)
-set(bootloader_SRCS bootloader.cpp multipartparser.cpp)
+set(main_SRCS main.cpp glue.cpp ethernetif.cpp netconf.cpp systick.cpp status.cpp bootloader.cpp multipartparser.cpp)
+else(BOOTLOADER)
+set(main_SRCS main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp)
 endif(BOOTLOADER)
 
-set(SOURCE_FILES ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC} ${bootloader_SRCS} ${lwipnoapps_SRCS} ${lwipallapps_SRCS} main.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp)
+set(SOURCE_FILES ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC} ${lwipcore_SRCS} ${lwipcore4_SRCS} ${lwipnetif_SRCS} ${lwiphttp_SRCS} ${main_SRCS})
 
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
 

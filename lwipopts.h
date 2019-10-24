@@ -41,6 +41,9 @@ OF SUCH DAMAGE.
 
 #include <stdio.h>
 
+#define HTTPC_CLIENT_AGENT      "LG/1.0"
+#define HTTPD_SERVER_AGENT      "LG/1.0"
+
 #define LWIP_TCPIP_CORE_LOCKING 0						 /* no threading */
 
 #define SYS_LIGHTWEIGHT_PROT    0                        /* SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection 
@@ -112,6 +115,9 @@ OF SUCH DAMAGE.
 
 /* support hostname */
 #define LWIP_NETIF_HOSTNAME 	1
+
+/* No support for HTTP0.9 */
+#define LWIP_HTTPD_SUPPORT_V09  0
 
 
 /* Non-bootloader options */
