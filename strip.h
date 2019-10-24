@@ -9,7 +9,7 @@
 #define STRIP_H_
 
 #include <stdint.h>
-#include <memory.h>
+#include <string.h>
 #include <functional>
 
 #include "model.h"

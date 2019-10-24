@@ -9,7 +9,7 @@
 #define ENDPOINT_H_
 
 #include <stdint.h>
-#include <memory.h>
+#include <string.h>
 
 #include "lwip/ip_addr.h"
 

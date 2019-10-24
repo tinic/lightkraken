@@ -44,7 +44,7 @@ set(CMAKE_RANLIB arm-none-eabi-ranlib)
 set(CMAKE_SIZE arm-none-eabi-size)
 
 set(ARM_ARCH cortex-m3)
-set(ARM_FLOAT_ABI softfp)
+set(ARM_FLOAT_ABI soft)
 
 set(CMSISDEVINC GD32F10x)
 set(CMSISSTARTUPS startup_gd32f10x_cl.s)
@@ -109,7 +109,7 @@ set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Wall -Wextra -Wno-strict-aliasing -Wdouble
 set(CMAKE_CXX_FLAGS_RELEASE "-flto -Wl,-flto -Os")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 
-set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T${CMAKE_SOURCE_DIR}/${LINKLDPATH}")
+set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--no-wchar-size-warning -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T${CMAKE_SOURCE_DIR}/${LINKLDPATH}")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "")

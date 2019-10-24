@@ -5,7 +5,7 @@
 *      Author: turo
 */
 #include <stdint.h>
-#include <memory.h>
+#include <string.h>
 #include <algorithm>
 
 #include "./artnet.h"

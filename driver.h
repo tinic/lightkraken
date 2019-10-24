@@ -9,7 +9,7 @@
 #define LIGHTGUY_DRIVER_H_
 
 #include <stdint.h>
-#include <memory.h>
+#include <string.h>
 
 namespace lightguy {
 
