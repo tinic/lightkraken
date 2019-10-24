@@ -18,3 +18,5 @@ Then to build:
 ```
 ./build_release_all.sh
 ```
+
+Output files will be in the build/ folder. The correct file to flash from the bootloader is 'lightguy_bootloaded.bin'.
