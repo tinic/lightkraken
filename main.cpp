@@ -51,7 +51,7 @@ int main() {
     rcu_periph_clock_enable(RCU_GPIOB);
     gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
     enet_delay(100);
-    if (gpio_input_bit_get(GPIOB, GPIO_PIN_1) != RESET && sentinel != 0xFEEDC0DE) {
+    if (gpio_input_bit_get(GPIOB, GPIO_PIN_1) != RESET && *((volatile uint32_t *)0x20000000) != 0xFEEDC0DE) {
         sentinel = 0;
         /* Check if valid stack address (RAM address) then jump to user application */
         if (((*(__IO uint32_t*)USER_FLASH_FIRST_PAGE_ADDRESS) & 0x2FFE0000 ) == 0x20000000) {

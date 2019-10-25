@@ -31,6 +31,7 @@ enum RestMethod {
     MethodGetStatus,
     MethodGetSettings,
     MethodSetSettings,
+    MethodPostBootLoader,
 };
 
 static RestMethod rest_method = MethodNone;
@@ -49,6 +50,9 @@ err_t httpd_rest_begin(void *, rest_method_t method, const char *url, const char
         case REST_METHOD_POST: {
             if (strcmp(url, "/settings") == 0) {
                 rest_method = MethodGetSettings;
+                return ERR_REST_ACCEPT;
+            } else if (strcmp(url, "/bootloader") == 0) {
+                rest_method = MethodPostBootLoader;
                 return ERR_REST_ACCEPT;
             }
         } break;
@@ -88,6 +92,11 @@ static void patchContentLength(char *buf, int32_t contentLength) {
         if (numberStr[c] == 0) numberStr[c] = ' ';
     }
     strncpy(contentLengthPtr, numberStr, 11);
+}
+
+err_t httpd_rest_receive_data(void *, struct pbuf *p) {
+    pbuf_free(p);
+    return ERR_OK;
 }
 
 err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
@@ -181,17 +190,18 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
             *dataLen = strlen(response_buf);
             return ERR_OK;
         } break;
+        case MethodPostBootLoader: {
+            lightguy::Systick::instance().scheduleReset(4000, true);
+            *data = "HTTP/1.0 200 OK" CRLF;
+            *dataLen = strlen("HTTP/1.0 200 OK" CRLF);
+            return ERR_OK;
+        } break;
         case MethodSetSettings: {
         } break;
         case MethodNone: {
         } break;
     }
     return ERR_ARG;
-}
-
-err_t httpd_rest_receive_data(void *, struct pbuf *p) {
-    pbuf_free(p);
-    return ERR_OK;
 }
 
 #endif  // #if LWIP_HTTPD_SUPPORT_REST

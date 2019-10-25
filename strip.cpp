@@ -442,7 +442,7 @@ namespace lightguy {
         }
     }
 
-    __attribute__ ((hot, optimize("O2")))
+    __attribute__ ((hot, optimize("O3")))
     void Strip::lpd8806_rgb_alike_convert(size_t start, size_t end) {
         uint8_t *dst = spi_buf + start;
         *dst++ = 0x00;
@@ -453,7 +453,7 @@ namespace lightguy {
         }
     }
 
-    __attribute__ ((hot, optimize("O2")))
+    __attribute__ ((hot, optimize("O3")))
     void Strip::apa102_rgb_alike_convert(size_t start, size_t end) {
         uint8_t *dst = spi_buf + start;
         // start frame
@@ -480,7 +480,7 @@ namespace lightguy {
         }
     }
 
-    __attribute__ ((hot, optimize("O2")))
+    __attribute__ ((hot, optimize("O3")))
     void Strip::ws2812_alike_convert(size_t start, size_t end) {
         uint32_t *dst = (uint32_t *)(spi_buf + start * 4);
         size_t head_len = compLatchLen / 2;
@@ -498,7 +498,7 @@ namespace lightguy {
         }
     }
 
-    __attribute__ ((hot, optimize("O2")))
+    __attribute__ ((hot, optimize("O3")))
     void Strip::tls3001_alike_convert(size_t &len) {
         uint8_t *dst = spi_buf;
         uint32_t reset = 0b11111111'11111110'10000000'00000000; // 19 bits
