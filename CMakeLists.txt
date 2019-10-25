@@ -44,7 +44,6 @@ set(CMAKE_RANLIB arm-none-eabi-ranlib)
 set(CMAKE_SIZE arm-none-eabi-size)
 
 set(ARM_ARCH cortex-m3)
-set(ARM_FLOAT_ABI soft)
 
 set(CMSISDEVINC GD32F10x)
 set(CMSISSTARTUPS startup_gd32f10x_cl.s)
@@ -87,7 +86,7 @@ file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
 # LwIP
 include_directories(GD32F10x_lwip)
 
-set(COMMON_FLAGS "-DGD32 -DNVIC_BASE_ADDRESS=${BASE_ADDRESS} -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=${ARM_FLOAT_ABI}")
+set(COMMON_FLAGS "-DGD32 -DNVIC_BASE_ADDRESS=${BASE_ADDRESS} -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mtune=${ARM_ARCH} -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=soft")
 
 if(BOOTLOADER)
 set(COMMON_FLAGS "${COMMON_FLAGS} -DBOOTLOADER=1")

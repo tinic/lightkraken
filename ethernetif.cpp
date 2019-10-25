@@ -126,12 +126,7 @@ void EthernetIf::init() {
         }
     }
 
-#ifdef CHECKSUM_BY_HARDWARE
     uint32_t enet_init_status = enet_init(ENET_AUTO_NEGOTIATION, ENET_AUTOCHECKSUM_DROP_FAILFRAMES, ENET_BROADCAST_FRAMES_PASS);
-#else  
-    uint32_t enet_init_status = enet_init(ENET_AUTO_NEGOTIATION, ENET_NO_AUTOCHECKSUM, ENET_BROADCAST_FRAMES_PASS);
-#endif
-
     if (enet_init_status == 0){
         while(1) {
         }
@@ -164,11 +159,9 @@ void EthernetIf::low_level_init(struct netif *netif, uint32_t mac_addr) {
         enet_desc_receive_complete_bit_enable(&rxdesc_tab[i]);
     }
 
-#ifdef CHECKSUM_BY_HARDWARE
     for(uint32_t i=0; i < ENET_TXBUF_NUM; i++){
         enet_transmit_checksum_config(&txdesc_tab[i], ENET_CHECKSUM_TCPUDPICMP_FULL);
     }
-#endif  // #ifdef CHECKSUM_BY_HARDWARE
 
     enet_enable();
 }
@@ -227,6 +220,7 @@ err_t EthernetIf::ethernetif_input(struct netif *netif) {
     return err;
 }
 
+
 err_t EthernetIf::ethernetif_init(struct netif *netif) {
 
     uint32_t uid[3];
@@ -235,18 +229,17 @@ err_t EthernetIf::ethernetif_init(struct netif *netif) {
     uid[2] = instance().get_uid2();
     uint32_t mac_addr  = instance().murmur3_32(reinterpret_cast<uint8_t *>(&uid[0]), sizeof(uid), 0x66cf8031);
 
-#if LWIP_NETIF_HOSTNAME
-#ifndef BOOTLOADER
-    static char s_hostname[64];
-    sprintf(s_hostname, "lightguy-%08x", int(mac_addr));
-
-    DEBUG_PRINTF(("Hostname is %s\n", s_hostname));
-
-    netif->hostname = s_hostname;
-#else  //#ifndef BOOTLOADER
-    netif->hostname = "lightguy";
-#endif  // #ifndef BOOTLOADER
-#endif  // #if LWIP_NETIF_HOSTNAME
+    static const char hostname_base[] = "lightguy-";
+    static const char hex_table[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',};
+    static char hostname[sizeof(hostname_base)+8];
+    memset(hostname, 0, sizeof(hostname));
+    strcpy(hostname, hostname_base);
+    for (size_t c=0; c<8; c++) {
+        hostname[c + sizeof(hostname_base) - 1] = hex_table[(mac_addr>>(32-((c+1)*4)))&0xF];
+    }
+    
+    DEBUG_PRINTF(("Hostname is %s\n", hostname));
+    netif->hostname = hostname;
 
     netif->name[0] = IFNAME0;
     netif->name[1] = IFNAME1;

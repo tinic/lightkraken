@@ -98,9 +98,6 @@ OF SUCH DAMAGE.
 #define LWIP_UDP                1
 #define UDP_TTL                 255
 
-/* checksum options */
-#define CHECKSUM_BY_HARDWARE                             /* computing and verifying the IP, UDP, TCP and ICMP
-                                                            checksums by hardware */
 /* provide access to stats */
 #define LWIP_STATS              0
 
@@ -148,35 +145,19 @@ OF SUCH DAMAGE.
 
 #endif  // #ifdef BOOTLOADER
 
-#ifdef CHECKSUM_BY_HARDWARE
-    /* CHECKSUM_GEN_IP==0: generate checksums by hardware for outgoing IP packets.*/
-    #define CHECKSUM_GEN_IP                 0
-    /* CHECKSUM_GEN_UDP==0: generate checksums by hardware for outgoing UDP packets.*/
-    #define CHECKSUM_GEN_UDP                0
-    /* CHECKSUM_GEN_TCP==0: generate checksums by hardware for outgoing TCP packets.*/
-    #define CHECKSUM_GEN_TCP                0 
-    /* CHECKSUM_CHECK_IP==0: check checksums by hardware for incoming IP packets.*/
-    #define CHECKSUM_CHECK_IP               0
-    /* CHECKSUM_CHECK_UDP==0: check checksums by hardware for incoming UDP packets.*/
-    #define CHECKSUM_CHECK_UDP              0
-    /* CHECKSUM_CHECK_TCP==0: check checksums by hardware for incoming TCP packets.*/
-    #define CHECKSUM_CHECK_TCP              0
+/* CHECKSUM_GEN_IP==0: generate checksums by hardware for outgoing IP packets.*/
+#define CHECKSUM_GEN_IP                 0
+/* CHECKSUM_GEN_UDP==0: generate checksums by hardware for outgoing UDP packets.*/
+#define CHECKSUM_GEN_UDP                0
+/* CHECKSUM_GEN_TCP==0: generate checksums by hardware for outgoing TCP packets.*/
+#define CHECKSUM_GEN_TCP                0 
+/* CHECKSUM_CHECK_IP==0: check checksums by hardware for incoming IP packets.*/
+#define CHECKSUM_CHECK_IP               0
+/* CHECKSUM_CHECK_UDP==0: check checksums by hardware for incoming UDP packets.*/
+#define CHECKSUM_CHECK_UDP              0
+/* CHECKSUM_CHECK_TCP==0: check checksums by hardware for incoming TCP packets.*/
+#define CHECKSUM_CHECK_TCP              0
 //    #define CHECKSUM_GEN_ICMP               0
-#else
-    /* CHECKSUM_GEN_IP==1: generate checksums in software for outgoing IP packets.*/
-    #define CHECKSUM_GEN_IP                 1
-    /* CHECKSUM_GEN_UDP==1: generate checksums in software for outgoing UDP packets.*/
-    #define CHECKSUM_GEN_UDP                1
-    /* CHECKSUM_GEN_TCP==1: generate checksums in software for outgoing TCP packets.*/
-    #define CHECKSUM_GEN_TCP                1
-    /* CHECKSUM_CHECK_IP==1: check checksums in software for incoming IP packets.*/
-    #define CHECKSUM_CHECK_IP               1
-    /* CHECKSUM_CHECK_UDP==1: check checksums in software for incoming UDP packets.*/
-    #define CHECKSUM_CHECK_UDP              1
-    /* CHECKSUM_CHECK_TCP==1: check checksums in software for incoming TCP packets.*/
-    #define CHECKSUM_CHECK_TCP              1
-//    #define CHECKSUM_GEN_ICMP               1
-#endif
 
 /* Lwip debug options */
 //#define LWIP_DEBUG 1
