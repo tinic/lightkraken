@@ -210,18 +210,19 @@ public:
         handleDelimiter();
         buf_ptr += sprintf(buf_ptr, "\"rgbconfig\":["); 
         for (size_t c=0; c<Model::analogN; c++) {
+            const Model::AnalogConfig &a = Model::instance().analogConfig(c);
             buf_ptr += sprintf(buf_ptr, "{");
-            buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(Model::instance().analogConfig(c).type)); 
+            buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(a.type)); 
             buf_ptr += sprintf(buf_ptr, "\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
                 buf_ptr += sprintf(buf_ptr, "{");
-                buf_ptr += sprintf(buf_ptr, "\"universe\":%d,",int(Model::instance().analogConfig(c).components[d].universe)); 
-                buf_ptr += sprintf(buf_ptr, "\"offset\":%d,",int(Model::instance().analogConfig(c).components[d].offset)); 
-                buf_ptr += sprintf(buf_ptr, "\"value\":%d",int(Model::instance().analogConfig(c).components[d].value)); 
+                buf_ptr += sprintf(buf_ptr, "\"universe\":%d,",int(a.components[d].universe)); 
+                buf_ptr += sprintf(buf_ptr, "\"offset\":%d,",int(a.components[d].offset)); 
+                buf_ptr += sprintf(buf_ptr, "\"value\":%d",int(a.components[d].value)); 
                 buf_ptr += sprintf(buf_ptr, "}%c", (d==Model::analogCompN-1)?' ':','); 
             }
             buf_ptr += sprintf(buf_ptr, "]");
-            buf_ptr += sprintf(buf_ptr, "}%c",(c==Model::analogN-1)?' ':',');
+            buf_ptr += sprintf(buf_ptr, "}%c", (c==Model::analogN-1)?' ':',');
         }
 
         buf_ptr += sprintf(buf_ptr, "]");
@@ -231,17 +232,19 @@ public:
         handleDelimiter();
         buf_ptr += sprintf(buf_ptr, "\"stripconfig\":["); 
         for (size_t c=0; c<Model::stripN; c++) {
+            const Model::StripConfig &s = Model::instance().stripConfig(c);
             buf_ptr += sprintf(buf_ptr, "{");
-            buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(Model::instance().stripConfig(c).type)); 
-            buf_ptr += sprintf(buf_ptr, "\"length\":%d,",int(Model::instance().stripConfig(c).len)); 
-            buf_ptr += sprintf(buf_ptr, "\"color\":\"0x%08x\",",(unsigned int)Model::instance().stripConfig(c).color.hex()); 
+            buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(s.type)); 
+            buf_ptr += sprintf(buf_ptr, "\"length\":%d,",int(s.len)); 
+            buf_ptr += sprintf(buf_ptr, "\"color\":\"0x%08x\",",(unsigned int)s.color.hex()); 
             buf_ptr += sprintf(buf_ptr, "\"universes\" : [");
             for (size_t d=0; d<Model::universeN; d++) {
-                buf_ptr += sprintf(buf_ptr, "%d%c", Model::instance().stripConfig(c).universe[d],
-                                            (d==Model::universeN-1)?' ':','); 
+                buf_ptr += sprintf(buf_ptr, "{");
+                buf_ptr += sprintf(buf_ptr, "\"universe\":%d",int(s.universe[d])); 
+                buf_ptr += sprintf(buf_ptr, "}%c", (d==Model::universeN-1)?' ':','); 
             }
             buf_ptr += sprintf(buf_ptr, "]");
-            buf_ptr += sprintf(buf_ptr, "}%c",(c==Model::stripN-1)?' ':',');
+            buf_ptr += sprintf(buf_ptr, "}%c", (c==Model::stripN-1)?' ':',');
         }
         buf_ptr += sprintf(buf_ptr, "]");
     }
