@@ -11,7 +11,7 @@ public:
     void transferNow();
 
 private:
-    void setUniverseOutputDataForDriver(size_t channels, uint16_t uni, const uint8_t *data, size_t len);
+    void setUniverseOutputDataForDriver(size_t channels, size_t components, uint16_t uni, const uint8_t *data, size_t len);
     bool initialized = false;
     void init();
 };

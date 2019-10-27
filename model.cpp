@@ -74,6 +74,8 @@ void Model::init() {
     IP4_ADDR(&ip4_gateway, IP_GATEWAY0, IP_GATEWAY1, IP_GATEWAY2, IP_GATEWAY3);
 
     ip_dhcp = true;
+    
+    receive_broadcast = false;
 
     glob_pwmlimit = 1.0f;
     glob_illum = 0x1F;
@@ -83,24 +85,26 @@ void Model::init() {
 
     burst_mode = false;
 
-    for (size_t c = 0; c < stripN; c++) {
-        strip_type[c] = Strip::GS8208_RGB;
-        lightguy::Strip::get(c).setStripType(Strip::Type(strip_type[c]));
-        strip_len[c] = 256;
-        lightguy::Strip::get(c).setPixelLen(strip_len[c]);
-    }
-
     int32_t counter = 0;
     for (size_t c = 0; c < stripN; c++) {
+        strip_config[c].type = Strip::GS8208_RGB;
+        lightguy::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
+        strip_config[c].len = 256;
+        strip_config[c].color = rgb8();
+        lightguy::Strip::get(c).setPixelLen(strip_config[c].len);
         for (size_t d = 0; d < universeN; d++) {
-            uniStp[c][d] = counter++;
+            strip_config[c].universe[d] = counter++;
         }
     }
-    
+
     counter = 0;
-    for (size_t c = 0; c < channelN; c++) {
-        rgbMap[c].universe = 0;
-        rgbMap[c].offset = counter++;
+    for (size_t c = 0; c < analogN; c++) {
+        analog_config[c].type = 0;
+        for (size_t d = 0; d < analogCompN; d++) {
+            analog_config[c].components[d].value = 0;
+            analog_config[c].components[d].universe = 0;
+            analog_config[c].components[d].offset = counter++;
+        }
     }
 
     readFlash();

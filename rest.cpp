@@ -10,6 +10,7 @@ extern "C" {
 #include "./mjson.h"
 };
 
+#include "./color.h"
 #include "./model.h"
 #include "./netconf.h"
 #include "./systick.h"
@@ -22,9 +23,259 @@ const int32_t build_number =
 
 #define CRLF "\r\n"
 
-using namespace lightguy;
+namespace lightguy {
+    
+class HTTPResponse {
+public:
+    static HTTPResponse &instance();
+    
+    void beginOKResponse() {
+        buf_ptr = response_buf;
+        buf_ptr += sprintf(buf_ptr, "HTTP/1.0 200 OK" CRLF);
+        responseType = OKResponse;
+    }
 
-static char response_buf[2048];
+    void beginJSONResponse() {
+        buf_ptr = response_buf;
+        buf_ptr += sprintf(buf_ptr, "HTTP/1.0 200 OK" CRLF 
+                                    "Content-Type: application/json; charset=utf-8" CRLF 
+                                    "X-Content-Type-Options: nosniff" CRLF
+                                    "Vary: Origin, Accept-Encoding" CRLF
+                                    "Content-Length: @@@@@@@@@@@" CRLF
+                                    "Access-Control-Allow-Origin: *" CRLF 
+                                    "Cache-Control: no-cache" CRLF
+                                    CRLF);
+        content_start = buf_ptr;
+        buf_ptr += sprintf(buf_ptr, "{");
+        first_item = true;
+        responseType = JSONResponse;
+    }
+    
+    const char *finish(u16_t &length) {
+        switch (responseType) {
+        case JSONResponse: {
+            buf_ptr += sprintf(buf_ptr, "}");
+            
+            // Patch content length
+            char *contentLengthPtr = strstr(response_buf, "@@@@@@@@@@@");
+            if (!contentLengthPtr) {
+                return 0;
+            }
+
+            char numberStr[12];
+            memset(numberStr, 0, sizeof(numberStr));
+            sprintf(numberStr, "%d", int(buf_ptr - content_start));
+            for (size_t c = sizeof(numberStr)-1; c>0; c--) {
+                if (numberStr[c] == 0) numberStr[c] = ' ';
+            }
+            strncpy(contentLengthPtr, numberStr, 11);
+
+            length = u16_t(buf_ptr - response_buf);
+            return response_buf;
+        } break;
+        case OKResponse: {
+            length = u16_t(buf_ptr - response_buf);
+            return response_buf;
+        } break;
+        }
+        return 0;
+    }
+    
+    void handleDelimiter() {
+        if (first_item) {
+            first_item = false;
+        } else {
+            buf_ptr += sprintf(buf_ptr, ",");
+        }
+    }
+
+    void addNetConfIPv4Address() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"ipv4address\":\"%d.%d.%d.%d\"", 
+                ip4_addr1(&NetConf::instance().netInterface()->ip_addr),
+                ip4_addr2(&NetConf::instance().netInterface()->ip_addr),
+                ip4_addr3(&NetConf::instance().netInterface()->ip_addr),
+                ip4_addr4(&NetConf::instance().netInterface()->ip_addr)
+            );
+    }
+
+    void addNetConfIPv4Netmask() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"ipv4netmask\":\"%d.%d.%d.%d\"", 
+                ip4_addr1(&NetConf::instance().netInterface()->netmask),
+                ip4_addr2(&NetConf::instance().netInterface()->netmask),
+                ip4_addr3(&NetConf::instance().netInterface()->netmask),
+                ip4_addr4(&NetConf::instance().netInterface()->netmask)
+            );
+    }
+
+    void addNetConfIPv4Gateway() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"ipv4gateway\":\"%d.%d.%d.%d\"", 
+                ip4_addr1(&NetConf::instance().netInterface()->gw),
+                ip4_addr2(&NetConf::instance().netInterface()->gw),
+                ip4_addr3(&NetConf::instance().netInterface()->gw),
+                ip4_addr4(&NetConf::instance().netInterface()->gw)
+            );
+    }
+
+    void addSystemTime() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"systemtime\":%d", int(Systick::instance().systemTime())); 
+    }
+
+    void addBuildNumber() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"buildnumber\":%d", int(build_number)); 
+    }
+
+    void addHostname() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"hostname\":\"%s\"", NetConf::instance().netInterface()->hostname); 
+    }
+
+    void addMacAddress() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"macaddress\":\"%02x:%02x:%02x:%02x:%02x:%02x\"", 
+                        NetConf::instance().netInterface()->hwaddr[0],
+                        NetConf::instance().netInterface()->hwaddr[1],
+                        NetConf::instance().netInterface()->hwaddr[2],
+                        NetConf::instance().netInterface()->hwaddr[3],
+                        NetConf::instance().netInterface()->hwaddr[4],
+                        NetConf::instance().netInterface()->hwaddr[5]); 
+    }
+    
+    void addDHCP() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"dhcp\":%s",Model::instance().dhcpEnabled()?"true":"false"); 
+    }
+
+    void addBroadcast() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"broadcast\":%s",Model::instance().broadcastEnabled()?"true":"false"); 
+    }
+    
+    void addIPv4Address() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"ipv4address\":\"%d.%d.%d.%d\"", 
+            ip4_addr1(Model::instance().ip4Address()),
+            ip4_addr2(Model::instance().ip4Address()),
+            ip4_addr3(Model::instance().ip4Address()),
+            ip4_addr4(Model::instance().ip4Address())
+        );
+    }
+    
+    
+    void addIPv4Netmask() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"ipv4netmask\":\"%d.%d.%d.%d\"", 
+            ip4_addr1(Model::instance().ip4Netmask()),
+            ip4_addr2(Model::instance().ip4Netmask()),
+            ip4_addr3(Model::instance().ip4Netmask()),
+            ip4_addr4(Model::instance().ip4Netmask())
+        );
+    }
+    
+    void addIPv4Gateway() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"ipv4gateway\":\"%d.%d.%d.%d\"", 
+            ip4_addr1(Model::instance().ip4Gateway()),
+            ip4_addr2(Model::instance().ip4Gateway()),
+            ip4_addr3(Model::instance().ip4Gateway()),
+            ip4_addr4(Model::instance().ip4Gateway())
+        );
+    }
+    
+    void addOutputMode() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"outputmode\":%d",Model::instance().outputConfig()); 
+    }
+
+    void addPwmLimit() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"globpwmlimit\":%d",int(Model::instance().globPWMLimit()*65536)); 
+    }
+
+    void addCompLimit() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"globcomplimit\":%d",int(Model::instance().globCompLimit()*65536)); 
+    }
+
+    void addIllum() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"globillum\":%d",int(Model::instance().globIllum()*65536)); 
+    }
+
+    void addAnalogConfig() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"rgbconfig\":["); 
+        for (size_t c=0; c<Model::analogN; c++) {
+            buf_ptr += sprintf(buf_ptr, "{");
+            buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(Model::instance().analogConfig(c).type)); 
+            buf_ptr += sprintf(buf_ptr, "\"components\" : [");
+            for (size_t d=0; d<Model::analogCompN; d++) {
+                buf_ptr += sprintf(buf_ptr, "{");
+                buf_ptr += sprintf(buf_ptr, "\"universe\":%d,",int(Model::instance().analogConfig(c).components[d].universe)); 
+                buf_ptr += sprintf(buf_ptr, "\"offset\":%d,",int(Model::instance().analogConfig(c).components[d].offset)); 
+                buf_ptr += sprintf(buf_ptr, "\"value\":%d",int(Model::instance().analogConfig(c).components[d].value)); 
+                buf_ptr += sprintf(buf_ptr, "}%c", (d==Model::analogCompN-1)?' ':','); 
+            }
+            buf_ptr += sprintf(buf_ptr, "]");
+            buf_ptr += sprintf(buf_ptr, "}%c",(c==Model::analogN-1)?' ':',');
+        }
+
+        buf_ptr += sprintf(buf_ptr, "]");
+    }
+
+    void addStripConfig() {
+        handleDelimiter();
+        buf_ptr += sprintf(buf_ptr, "\"stripconfig\":["); 
+        for (size_t c=0; c<Model::stripN; c++) {
+            buf_ptr += sprintf(buf_ptr, "{");
+            buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(Model::instance().stripConfig(c).type)); 
+            buf_ptr += sprintf(buf_ptr, "\"length\":%d,",int(Model::instance().stripConfig(c).len)); 
+            buf_ptr += sprintf(buf_ptr, "\"color\":\"0x%08x\",",(unsigned int)Model::instance().stripConfig(c).color.hex()); 
+            buf_ptr += sprintf(buf_ptr, "\"universes\" : [");
+            for (size_t d=0; d<Model::universeN; d++) {
+                buf_ptr += sprintf(buf_ptr, "%d%c", Model::instance().stripConfig(c).universe[d],
+                                            (d==Model::universeN-1)?' ':','); 
+            }
+            buf_ptr += sprintf(buf_ptr, "]");
+            buf_ptr += sprintf(buf_ptr, "}%c",(c==Model::stripN-1)?' ':',');
+        }
+        buf_ptr += sprintf(buf_ptr, "]");
+    }
+    
+private:
+    enum ResponseType {
+        OKResponse = 0,
+        JSONResponse = 1,
+    } responseType = OKResponse;
+    
+    bool initialized = false;
+    void init();
+    
+    bool first_item = true;
+    char *buf_ptr;
+    char *content_start;
+    char response_buf[2048];
+};
+
+HTTPResponse &HTTPResponse::instance() {
+    static HTTPResponse httpResponse;
+    if (!httpResponse.initialized) {
+        httpResponse.initialized = true;
+        httpResponse.init();
+    }
+    return httpResponse;
+}
+
+void HTTPResponse::init() {
+}
+
+}
+
+using namespace lightguy;
 
 enum RestMethod {
     MethodNone,
@@ -69,131 +320,46 @@ err_t httpd_rest_begin(void *, rest_method_t method, const char *url, const char
     return ERR_REST_DISPATCH;
 }
 
-static char *addHeader(char *buf) {
-    return buf + sprintf(buf, "HTTP/1.0 200 OK" CRLF 
-                              "Content-Type: application/json; charset=utf-8" CRLF 
-                              "X-Content-Type-Options: nosniff" CRLF
-                              "Vary: Origin, Accept-Encoding" CRLF
-                              "Content-Length: @@@@@@@@@@@" CRLF
-                              "Access-Control-Allow-Origin: *" CRLF 
-                              "Cache-Control: no-cache" CRLF
-                              CRLF);
-}
-
-static void patchContentLength(char *buf, int32_t contentLength) {
-    char *contentLengthPtr = strstr(buf, "@@@@@@@@@@@");
-    if (!contentLengthPtr) {
-        return;
-    }
-    char numberStr[12];
-    memset(numberStr, 0, sizeof(numberStr));
-    sprintf(numberStr, "%d", int(contentLength));
-    for (size_t c = sizeof(numberStr)-1; c>0; c--) {
-        if (numberStr[c] == 0) numberStr[c] = ' ';
-    }
-    strncpy(contentLengthPtr, numberStr, 11);
-}
-
 err_t httpd_rest_receive_data(void *, struct pbuf *p) {
     pbuf_free(p);
     return ERR_OK;
 }
 
 err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
+    HTTPResponse &i = HTTPResponse::instance();
     switch(rest_method) {
         case MethodGetStatus: {
-            char *contentBegin = addHeader(response_buf);
-            char *buf = contentBegin;
-            buf += sprintf(buf, "{");
-            buf += sprintf(buf, "\"ipv4address\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(&NetConf::instance().netInterface()->ip_addr),
-                ip4_addr2(&NetConf::instance().netInterface()->ip_addr),
-                ip4_addr3(&NetConf::instance().netInterface()->ip_addr),
-                ip4_addr4(&NetConf::instance().netInterface()->ip_addr)
-            );
-            buf += sprintf(buf, "\"ipv4netmask\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(&NetConf::instance().netInterface()->netmask),
-                ip4_addr2(&NetConf::instance().netInterface()->netmask),
-                ip4_addr3(&NetConf::instance().netInterface()->netmask),
-                ip4_addr4(&NetConf::instance().netInterface()->netmask)
-            );
-            buf += sprintf(buf, "\"ipv4gateway\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(&NetConf::instance().netInterface()->gw),
-                ip4_addr2(&NetConf::instance().netInterface()->gw),
-                ip4_addr3(&NetConf::instance().netInterface()->gw),
-                ip4_addr4(&NetConf::instance().netInterface()->gw)
-            );
-            buf += sprintf(buf, "\"systemtime\":%d,", int(Systick::instance().systemTime())); 
-            buf += sprintf(buf, "\"buildnumber\":%d,", int(build_number)); 
-            buf += sprintf(buf, "\"hostname\":\"%s\",", NetConf::instance().netInterface()->hostname); 
-            buf += sprintf(buf, "\"macaddress\":\"%02x:%02x:%02x:%02x:%02x:%02x\"", 
-                        NetConf::instance().netInterface()->hwaddr[0],
-                        NetConf::instance().netInterface()->hwaddr[1],
-                        NetConf::instance().netInterface()->hwaddr[2],
-                        NetConf::instance().netInterface()->hwaddr[3],
-                        NetConf::instance().netInterface()->hwaddr[4],
-                        NetConf::instance().netInterface()->hwaddr[5]); 
-            buf += sprintf(buf, "}");
-            patchContentLength(response_buf, buf - contentBegin);
-            *data = response_buf;
-            *dataLen = strlen(response_buf);
+            i.beginJSONResponse();
+            i.addNetConfIPv4Address();
+            i.addNetConfIPv4Netmask();
+            i.addNetConfIPv4Gateway();
+            i.addSystemTime();
+            i.addBuildNumber();
+            i.addHostname();
+            i.addMacAddress();
+            *data = i.finish(*dataLen);
             return ERR_OK;
         } break;
         case MethodGetSettings: {
-            char *contentBegin = addHeader(response_buf);
-            char *buf = contentBegin;
-            buf += sprintf(buf, "{");
-            buf += sprintf(buf, "\"dhcp\":%s,",Model::instance().dhcpEnabled()?"true":"false"); 
-            buf += sprintf(buf, "\"ipv4address\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(Model::instance().ip4Address()),
-                ip4_addr2(Model::instance().ip4Address()),
-                ip4_addr3(Model::instance().ip4Address()),
-                ip4_addr4(Model::instance().ip4Address())
-            );
-            buf += sprintf(buf, "\"ipv4netmask\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(Model::instance().ip4Netmask()),
-                ip4_addr2(Model::instance().ip4Netmask()),
-                ip4_addr3(Model::instance().ip4Netmask()),
-                ip4_addr4(Model::instance().ip4Netmask())
-            );
-            buf += sprintf(buf, "\"ipv4gateway\":\"%d.%d.%d.%d\",", 
-                ip4_addr1(Model::instance().ip4Gateway()),
-                ip4_addr2(Model::instance().ip4Gateway()),
-                ip4_addr3(Model::instance().ip4Gateway()),
-                ip4_addr4(Model::instance().ip4Gateway())
-            );
-            buf += sprintf(buf, "\"outputmode\":%d,",Model::instance().outputConfig()); 
-            buf += sprintf(buf, "\"globpwmlimit\":%d,",int(Model::instance().globPWMLimit()*65536)); 
-            buf += sprintf(buf, "\"globcomplimit\":%d,",int(Model::instance().globCompLimit()*65536)); 
-            buf += sprintf(buf, "\"globillum\":%d,",int(Model::instance().globIllum()*65536)); 
-            buf += sprintf(buf, "\"rgbuniverses\":["); 
-            for (size_t c=0; c<Model::channelN; c++) {
-                buf += sprintf(buf, "{\"universe\":%d,\"offset\":%d}%c", Model::instance().analogRGBMap(c).universe, 
-                                                Model::instance().analogRGBMap(c).offset,
-                                                (c==Model::channelN-1)?' ':','
-                              ); 
-            }
-            buf += sprintf(buf, "],");
-            buf += sprintf(buf, "\"stripuniverses\":["); 
-            for (size_t c=0; c<Model::stripN; c++) {
-                buf += sprintf(buf, "[");
-                for (size_t d=0; d<Model::universeN; d++) {
-                    buf += sprintf(buf, "%d%c", Model::instance().universeStrip(c,d),
-                                                (d==Model::universeN-1)?' ':','); 
-                }
-                buf += sprintf(buf, "]%c",(c==Model::stripN-1)?' ':',');
-            }
-            buf += sprintf(buf, "]");
-            buf += sprintf(buf, "}");
-            patchContentLength(response_buf, buf - contentBegin);
-            *data = response_buf;
-            *dataLen = strlen(response_buf);
+            i.beginJSONResponse();
+            i.addDHCP();
+            i.addBroadcast();
+            i.addIPv4Address();
+            i.addIPv4Netmask();
+            i.addIPv4Gateway();
+            i.addOutputMode();
+            i.addPwmLimit();
+            i.addCompLimit();
+            i.addIllum();
+            i.addAnalogConfig();
+            i.addStripConfig();
+            *data = i.finish(*dataLen);
             return ERR_OK;
         } break;
         case MethodPostBootLoader: {
             lightguy::Systick::instance().scheduleReset(4000, true);
-            *data = "HTTP/1.0 200 OK" CRLF;
-            *dataLen = strlen("HTTP/1.0 200 OK" CRLF);
+            i.beginOKResponse();
+            *data = i.finish(*dataLen);
             return ERR_OK;
         } break;
         case MethodSetSettings: {

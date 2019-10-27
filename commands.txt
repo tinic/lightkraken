@@ -1,4 +1,7 @@
 make ; sudo make install
 sudo openocd -f interface/stlink.cfg -c "transport select hla_swd" -f target/stm32f1x.cfg
 makefsdata -defl -svr:"LG/1.0" -f:fsdata_bootloader.c fs_bootloader/
-
+cmake -DCMAKE_BUILD_TYPE=Release -DBOOTLOADER=0 -DBOOTLOADED=0 ..
+cmake -DCMAKE_BUILD_TYPE=Release -DBOOTLOADER=0 -DBOOTLOADED=1 ..
+cmake -DCMAKE_BUILD_TYPE=Release -DBOOTLOADER=1 -DBOOTLOADED=0 ..
+make -j ; sudo make install

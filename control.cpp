@@ -24,31 +24,51 @@ void Control::transferNow() {
     }
 }
 
-void Control::setUniverseOutputDataForDriver(size_t channels, uint16_t uni, const uint8_t *data, size_t len) {
-    rgb8 rgb[Driver::terminalN];
-    for (size_t c = 0; c < Driver::terminalN; c++) {
-        rgb[c] = Driver::instance().rgb8CIE(c);
+void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
+    rgbww rgb[Driver::terminalN];
+    for (size_t c = 0; c < terminals; c++) {
+        rgb[c] = Driver::instance().rgbwwCIE(c);
     }
-    for (size_t c = 0; c < channels; c++) {
+    for (size_t c = 0; c < terminals; c++) {
         size_t offset = 0;
-        if (Model::instance().analogRGBMap(c).universe == uni) {
-            if (len >= offset) {
-                switch(c%3) {
-                case 0: {
-                    rgb[c/3].r = data[Model::instance().analogRGBMap(c).offset];
-                    } break;
-                case 1: {
-                    rgb[c/3].g = data[Model::instance().analogRGBMap(c).offset];
-                    } break;
-                case 2: {
-                    rgb[c/3].b = data[Model::instance().analogRGBMap(c).offset];
-                    } break;
-                }
+        switch(components) {
+        case 5: {
+            if(Model::instance().analogConfig(c).components[4].universe == uni) {
+                rgb[c].ww = data[Model::instance().analogConfig(c).components[4].offset];
             }
+        } 
+        [[fallthrough]];
+        case 4: {
+            if(Model::instance().analogConfig(c).components[3].universe == uni) {
+                rgb[c].w = data[Model::instance().analogConfig(c).components[3].offset];
+            }
+        } 
+        [[fallthrough]];
+        case 3: {
+            if(Model::instance().analogConfig(c).components[2].universe == uni) {
+                rgb[c].b = data[Model::instance().analogConfig(c).components[2].offset];
+            }
+        } 
+        [[fallthrough]];
+        case 2: {
+            if(Model::instance().analogConfig(c).components[1].universe == uni) {
+                rgb[c].g = data[Model::instance().analogConfig(c).components[1].offset];
+            }
+        } 
+        [[fallthrough]];
+        case 1: {
+            if(Model::instance().analogConfig(c).components[0].universe == uni) {
+                rgb[c].r = data[Model::instance().analogConfig(c).components[0].offset];
+            }
+        } 
+        [[fallthrough]];
+        default:
+        case 0:
+        break;
         }
     }
-    for (size_t c = 0; c < Driver::terminalN; c++) {
-        Driver::instance().setRGB8CIE(c,rgb[c]);
+    for (size_t c = 0; c < terminals; c++) {
+        Driver::instance().setRGBWWCIE(c,rgb[c]);
     }
 }
 
@@ -70,7 +90,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     } break;
     case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
 
-        setUniverseOutputDataForDriver(3, uni, data, len);
+        setUniverseOutputDataForDriver(1, 3, uni, data, len);
 
         for (size_t c = 0; c < Model::stripN; c++) {
             bool set = false;
@@ -87,7 +107,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
 
-        setUniverseOutputDataForDriver(3, uni, data, len);
+        setUniverseOutputDataForDriver(1, 3, uni, data, len);
 
         for (size_t c = 0; c < 1; c++) {
             bool set = false;
@@ -104,7 +124,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     } break;
     case Model::OUTPUT_CONFIG_RGBW_STRIP: {
 
-        setUniverseOutputDataForDriver(4, uni, data, len);
+        setUniverseOutputDataForDriver(1, 4, uni, data, len);
         
         for (size_t c = 0; c < 1; c++) {
             bool set = false;
@@ -120,7 +140,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
-        setUniverseOutputDataForDriver(6, uni, data, len);
+        setUniverseOutputDataForDriver(2, 3, uni, data, len);
     } break;
     }
 }

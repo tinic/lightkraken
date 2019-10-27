@@ -12,18 +12,32 @@
 #include <string.h>
 
 #include "lwip/ip_addr.h"
+#include "./color.h"
+#include "./driver.h"
 
 namespace lightguy {
 
 class Model {
 public:
     static constexpr size_t stripN = 2;
+    static constexpr size_t analogN = 2;
     static constexpr size_t universeN = 6;
-    static constexpr size_t channelN = 6;
+    static constexpr size_t analogCompN = 5;
 
-    struct AnalogRGBUniverseEntry {
-        uint16_t universe;
-        uint8_t offset;
+    struct AnalogConfig {
+        uint32_t type;
+        struct Component {
+            uint16_t universe;
+            uint16_t offset;
+            uint16_t value;
+        } components[analogCompN];
+    };
+    
+    struct StripConfig {
+        uint32_t type;
+        rgb8 color;
+        uint16_t len;
+        uint16_t universe[universeN];
     };
 
     enum OutputConfig {
@@ -35,7 +49,7 @@ public:
     };
 
     static Model &instance();
-
+    
     bool burstMode() const { return burst_mode; }
     
     float globPWMLimit() const { return glob_pwmlimit; }
@@ -43,22 +57,22 @@ public:
     float globCompLimit() const { return glob_comp_lim; }
 
     bool dhcpEnabled() const { return ip_dhcp; }
+    bool broadcastEnabled() const { return receive_broadcast; }
 
     const ip_addr_t *ip4Address() const { return &ip4_address; }
     const ip_addr_t *ip4Netmask() const { return &ip4_netmask; }
-    const ip_addr_t *ip4Gateway() const { return &ip4_gateway; };
+    const ip_addr_t *ip4Gateway() const { return &ip4_gateway; }
+    
+    const StripConfig &stripConfig(size_t index) const { return strip_config[index]; }
+    const AnalogConfig &analogConfig(size_t index) const { return analog_config[index]; }
 
     OutputConfig outputConfig() const { return output_config; }
     void setOutputConfig(OutputConfig outputConfig);
     
-    const AnalogRGBUniverseEntry &analogRGBMap(int32_t channel) const { 
-        return rgbMap[channel];
-    }
-
     uint16_t universeStrip(int32_t strip, int32_t dmx512Index) const { 
         strip %= stripN;
         dmx512Index %= universeN;
-        return uniStp[strip][dmx512Index]; 
+        return strip_config[strip].universe[dmx512Index]; 
     }
 
 private:
@@ -71,21 +85,24 @@ private:
     void init();
 
     bool ip_dhcp;
+    bool receive_broadcast;
     
     ip_addr_t ip4_address;
     ip_addr_t ip4_netmask;
     ip_addr_t ip4_gateway;
+    
+    rgb8 rgb_start_colors[2];
+    rgb8 strip_start_colors[2];
 
     OutputConfig output_config;
+
     bool burst_mode;
     float glob_pwmlimit;
     float glob_illum;
     float glob_comp_lim;
-    uint32_t strip_type[stripN];
-    uint32_t strip_len[stripN];
-    uint16_t uniStp[stripN][universeN];
-
-    AnalogRGBUniverseEntry rgbMap[channelN];
+    
+    StripConfig strip_config[stripN];
+    AnalogConfig analog_config[analogN];
 };
 
 } /* namespace model */

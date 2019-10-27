@@ -30,6 +30,7 @@ extern "C" {
 
 #include "./main.h"
 #include "./netconf.h"
+#include "./strip.h"
 #include "./model.h"
 #include "./status.h"
 #include "./spi.h"

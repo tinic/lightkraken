@@ -9,7 +9,6 @@
 #include <algorithm>
 
 #include "./strip.h"
-
 #include "./model.h"
 
 namespace lightguy {

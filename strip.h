@@ -12,10 +12,10 @@
 #include <string.h>
 #include <functional>
 
-#include "model.h"
+#include "./model.h"
 
 namespace lightguy {
-
+    
     class Strip {
     public:
 

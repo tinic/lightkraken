@@ -28,48 +28,46 @@ Driver &Driver::instance() {
     return driver;
 }
 
-void Driver::setRGB8CIE(size_t terminal, const rgb8 &rgb) {
+void Driver::setRGBWWCIE(size_t terminal, const rgbww &rgb) {
 
     maybeUpdateCIE();
 
     terminal %= terminalN;
-    _rgb8[terminal] = rgb;
+    _rgbww[terminal] = rgb;
+
     switch(Model::instance().outputConfig()) {
     case Model::OUTPUT_CONFIG_DUAL_STRIP: {
     } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
         if (terminal == 0) {
             // TODO: Convert through XYZ color space
-            setPulse(0 + 0, cie_lookup[_rgb8[terminal].r]);
-            setPulse(0 + 1, cie_lookup[_rgb8[terminal].g]);
-            setPulse(0 + 2, cie_lookup[_rgb8[terminal].b]);
+            setPulse(0 + 0, cie_lookup[_rgbww[terminal].r]);
+            setPulse(0 + 1, cie_lookup[_rgbww[terminal].g]);
+            setPulse(0 + 2, cie_lookup[_rgbww[terminal].b]);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
         if (terminal == 0) {
             // TODO: Convert through XYZ color space
-            setPulse(3 + 0, cie_lookup[_rgb8[terminal].r]);
-            setPulse(0 + 1, cie_lookup[_rgb8[terminal].g]);
-            setPulse(0 + 2, cie_lookup[_rgb8[terminal].b]);
+            setPulse(3 + 0, cie_lookup[_rgbww[terminal].r]);
+            setPulse(0 + 1, cie_lookup[_rgbww[terminal].g]);
+            setPulse(0 + 2, cie_lookup[_rgbww[terminal].b]);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGBW_STRIP: {
         if (terminal == 0) {
             // TODO: Convert through XYZ color space
-            setPulse(0 + 0, cie_lookup[_rgb8[terminal].r]);
-            setPulse(0 + 1, cie_lookup[_rgb8[terminal].g]);
-            setPulse(0 + 2, cie_lookup[_rgb8[terminal].b]);
-        }
-        if (terminal == 1) {
-            // For now: No conversion
-            setPulse(3 + 0, cie_lookup[_rgb8[terminal].r]);
+            setPulse(0, cie_lookup[_rgbww[terminal].r]);
+            setPulse(1, cie_lookup[_rgbww[terminal].g]);
+            setPulse(2, cie_lookup[_rgbww[terminal].b]);
+            setPulse(3, cie_lookup[_rgbww[terminal].w]);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
         // TODO: Convert color space
-        setPulse(terminal*3 + 0, cie_lookup[_rgb8[terminal].r]);
-        setPulse(terminal*3 + 1, cie_lookup[_rgb8[terminal].g]);
-        setPulse(terminal*3 + 2, cie_lookup[_rgb8[terminal].b]);
+        setPulse(terminal*3 + 0, cie_lookup[_rgbww[terminal].r]);
+        setPulse(terminal*3 + 1, cie_lookup[_rgbww[terminal].g]);
+        setPulse(terminal*3 + 2, cie_lookup[_rgbww[terminal].b]);
     } break;
     }
     
