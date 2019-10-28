@@ -16,43 +16,59 @@ extern "C" {
 
 namespace lightkraken {
 
-/*
-static uint32_t readu32(const uint8_t **page) {
-    uint32_t v = ((*page[0])    )|
-                ((*page[1])<< 8)|
-                ((*page[2])<<16)|
-                ((*page[3])<<24);
-    *page+=4;
-    return v;
-}
-
-static uint16_t readu16(const uint8_t **page) {
-    uint16_t v = ((*page[0])    )|
-                ((*page[1])<< 8);
-    *page+=2;
-    return v;
-}
-*/
+constexpr static size_t settings_page_mem = 0x08000000 + 255 * 1024;
 
 void Model::readFlash() {
+	uint32_t *src = reinterpret_cast<uint32_t *>(settings_page_mem);
+	uint32_t *dst = reinterpret_cast<uint32_t *>(this);
+	if (*src != currentModelVersion) {
+		return;
+	}
+	for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
+		*dst++ = *src++;
+	}
 }
-
-/*
-static void writeu32(uintptr_t *addr, uint32_t v) {
-    (void)v;
-    *addr += 4;
-}
-
-static void writeu16(uintptr_t *addr, uint16_t v) {
-    (void)v;
-    *addr += 2;
-}
-*/
 
 void Model::writeFlash() {
+	fmc_unlock();
+
+	fmc_flag_clear(FMC_FLAG_BANK0_END);
+	fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+	fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
+
+	fmc_page_erase(settings_page_mem);
+
+	fmc_flag_clear(FMC_FLAG_BANK0_END);
+	fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+	fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
+
+	uint32_t *src = reinterpret_cast<uint32_t *>(this);
+	for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
+		fmc_word_program(settings_page_mem + c, *src++);
+
+        fmc_flag_clear(FMC_FLAG_BANK0_END);
+        fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+        fmc_flag_clear(FMC_FLAG_BANK0_PGERR); 
+	}
+
+	fmc_lock();
 }
 
-void Model::init() {
+void Model::save() {
+	writeFlash();
+}
+
+void Model::load() {
+	readFlash();
+}
+
+void Model::reset() {
+	defaults();
+	save();
+}
+
+void Model::defaults() {
+	model_version = currentModelVersion;
 
     const uint8_t IP_ADDRESS0 =  169;
     const uint8_t IP_ADDRESS1 =  254;
@@ -73,7 +89,7 @@ void Model::init() {
     IP4_ADDR(&ip4_netmask, IP_NETMASK0, IP_NETMASK1, IP_NETMASK2, IP_NETMASK3);
     IP4_ADDR(&ip4_gateway, IP_GATEWAY0, IP_GATEWAY1, IP_GATEWAY2, IP_GATEWAY3);
 
-    ip_dhcp = true;
+    dhcp = true;
     
     receive_broadcast = false;
 
@@ -106,7 +122,10 @@ void Model::init() {
             analog_config[c].components[d].offset = counter++;
         }
     }
+}
 
+void Model::init() {
+	defaults();
     readFlash();
 }
 

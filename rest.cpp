@@ -152,6 +152,8 @@ public:
             }
             Model::instance().setStripConfig(c, config);
         }
+    
+    	Model::instance().save();
     }
     
 private:

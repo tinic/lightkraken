@@ -19,6 +19,8 @@ namespace lightkraken {
 
 class Model {
 public:
+    static constexpr uint32_t currentModelVersion = 0x1ed50001;
+
     static constexpr size_t stripN = 2;
     static constexpr size_t analogN = 2;
     static constexpr size_t universeN = 6;
@@ -49,6 +51,10 @@ public:
     };
 
     static Model &instance();
+
+	void load();
+    void save();
+    void reset();
     
     bool burstMode() const { return burst_mode; }
 
@@ -61,8 +67,8 @@ public:
     float globCompLimit() const { return glob_comp_lim; }
     void setGlobCompLimit(float value) { glob_comp_lim = value; }
 
-    bool dhcpEnabled() const { return ip_dhcp; }
-    void setDhcpEnabled(bool state) { ip_dhcp = state; }
+    bool dhcpEnabled() const { return dhcp; }
+    void setDhcpEnabled(bool state) { dhcp = state; }
     
     bool broadcastEnabled() const { return receive_broadcast; }
     void setBroadcastEnabled(bool state) { receive_broadcast = state; }
@@ -73,6 +79,7 @@ public:
     
     const StripConfig &stripConfig(size_t index) const { return strip_config[index]; }
     void setStripConfig(size_t index, StripConfig config) { strip_config[index] = config; }
+
     const AnalogConfig &analogConfig(size_t index) const { return analog_config[index]; }
     void setAnalogConfig(size_t index, AnalogConfig config) { analog_config[index] = config; }
 
@@ -84,29 +91,31 @@ public:
         dmx512Index %= universeN;
         return strip_config[strip].universe[dmx512Index]; 
     }
+    
 
 private:
     Model() {};
 
+	void defaults();
     void readFlash();
     void writeFlash();
 
     bool initialized = false;
     void init();
 
-    bool ip_dhcp;
+	uint32_t model_version;
+
+    bool dhcp;
     bool receive_broadcast;
     
     ip_addr_t ip4_address;
     ip_addr_t ip4_netmask;
     ip_addr_t ip4_gateway;
     
-    rgb8 rgb_start_colors[2];
-    rgb8 strip_start_colors[2];
-
     OutputConfig output_config;
 
     bool burst_mode;
+
     float glob_pwmlimit;
     float glob_illum;
     float glob_comp_lim;
