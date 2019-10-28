@@ -436,11 +436,18 @@ enum RestMethod {
 };
 
 static RestMethod rest_method = MethodNone;
+static void *current_connection = NULL;
 
 err_t httpd_rest_begin(void *connection, rest_method_t method, const char *url, const char *http_request, u16_t http_request_len, int, u8_t *) {
-    (void)connection;
     (void)http_request;
     (void)http_request_len;
+
+    // Can only handle one connection at a time
+    if (current_connection) {
+        return ERR_ARG;
+    }
+    current_connection = connection;
+    
     switch(method) {
         case REST_METHOD_OPTIONS: {
         } break;
@@ -477,14 +484,18 @@ err_t httpd_rest_begin(void *connection, rest_method_t method, const char *url, 
 }
 
 err_t httpd_rest_receive_data(void *connection, struct pbuf *p) {
-    (void)connection;
+    if (current_connection != connection) {
+        return ERR_ARG;
+    }
     HTTPPost::instance().pushData(p->payload, p->len);
     pbuf_free(p);
     return ERR_OK;
 }
 
 err_t httpd_rest_finished(void *connection, const char **data, u16_t *dataLen) {
-    (void)connection;
+    if (current_connection != connection) {
+        return ERR_ARG;
+    }
     HTTPResponse &i = HTTPResponse::instance();
     switch(rest_method) {
         case MethodGetStatus: {
@@ -497,6 +508,7 @@ err_t httpd_rest_finished(void *connection, const char **data, u16_t *dataLen) {
             i.addHostname();
             i.addMacAddress();
             *data = i.finish(*dataLen);
+            current_connection = NULL;
             return ERR_OK;
         } break;
         case MethodGetSettings: {
@@ -513,23 +525,27 @@ err_t httpd_rest_finished(void *connection, const char **data, u16_t *dataLen) {
             i.addAnalogConfig();
             i.addStripConfig();
             *data = i.finish(*dataLen);
+            current_connection = NULL;
             return ERR_OK;
         } break;
         case MethodPostBootLoader: {
             lightguy::Systick::instance().scheduleReset(4000, true);
             i.beginOKResponse();
             *data = i.finish(*dataLen);
+            current_connection = NULL;
             return ERR_OK;
         } break;
         case MethodPostSettings: {
             i.beginOKResponse();
             *data = i.finish(*dataLen);
             HTTPPost::instance().end();
+            current_connection = NULL;
             return ERR_OK;
         } break;
         case MethodNone: {
         } break;
     }
+    current_connection = NULL;
     return ERR_ARG;
 }
 
