@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <algorithm>
+
 #include "gd32f10x.h"
 #include "cmsis_gcc.h"
 
@@ -31,22 +33,21 @@ public:
     
     void begin() {
         buf_ptr = post_buf;
+        memset(post_buf, 0, sizeof(post_buf));
     }
     
     void pushData(void *data, size_t len) {
-        memcpy(buf_ptr, data, len);
-        buf_ptr += len;
-        buf_ptr[0] = 0;
-    }    
-    
-    void end() {
-        printf("%s\n", post_buf);
-        parse();
+        size_t buf_max_len = sizeof(post_buf) - 1;
+        size_t buf_cur_len = buf_ptr - post_buf;
+        len = std::min(buf_cur_len + len, buf_max_len) - buf_cur_len;
+        if (len > 0) {
+            memcpy(buf_ptr, data, len);
+            buf_ptr += len;
+        }
     }
     
-    void parse() {
-        
-        char buf[100];
+    void end() {
+        char buf[64];
         int ival = 0;
         double dval = 0;
         int res = 0;
@@ -143,14 +144,13 @@ public:
             }
             Model::instance().setStripConfig(c, config);
         }
-        
     }
     
 private:
     bool initialized = false;
     void init();
     char *buf_ptr;
-    char post_buf[2048];
+    char post_buf[1536];
 };
 
 HTTPPost &HTTPPost::instance() {
@@ -180,11 +180,11 @@ public:
     void beginJSONResponse() {
         buf_ptr = response_buf;
         buf_ptr += sprintf(buf_ptr, "HTTP/1.0 200 OK" CRLF 
+                                    "Access-Control-Allow-Origin: *" CRLF 
                                     "Content-Type: application/json; charset=utf-8" CRLF 
                                     "X-Content-Type-Options: nosniff" CRLF
                                     "Vary: Origin, Accept-Encoding" CRLF
                                     "Content-Length: @@@@@@@@@@@" CRLF
-                                    "Access-Control-Allow-Origin: *" CRLF 
                                     "Cache-Control: no-cache" CRLF
                                     CRLF);
         content_start = buf_ptr;
