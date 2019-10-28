@@ -1,7 +1,7 @@
 #ifndef UART_H
 #define UART_H
 
-namespace lightguy {
+namespace lightkraken {
 
 class UART {
 public:

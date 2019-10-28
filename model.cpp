@@ -14,7 +14,7 @@ extern "C" {
 #include "./driver.h"
 #include "./spi.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 /*
 static uint32_t readu32(const uint8_t **page) {
@@ -88,10 +88,10 @@ void Model::init() {
     int32_t counter = 0;
     for (size_t c = 0; c < stripN; c++) {
         strip_config[c].type = Strip::GS8208_RGB;
-        lightguy::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
+        lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
         strip_config[c].len = 256;
         strip_config[c].color = rgb8();
-        lightguy::Strip::get(c).setPixelLen(strip_config[c].len);
+        lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         for (size_t d = 0; d < universeN; d++) {
             strip_config[c].universe[d] = counter++;
         }
@@ -123,5 +123,5 @@ Model &Model::instance() {
     return model;
 }
 
-} /* namespace lightguy */
+} /* namespace lightkraken */
 

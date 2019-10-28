@@ -5,15 +5,15 @@
 *      Author: Tinic Uro
 */
 
-#ifndef LIGHTGUY_DRIVER_H_
-#define LIGHTGUY_DRIVER_H_
+#ifndef _DRIVER_H_
+#define _DRIVER_H_
 
 #include <stdint.h>
 #include <string.h>
 
 #include "./color.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 class Driver {
 public:
@@ -39,4 +39,4 @@ private:
 
 };
 
-#endif /* LIGHTGUY_DRIVER_H_ */
+#endif /* _DRIVER_H_ */

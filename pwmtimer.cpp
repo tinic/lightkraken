@@ -6,7 +6,7 @@ extern "C" {
 
 #include "./pwmtimer.h"
 
-namespace lightguy {
+namespace lightkraken {
     
 // BLUE
 PwmTimer &PwmTimer0::instance() {
@@ -355,4 +355,4 @@ void PwmTimer6::setPulse(uint16_t pulse) {
     }
 }
 
-} // namespace lightguy
+} // namespace lightkraken

@@ -15,7 +15,7 @@
 #include "./color.h"
 #include "./driver.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 class Model {
 public:

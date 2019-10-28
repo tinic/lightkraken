@@ -21,14 +21,14 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-set(PRJ_NAME lightguy)
+set(PRJ_NAME lightkraken)
 
 if(BOOTLOADER)
 set(PRJ_NAME bootloader)
 endif(BOOTLOADER)
 
 if(BOOTLOADED)
-set(PRJ_NAME lightguy_bootloaded)
+set(PRJ_NAME lightkraken_bootloaded)
 endif(BOOTLOADED)
 
 project(${PRJ_NAME} C CXX ASM)

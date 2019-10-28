@@ -31,7 +31,7 @@ static void write_flash(const char *data, size_t len) {
         return;
     }
 
-    lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::flashing);
+    lightkraken::StatusLED::instance().setBootloaderStatus(lightkraken::StatusLED::flashing);
     
     size_t to_write = bufferptr + len;
     size_t off_write = 0;
@@ -69,7 +69,7 @@ static int on_header_field(multipartparser *, const char *, size_t ) {
 static int on_header_value(multipartparser *, const char *data, size_t len) {
     if (strncmp(data, "application/octet-stream", len) == 0) {
 
-        lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::erasing);
+        lightkraken::StatusLED::instance().setBootloaderStatus(lightkraken::StatusLED::erasing);
         
         fmc_unlock();
 
@@ -78,8 +78,8 @@ static int on_header_value(multipartparser *, const char *data, size_t len) {
         fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
 
         for(size_t c = 0; c < page_num; c++){
-            lightguy::StatusLED::instance().schedule();
-            lightguy::StatusLED::instance().update();
+            lightkraken::StatusLED::instance().schedule();
+            lightkraken::StatusLED::instance().update();
             fmc_page_erase(FMC_WRITE_START_ADDR + (FMC_PAGE_SIZE * c));
             fmc_flag_clear(FMC_FLAG_BANK0_END);
             fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
@@ -114,9 +114,9 @@ static int on_part_end(multipartparser *) {
     
     fmc_lock();
     
-    lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::done);
+    lightkraken::StatusLED::instance().setBootloaderStatus(lightkraken::StatusLED::done);
 
-    lightguy::Systick::instance().scheduleReset();
+    lightkraken::Systick::instance().scheduleReset();
     
     return 0;
 }

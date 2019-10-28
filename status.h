@@ -1,7 +1,7 @@
 #ifndef STATUS_LED_H
 #define STATUS_LED_H
 
-namespace lightguy {
+namespace lightkraken {
 
 class StatusLED {
 

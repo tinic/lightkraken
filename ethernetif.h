@@ -4,7 +4,7 @@
 #include "lwip/err.h"
 #include "lwip/netif.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 class EthernetIf {
 public:

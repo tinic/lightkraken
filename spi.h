@@ -1,7 +1,7 @@
 #ifndef SPI_H
 #define SPI_H
 
-namespace lightguy {
+namespace lightkraken {
 
 class SPI_0 {
 public:

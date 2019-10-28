@@ -12,7 +12,7 @@
 #include "./model.h"
 #include "./control.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 class OutputPacket : public ArtNetPacket {
 public:
@@ -156,14 +156,14 @@ bool ArtNetPacket::dispatch(const uint8_t *buf, size_t len) {
             case	OpNzs: {
                         OutputNzsPacket outputPacket;
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
-                            lightguy::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
+                            lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }
                         return true;
                     } break;
             case	OpOutput: {
                         OutputPacket outputPacket;
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
-                            lightguy::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
+                            lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }
                         return true;
                     } break;

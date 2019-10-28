@@ -6,7 +6,7 @@ extern "C" {
 
 #include "./spi.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 SPI_0 &SPI_0::instance() {
     static SPI_0 spi0;
@@ -197,4 +197,4 @@ void SPI_2::init() {
     gpio_pin_remap_config(GPIO_SPI2_REMAP, ENABLE);
 }
 
-}  // namespace lightguy {
+}  // namespace lightkraken {

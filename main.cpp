@@ -70,12 +70,12 @@ int main() {
     nvic_vector_table_set(NVIC_BASE_ADDRESS,0);
 
     while (1) {
-        lightguy::NetConf::instance().update();
-        lightguy::StatusLED::instance().update();
+        lightkraken::NetConf::instance().update();
+        lightkraken::StatusLED::instance().update();
         
 #ifndef BOOTLOADER
-        lightguy::SPI_2::instance().update();
-        lightguy::SPI_0::instance().update();
+        lightkraken::SPI_2::instance().update();
+        lightkraken::SPI_0::instance().update();
 #endif  //#ifndef BOOTLOADER
     }
     return 0;

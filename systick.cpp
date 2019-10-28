@@ -13,11 +13,11 @@ extern "C" {
 extern "C" {
 __attribute__((used)) // required for -flto
 void SysTick_Handler(void) {
-    lightguy::Systick::instance().handler();
+    lightkraken::Systick::instance().handler();
 }
 }
 
-namespace lightguy {
+namespace lightkraken {
 
 Systick &Systick::instance() {
     static Systick systick;
@@ -31,14 +31,14 @@ Systick &Systick::instance() {
 void Systick::handler() {
     static uint32_t status_led = 0;
     if ((status_led++ & 0xF) == 0x0) {
-        lightguy::StatusLED::instance().schedule();
+        lightkraken::StatusLED::instance().schedule();
     }
     if (nvic_reset_delay > 0) {
         nvic_reset_delay--;
     }
     if (nvic_reset_delay == 1) {
 #ifdef BOOTLOADER
-        lightguy::StatusLED::instance().setBootloaderStatus(lightguy::StatusLED::reset);
+        lightkraken::StatusLED::instance().setBootloaderStatus(lightkraken::StatusLED::reset);
 #endif  // #ifdef BOOTLOADER
         if (bootloader_after_reset) {
             *((volatile uint32_t *)0x20000000) = 0xFEEDC0DE;

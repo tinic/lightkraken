@@ -14,7 +14,7 @@
 
 #include "./model.h"
 
-namespace lightguy {
+namespace lightkraken {
     
     class Strip {
     public:
@@ -38,7 +38,7 @@ namespace lightguy {
         };
 
         static constexpr size_t dmxMaxLen = 512;
-        static constexpr size_t compMaxLen = (dmxMaxLen*lightguy::Model::universeN);
+        static constexpr size_t compMaxLen = (dmxMaxLen*lightkraken::Model::universeN);
         static constexpr size_t compLatchLen = 64;
         static constexpr size_t spiMaxLen = (compMaxLen+compLatchLen)*sizeof(uint32_t);
         static constexpr size_t burstHeadLen = 64;
@@ -81,7 +81,7 @@ namespace lightguy {
 
         bool transfer_flag;
         bool strip_reset = false;
-        uint8_t zero[lightguy::Model::universeN];
+        uint8_t zero[lightkraken::Model::universeN];
         Type strip_type = WS2812_RGB;
         size_t comp_len = 0;
         uint8_t comp_buf[compMaxLen];

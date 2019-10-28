@@ -11,7 +11,7 @@
 #define IFNAME0 'L'
 #define IFNAME1 'G'
 
-namespace lightguy {
+namespace lightkraken {
 
 class NetConf {
 

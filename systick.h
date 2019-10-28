@@ -1,7 +1,7 @@
 #ifndef SYSTICK_H
 #define SYSTICK_H
 
-namespace lightguy {
+namespace lightkraken {
 
 class Systick {
 public:

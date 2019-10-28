@@ -6,6 +6,6 @@ extern "C" {
 
 extern "C" {
 u32_t sys_now(void) {
-    return lightguy::Systick::instance().systemTime();
+    return lightkraken::Systick::instance().systemTime();
 }
 }

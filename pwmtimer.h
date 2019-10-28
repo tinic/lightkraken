@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace lightguy {
+namespace lightkraken {
 
 class PwmTimer {
 public:
@@ -64,6 +64,6 @@ private:
 };
 
 
-} //  namespace lightguy {
+} //  namespace lightkraken {
 
 #endif  // #ifndef PWM_TIMER_H

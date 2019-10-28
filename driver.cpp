@@ -17,7 +17,7 @@ extern "C" {
 #include "./pwmtimer.h"
 #include "./model.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 Driver &Driver::instance() {
     static Driver driver;

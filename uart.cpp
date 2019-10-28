@@ -14,7 +14,7 @@ int _write(int file, char *ptr, int len);
 #include "./uart.h"
 
 int __io_putchar(int ch){
-    lightguy::UART::instance().transmit(ch);
+    lightkraken::UART::instance().transmit(ch);
     return(ch);
 }
 
@@ -33,7 +33,7 @@ int _write(int, char *ptr, int len) {
     return len;
 }
 
-namespace lightguy {
+namespace lightkraken {
 
 UART &UART::instance() {
     static UART uart;
@@ -72,4 +72,4 @@ void UART::init() {
     
 }
 
-}  // namespace lightguy {
+}  // namespace lightkraken {

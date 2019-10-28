@@ -64,7 +64,7 @@ extern "C" {
 #include "./artnet.h"
 #include "./systick.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 NetConf &NetConf::instance() {
     static NetConf netconf;
@@ -79,7 +79,7 @@ NetConf &NetConf::instance() {
 static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *, u16_t) {
     struct pbuf *i = p;
     for( ; i != NULL ; i = i->next) {
-        lightguy::ArtNetPacket::dispatch(reinterpret_cast<uint8_t *>(p->payload), p->len);
+        lightkraken::ArtNetPacket::dispatch(reinterpret_cast<uint8_t *>(p->payload), p->len);
     }
     pbuf_free(p);
 }
@@ -93,16 +93,16 @@ void NetConf::init() {
 
 #ifndef BOOTLOADER
 #if LWIP_DHCP
-    if (lightguy::Model::instance().dhcpEnabled()) {
+    if (lightkraken::Model::instance().dhcpEnabled()) {
     address.addr = 0;
     netmask.addr = 0;
     gateway.addr = 0;
     } else 
 #endif  // #if LWIP_DHCP
     {
-    address.addr = lightguy::Model::instance().ip4Address()->addr;
-    netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
-    gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
+    address.addr = lightkraken::Model::instance().ip4Address()->addr;
+    netmask.addr = lightkraken::Model::instance().ip4Netmask()->addr;
+    gateway.addr = lightkraken::Model::instance().ip4Gateway()->addr;
     }
 #else  // #ifndef BOOTLOADER
     address.addr = 0;
@@ -138,7 +138,7 @@ void NetConf::init() {
 
 void NetConf::update() {
 
-    uint32_t localtime = lightguy::Systick::instance().systemTime();
+    uint32_t localtime = lightkraken::Systick::instance().systemTime();
 
     if (enet_rxframe_size_get()){
         EthernetIf::ethernetif_input(&netif);
@@ -184,9 +184,9 @@ void NetConf::update() {
                         ip_addr_t gateway;
 
 #ifndef BOOTLOADER
-                        address.addr = lightguy::Model::instance().ip4Address()->addr;
-                        netmask.addr = lightguy::Model::instance().ip4Netmask()->addr;
-                        gateway.addr = lightguy::Model::instance().ip4Gateway()->addr;
+                        address.addr = lightkraken::Model::instance().ip4Address()->addr;
+                        netmask.addr = lightkraken::Model::instance().ip4Netmask()->addr;
+                        gateway.addr = lightkraken::Model::instance().ip4Gateway()->addr;
 #endif  // #ifndef BOOTLOADER
 
                         netif_set_addr(&netif, &address , &netmask, &gateway);

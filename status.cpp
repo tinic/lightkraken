@@ -8,7 +8,7 @@ extern "C" {
 #include "./status.h"
 #include "./systick.h"
 
-namespace lightguy {
+namespace lightkraken {
 
 StatusLED &StatusLED::instance() {
     static StatusLED status_led;
@@ -152,4 +152,4 @@ void StatusLED::setUserLED(uint8_t r, uint8_t g, uint8_t b) {
     __enable_irq();
 }
 
-}  // namespace lightguy {
+}  // namespace lightkraken {

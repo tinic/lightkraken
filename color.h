@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace lightguy {
+namespace lightkraken {
 
 class rgbww {
 public:

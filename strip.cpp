@@ -11,7 +11,7 @@
 #include "./strip.h"
 #include "./model.h"
 
-namespace lightguy {
+namespace lightkraken {
 
     class manchester_bit_buf {
     public:
@@ -58,15 +58,15 @@ namespace lightguy {
     };
 
     Strip &Strip::get(size_t index) {
-        static Strip strips[lightguy::Model::stripN];
+        static Strip strips[lightkraken::Model::stripN];
         static bool init = false;
         if (!init) {
             init = true;
-            for (size_t c=0; c<lightguy::Model::stripN; c++) {
+            for (size_t c=0; c<lightkraken::Model::stripN; c++) {
                 strips[c].init();
             }
         }
-        return strips[index % lightguy::Model::stripN];
+        return strips[index % lightkraken::Model::stripN];
     }
 
     void Strip::init() {
@@ -163,7 +163,7 @@ namespace lightguy {
     }
 
     bool Strip::isBlack() const {
-        for (size_t c = 0; c < lightguy::Model::universeN; c++) {
+        for (size_t c = 0; c < lightkraken::Model::universeN; c++) {
             if (zero[c]) {
                 return false;
             }
@@ -238,7 +238,7 @@ namespace lightguy {
     }
 
     void Strip::setUniverseData(size_t uniN, const uint8_t *data, size_t len) {
-        if (uniN >= lightguy::Model::universeN) {
+        if (uniN >= lightkraken::Model::universeN) {
             return;
         }
         zero[uniN] = 0;

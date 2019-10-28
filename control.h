@@ -1,7 +1,7 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
-namespace lightguy {
+namespace lightkraken {
 
 class Control {
 public:

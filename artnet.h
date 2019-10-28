@@ -5,10 +5,10 @@
 *      Author: Tinic Uro
 */
 
-#ifndef LIGHTGUY_ARTNET_H_
-#define LIGHTGUY_ARTNET_H_
+#ifndef _ARTNET_H_
+#define _ARTNET_H_
 
-namespace lightguy {
+namespace lightkraken {
 
 class ArtNetPacket {
 public:
@@ -70,6 +70,6 @@ private:
     static bool verify(ArtNetPacket &Packet, const uint8_t *buf, size_t len);
 };
 
-}  // namespace lightguy {
+}  // namespace lightkraken {
 
-#endif /* LIGHTGUY_ARTNET_H_ */
+#endif /* _ARTNET_H_ */

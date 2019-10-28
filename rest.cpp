@@ -25,7 +25,7 @@ const int32_t build_number =
 
 #define CRLF "\r\n"
 
-namespace lightguy {
+namespace lightkraken {
 
 class HTTPPost {
 public:
@@ -425,7 +425,7 @@ void HTTPResponse::init() {
 
 }
 
-using namespace lightguy;
+using namespace lightkraken;
 
 enum RestMethod {
     MethodNone,
@@ -529,7 +529,7 @@ err_t httpd_rest_finished(void *connection, const char **data, u16_t *dataLen) {
             return ERR_OK;
         } break;
         case MethodPostBootLoader: {
-            lightguy::Systick::instance().scheduleReset(4000, true);
+            lightkraken::Systick::instance().scheduleReset(4000, true);
             i.beginOKResponse();
             *data = i.finish(*dataLen);
             current_connection = NULL;
