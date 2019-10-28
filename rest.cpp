@@ -12,7 +12,6 @@ extern "C" {
 #include "lwip/ip4_addr.h"
 #include "./mjson.h"
 #include "./ftoa.h"
-#include "./jsonsl.h"
 };
 
 #include "./color.h"
@@ -30,7 +29,6 @@ const int32_t build_number =
 
 namespace lightkraken {
 
-#if 0
 class HTTPPost {
 public:
     static HTTPPost &instance();
@@ -174,7 +172,6 @@ HTTPPost &HTTPPost::instance() {
 
 void HTTPPost::init() {
 }
-#endif 
 
 class HTTPResponse {
 public:
@@ -445,8 +442,6 @@ public:
 	};
 
 	constexpr static size_t maxConnections = MEMP_NUM_TCP_PCB;
-	constexpr static size_t jsonslLevels = 4;
-	constexpr static size_t jsonslSize = sizeof(struct jsonsl_st) + (jsonslLevels - 1) * sizeof (struct jsonsl_state_st);
 
     static ConnectionManager &instance();
 
@@ -458,28 +453,14 @@ public:
 		public:
 			void *handle;
 			RestMethod method;
-			jsonsl_st *initJsonParser() {
-				struct jsonsl_st *jsn = reinterpret_cast<struct jsonsl_st *>(&jsonsl[0]);
-				jsn->levels_max = (unsigned int)jsonslLevels;
-				jsn->max_callback_level = UINT_MAX;
-				jsonsl_reset(jsn);
-				for (size_t ii = 0; ii < jsn->levels_max; ii++) {
-					jsn->stack[ii].level = ii;
-				}
-				return jsn;
-			}
-
-			jsonsl_st *jsonParser() {
-				return reinterpret_cast<struct jsonsl_st *>(&jsonsl[0]);
-			}
-			
-		private:
-			uint8_t jsonsl[jsonslSize];
+			struct pbuf *buffers[16];
+			size_t buffer_index;
 	};
 	
 	ConnectionInfo *begin(void *handle) {
 		for (size_t c = 0; c < maxConnections; c++) {
 			if (connections[c].handle == NULL) {
+				memset(&connections[c], 0, sizeof(ConnectionInfo));
 				connections[c].handle = handle;
 				return &connections[c];
 			}
@@ -541,8 +522,6 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
         case REST_METHOD_POST: {
             if (strcmp(url, "/settings") == 0) {
                 info->method = lightkraken::ConnectionManager::MethodPostSettings;
-                info->initJsonParser();
-                info->jsonParser();
                 return ERR_OK;
             } else if (strcmp(url, "/bootloader") == 0) {
                 info->method = lightkraken::ConnectionManager::MethodPostBootLoader;
@@ -569,15 +548,17 @@ err_t httpd_rest_receive_data(void *handle, struct pbuf *p) {
 	}
     switch(info->method) {
 		case lightkraken::ConnectionManager::MethodPostSettings: {
-			jsonsl_feed(info->jsonParser(), (const char *)p->payload, p->len);
+		   info->buffers[info->buffer_index++] = p;
 		} break;
+		default:
         case lightkraken::ConnectionManager::MethodNone:
         case lightkraken::ConnectionManager::MethodPostBootLoader:
         case lightkraken::ConnectionManager::MethodGetSettings:
-        case lightkraken::ConnectionManager::MethodGetStatus:
-        break;
+        case lightkraken::ConnectionManager::MethodGetStatus: {
+           // drop buffers to the floor
+		   pbuf_free(p);
+        } break;
     }
-    pbuf_free(p);
     return ERR_OK;
 }
 
@@ -598,6 +579,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             i.addHostname();
             i.addMacAddress();
             *data = i.finish(*dataLen);
+            lightkraken::ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
         case lightkraken::ConnectionManager::MethodGetSettings: {
@@ -614,22 +596,33 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             i.addAnalogConfig();
             i.addStripConfig();
             *data = i.finish(*dataLen);
+            lightkraken::ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
         case lightkraken::ConnectionManager::MethodPostBootLoader: {
             lightkraken::Systick::instance().scheduleReset(4000, true);
             i.beginOKResponse();
             *data = i.finish(*dataLen);
+            lightkraken::ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
         case lightkraken::ConnectionManager::MethodPostSettings: {
+            lightkraken::HTTPPost::instance().begin();
+            for (size_t c = 0; c > info->buffer_index; c++) {
+	        	lightkraken::HTTPPost::instance().pushData(info->buffers[c]->payload, info->buffers[c]->len);
+	        	pbuf_free(info->buffers[c]);
+	        	info->buffers[c] = 0;
+	        }
+   	     	lightkraken::HTTPPost::instance().end();
             i.beginOKResponse();
             *data = i.finish(*dataLen);
+            lightkraken::ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
         case lightkraken::ConnectionManager::MethodNone: {
         } break;
     }
+	lightkraken::ConnectionManager::instance().end(handle);
     return ERR_ARG;
 }
 
