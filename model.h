@@ -67,9 +67,9 @@ public:
     bool broadcastEnabled() const { return receive_broadcast; }
     void setBroadcastEnabled(bool state) { receive_broadcast = state; }
 
-    const ip_addr_t *ip4Address() const { return &ip4_address; }
-    const ip_addr_t *ip4Netmask() const { return &ip4_netmask; }
-    const ip_addr_t *ip4Gateway() const { return &ip4_gateway; }
+    ip_addr_t *ip4Address() { return &ip4_address; }
+    ip_addr_t *ip4Netmask() { return &ip4_netmask; }
+    ip_addr_t *ip4Gateway() { return &ip4_gateway; }
     
     const StripConfig &stripConfig(size_t index) const { return strip_config[index]; }
     void setStripConfig(size_t index, StripConfig config) { strip_config[index] = config; }

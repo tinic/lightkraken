@@ -30,35 +30,44 @@ void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components
         rgb[c] = Driver::instance().rgbwwCIE(c);
     }
     for (size_t c = 0; c < terminals; c++) {
-        size_t offset = 0;
         switch(components) {
         case 5: {
-            if(Model::instance().analogConfig(c).components[4].universe == uni) {
-                rgb[c].ww = data[Model::instance().analogConfig(c).components[4].offset];
+            if (len > Model::instance().analogConfig(c).components[4].offset) {
+                if(Model::instance().analogConfig(c).components[4].universe == uni) {
+                    rgb[c].ww = data[Model::instance().analogConfig(c).components[4].offset];
+                }
             }
         } 
         [[fallthrough]];
         case 4: {
-            if(Model::instance().analogConfig(c).components[3].universe == uni) {
-                rgb[c].w = data[Model::instance().analogConfig(c).components[3].offset];
+            if (len > Model::instance().analogConfig(c).components[3].offset) {
+                if(Model::instance().analogConfig(c).components[3].universe == uni) {
+                    rgb[c].w = data[Model::instance().analogConfig(c).components[3].offset];
+                }
             }
         } 
         [[fallthrough]];
         case 3: {
-            if(Model::instance().analogConfig(c).components[2].universe == uni) {
-                rgb[c].b = data[Model::instance().analogConfig(c).components[2].offset];
+            if (len > Model::instance().analogConfig(c).components[2].offset) {
+                if(Model::instance().analogConfig(c).components[2].universe == uni) {
+                    rgb[c].b = data[Model::instance().analogConfig(c).components[2].offset];
+                }
             }
         } 
         [[fallthrough]];
         case 2: {
-            if(Model::instance().analogConfig(c).components[1].universe == uni) {
-                rgb[c].g = data[Model::instance().analogConfig(c).components[1].offset];
+            if (len > Model::instance().analogConfig(c).components[1].offset) {
+                if(Model::instance().analogConfig(c).components[1].universe == uni) {
+                    rgb[c].g = data[Model::instance().analogConfig(c).components[1].offset];
+                }
             }
         } 
         [[fallthrough]];
         case 1: {
-            if(Model::instance().analogConfig(c).components[0].universe == uni) {
-                rgb[c].r = data[Model::instance().analogConfig(c).components[0].offset];
+            if (len > Model::instance().analogConfig(c).components[0].offset) {
+                if(Model::instance().analogConfig(c).components[0].universe == uni) {
+                    rgb[c].r = data[Model::instance().analogConfig(c).components[0].offset];
+                }
             }
         } 
         [[fallthrough]];

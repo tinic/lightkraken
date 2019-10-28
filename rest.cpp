@@ -62,15 +62,21 @@ public:
         }
         res = mjson_get_string(post_buf, post_len, "$.ipv4address", buf, sizeof(buf));
         if (res > 0) {
-            printf("ipv4address %s\n", buf);
+            int ipbits[4];
+            sscanf(buf, "%d.%d.%d.%d", &ipbits[0], &ipbits[1], &ipbits[2], &ipbits[3]);
+            IP4_ADDR(Model::instance().ip4Address(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
         res = mjson_get_string(post_buf, post_len, "$.ipv4netmask", buf, sizeof(buf));
         if (res > 0) {
-            printf("ipv4netmask %s\n", buf);
+            int ipbits[4];
+            sscanf(buf, "%d.%d.%d.%d", &ipbits[3], &ipbits[2], &ipbits[1], &ipbits[0]);
+            IP4_ADDR(Model::instance().ip4Netmask(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
         res = mjson_get_string(post_buf, post_len, "$.ipv4gateway", buf, sizeof(buf));
         if (res > 0) {
-            printf("ipv4gateway %s\n", buf);
+            int ipbits[4];
+            sscanf(buf, "%d.%d.%d.%d", &ipbits[3], &ipbits[2], &ipbits[1], &ipbits[0]);
+            IP4_ADDR(Model::instance().ip4Gateway(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
         res = mjson_get_number(post_buf, post_len, "$.outputmode", &dval);
         if (res > 0) {
@@ -133,7 +139,7 @@ public:
             sprintf(ss, "$.stripconfig[%d].color", c);
             res = mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf));
             if (res > 0) {
-                printf("strip color %s\n", buf);
+                config.color.rgbx = strtol(buf, NULL, 16);
             }
             for (int d=0; d<int(Model::universeN); d++) {
                 sprintf(ss, "$.stripconfig[%d].universes[%d].universe", c, d);
@@ -165,7 +171,6 @@ HTTPPost &HTTPPost::instance() {
 void HTTPPost::init() {
 }
 
-    
 class HTTPResponse {
 public:
     static HTTPResponse &instance();
