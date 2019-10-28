@@ -442,6 +442,7 @@ public:
 	};
 
 	constexpr static size_t maxConnections = MEMP_NUM_TCP_PCB;
+	constexpr static uint32_t connectionTimeout = 10000;
 
     static ConnectionManager &instance();
 
@@ -455,13 +456,17 @@ public:
 			RestMethod method;
 			struct pbuf *buffers[16];
 			size_t buffer_index;
+			uint32_t time_stamp;
 	};
 	
 	ConnectionInfo *begin(void *handle) {
+		uint32_t now = Systick::instance().systemTime();
 		for (size_t c = 0; c < maxConnections; c++) {
-			if (connections[c].handle == NULL) {
+			if ((connections[c].handle == NULL) || 
+			    (connections[c].time_stamp && ((connections[c].time_stamp - now) > connectionTimeout)) ) {
 				memset(&connections[c], 0, sizeof(ConnectionInfo));
 				connections[c].handle = handle;
+				connections[c].time_stamp = now;
 				return &connections[c];
 			}
 		}
