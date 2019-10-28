@@ -24,6 +24,147 @@ const int32_t build_number =
 #define CRLF "\r\n"
 
 namespace lightguy {
+
+class HTTPPost {
+public:
+    static HTTPPost &instance();
+    
+    void begin() {
+        buf_ptr = post_buf;
+    }
+    
+    void pushData(void *data, size_t len) {
+        memcpy(buf_ptr, data, len);
+        buf_ptr += len;
+        buf_ptr[0] = 0;
+    }    
+    
+    void end() {
+        printf("%s\n", post_buf);
+        parse();
+    }
+    
+    void parse() {
+        
+        char buf[100];
+        int ival = 0;
+        double dval = 0;
+        int res = 0;
+        size_t post_len = strlen(post_buf);
+        res = mjson_get_bool(post_buf, post_len, "$.dhcp", &ival);
+        if (res > 0) {
+            Model::instance().setDhcpEnabled(ival ? true : false);
+        }
+        res =  mjson_get_bool(post_buf, post_len, "$.broadcast", &ival);
+        if (res > 0) {
+            Model::instance().setBroadcastEnabled(ival ? true : false);
+        }
+        res = mjson_get_string(post_buf, post_len, "$.ipv4address", buf, sizeof(buf));
+        if (res > 0) {
+            printf("ipv4address %s\n", buf);
+        }
+        res = mjson_get_string(post_buf, post_len, "$.ipv4netmask", buf, sizeof(buf));
+        if (res > 0) {
+            printf("ipv4netmask %s\n", buf);
+        }
+        res = mjson_get_string(post_buf, post_len, "$.ipv4gateway", buf, sizeof(buf));
+        if (res > 0) {
+            printf("ipv4gateway %s\n", buf);
+        }
+        res = mjson_get_number(post_buf, post_len, "$.outputmode", &dval);
+        if (res > 0) {
+            Model::instance().setOutputConfig(Model::OutputConfig(int(dval)));
+        }
+        res = mjson_get_number(post_buf, post_len, "$.globpwmlimit", &dval);
+        if (res > 0) {
+            Model::instance().setGlobPWMLimit(float(dval) * (1.0f/655360.f));
+        }
+        res = mjson_get_number(post_buf, post_len, "$.globcomplimit", &dval);
+        if (res > 0) {
+            Model::instance().setGlobCompLimit(float(dval) * (1.0f/655360.f));
+        }
+        res = mjson_get_number(post_buf, post_len, "$.globillum", &dval);
+        if (res > 0) {
+            Model::instance().setGlobIllum(float(dval) * (1.0f/655360.f));
+        }
+        
+        for (int c=0; c<int(Model::analogN); c++) {
+            Model::AnalogConfig config = Model::instance().analogConfig(c);
+            char ss[32];
+            sprintf(ss, "$.rgbconfig[%d].type", c);
+            res = mjson_get_number(post_buf, post_len, ss, &dval);
+            if (res > 0) {
+                config.type = int(dval);
+            }
+            for (int d=0; d<int(Model::analogCompN); d++) {
+                sprintf(ss, "$.rgbconfig[%d].components[%d].universe", c, d);
+                res = mjson_get_number(post_buf, post_len, ss, &dval);
+                if (res > 0) {
+                    config.components[d].universe = int(dval);
+                }
+                sprintf(ss, "$.rgbconfig[%d].components[%d].offset", c, d);
+                res = mjson_get_number(post_buf, post_len, ss, &dval);
+                if (res > 0) {
+                    config.components[d].offset = int(dval);
+                }
+                sprintf(ss, "$.rgbconfig[%d].components[%d].value", c, d);
+                res = mjson_get_number(post_buf, post_len, ss, &dval);
+                if (res > 0) {
+                    config.components[d].value = int(dval);
+                }
+            }
+            Model::instance().setAnalogConfig(c, config);
+        }
+
+        for (int c=0; c<int(Model::stripN); c++) {
+            Model::StripConfig config = Model::instance().stripConfig(c);
+            char ss[32];
+            sprintf(ss, "$.stripconfig[%d].type", c);
+            res = mjson_get_number(post_buf, post_len, ss, &dval);
+            if (res > 0) {
+                config.type = int(dval);
+            }
+            sprintf(ss, "$.stripconfig[%d].length", c);
+            res = mjson_get_number(post_buf, post_len, ss, &dval);
+            if (res > 0) {
+                config.len = int(dval);
+            }
+            sprintf(ss, "$.stripconfig[%d].color", c);
+            res = mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf));
+            if (res > 0) {
+                printf("strip color %s\n", buf);
+            }
+            for (int d=0; d<int(Model::universeN); d++) {
+                sprintf(ss, "$.stripconfig[%d].universes[%d].universe", c, d);
+                res = mjson_get_number(post_buf, post_len, ss, &dval);
+                if (res > 0) {
+                    config.universe[d] = int(dval);
+                }
+            }
+            Model::instance().setStripConfig(c, config);
+        }
+        
+    }
+    
+private:
+    bool initialized = false;
+    void init();
+    char *buf_ptr;
+    char post_buf[2048];
+};
+
+HTTPPost &HTTPPost::instance() {
+    static HTTPPost httpPost;
+    if (!httpPost.initialized) {
+        httpPost.initialized = true;
+        httpPost.init();
+    }
+    return httpPost;
+}
+
+void HTTPPost::init() {
+}
+
     
 class HTTPResponse {
 public:
@@ -31,7 +172,8 @@ public:
     
     void beginOKResponse() {
         buf_ptr = response_buf;
-        buf_ptr += sprintf(buf_ptr, "HTTP/1.0 200 OK" CRLF);
+        buf_ptr += sprintf(buf_ptr, "HTTP/1.0 200 OK" CRLF
+                                    "Access-Control-Allow-Origin: *" CRLF);
         responseType = OKResponse;
     }
 
@@ -284,30 +426,36 @@ enum RestMethod {
     MethodNone,
     MethodGetStatus,
     MethodGetSettings,
-    MethodSetSettings,
+    MethodPostSettings,
     MethodPostBootLoader,
 };
 
 static RestMethod rest_method = MethodNone;
 
-err_t httpd_rest_begin(void *, rest_method_t method, const char *url, const char *, u16_t, int, u8_t *) {
+err_t httpd_rest_begin(void *connection, rest_method_t method, const char *url, const char *http_request, u16_t http_request_len, int, u8_t *) {
+    (void)connection;
+    (void)http_request;
+    (void)http_request_len;
     switch(method) {
+        case REST_METHOD_OPTIONS: {
+        } break;
         case REST_METHOD_GET: {
             if (strcmp(url, "/status") == 0) {
                 rest_method = MethodGetStatus;
-                return ERR_REST_ACCEPT;
+                return ERR_OK;
             } else if (strcmp(url, "/settings") == 0) {
                 rest_method = MethodGetSettings;
-                return ERR_REST_ACCEPT;
+                return ERR_OK;
             }
         } break;
         case REST_METHOD_POST: {
             if (strcmp(url, "/settings") == 0) {
-                rest_method = MethodGetSettings;
-                return ERR_REST_ACCEPT;
+                rest_method = MethodPostSettings;
+                HTTPPost::instance().begin();
+                return ERR_OK;
             } else if (strcmp(url, "/bootloader") == 0) {
                 rest_method = MethodPostBootLoader;
-                return ERR_REST_ACCEPT;
+                return ERR_OK;
             }
         } break;
         case REST_METHOD_PUT: {
@@ -320,15 +468,18 @@ err_t httpd_rest_begin(void *, rest_method_t method, const char *url, const char
         } break;
     }
     rest_method = MethodNone;
-    return ERR_REST_DISPATCH;
+    return ERR_ARG;
 }
 
-err_t httpd_rest_receive_data(void *, struct pbuf *p) {
+err_t httpd_rest_receive_data(void *connection, struct pbuf *p) {
+    (void)connection;
+    HTTPPost::instance().pushData(p->payload, p->len);
     pbuf_free(p);
     return ERR_OK;
 }
 
-err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
+err_t httpd_rest_finished(void *connection, const char **data, u16_t *dataLen) {
+    (void)connection;
     HTTPResponse &i = HTTPResponse::instance();
     switch(rest_method) {
         case MethodGetStatus: {
@@ -365,7 +516,11 @@ err_t httpd_rest_finished(void *, const char **data, u16_t *dataLen) {
             *data = i.finish(*dataLen);
             return ERR_OK;
         } break;
-        case MethodSetSettings: {
+        case MethodPostSettings: {
+            i.beginOKResponse();
+            *data = i.finish(*dataLen);
+            HTTPPost::instance().end();
+            return ERR_OK;
         } break;
         case MethodNone: {
         } break;

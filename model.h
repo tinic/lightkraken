@@ -51,20 +51,30 @@ public:
     static Model &instance();
     
     bool burstMode() const { return burst_mode; }
-    
+
     float globPWMLimit() const { return glob_pwmlimit; }
+    void setGlobPWMLimit(float value) { glob_pwmlimit = value; }
+    
     float globIllum() const { return glob_illum; }
+    void setGlobIllum(float value) { glob_illum = value; }
+
     float globCompLimit() const { return glob_comp_lim; }
+    void setGlobCompLimit(float value) { glob_comp_lim = value; }
 
     bool dhcpEnabled() const { return ip_dhcp; }
+    void setDhcpEnabled(bool state) { ip_dhcp = state; }
+    
     bool broadcastEnabled() const { return receive_broadcast; }
+    void setBroadcastEnabled(bool state) { receive_broadcast = state; }
 
     const ip_addr_t *ip4Address() const { return &ip4_address; }
     const ip_addr_t *ip4Netmask() const { return &ip4_netmask; }
     const ip_addr_t *ip4Gateway() const { return &ip4_gateway; }
     
     const StripConfig &stripConfig(size_t index) const { return strip_config[index]; }
+    void setStripConfig(size_t index, StripConfig config) { strip_config[index] = config; }
     const AnalogConfig &analogConfig(size_t index) const { return analog_config[index]; }
+    void setAnalogConfig(size_t index, AnalogConfig config) { analog_config[index] = config; }
 
     OutputConfig outputConfig() const { return output_config; }
     void setOutputConfig(OutputConfig outputConfig);
