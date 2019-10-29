@@ -71,13 +71,13 @@ public:
         
         if (mjson_get_string(post_buf, post_len, "$.ipv4netmask", buf, sizeof(buf)) > 0) {
             int ipbits[4];
-            sscanf(buf, "%d.%d.%d.%d", &ipbits[3], &ipbits[2], &ipbits[1], &ipbits[0]);
+            sscanf(buf, "%d.%d.%d.%d", &ipbits[0], &ipbits[1], &ipbits[2], &ipbits[3]);
             IP4_ADDR(Model::instance().ip4Netmask(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
         
         if (mjson_get_string(post_buf, post_len, "$.ipv4gateway", buf, sizeof(buf)) > 0) {
             int ipbits[4];
-            sscanf(buf, "%d.%d.%d.%d", &ipbits[3], &ipbits[2], &ipbits[1], &ipbits[0]);
+            sscanf(buf, "%d.%d.%d.%d", &ipbits[0], &ipbits[1], &ipbits[2], &ipbits[3]);
             IP4_ADDR(Model::instance().ip4Gateway(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
         
