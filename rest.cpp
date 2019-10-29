@@ -175,6 +175,7 @@ public:
         }
     
     	Model::instance().save();
+        Model::instance().applyColor();
     }
     
 private:

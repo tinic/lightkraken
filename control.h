@@ -7,7 +7,7 @@ class Control {
 public:
     static Control &instance();
 
-    void setUniverseOutputData(uint16_t universe, const uint8_t *data, size_t len);
+    void setUniverseOutputData(uint16_t universe, const uint8_t *data, size_t len, bool nodriver = false);
     void transferNow();
 
 private:

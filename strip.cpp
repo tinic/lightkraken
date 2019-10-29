@@ -106,6 +106,29 @@ namespace lightkraken {
         }
         return 0;
     }
+    
+    size_t Strip::getComponentsPerPixel() const {
+        switch(strip_type) {
+            default:
+            case WS2812_RGB:
+            case SK6812_RGB:
+            case GS8208_RGB:
+            case TM1804_RGB:
+            case UCS1904_RGB:
+            case TLS3001_RGB:
+            case LPD8806_RGB:
+            case SK9822_RGB:
+            case HDS107S_RGB:
+            case P9813_RGB:
+            case TM1829_RGB:
+            case APA102_RGB: {
+                return 3;
+            } break;
+            case SK6812_RGBW: {
+                return 4;
+            } break;
+        }
+    }
 
     void Strip::setPixelLen(size_t len) {
         switch(strip_type) {

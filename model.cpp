@@ -12,6 +12,7 @@ extern "C" {
 #include "./model.h"
 #include "./strip.h"
 #include "./driver.h"
+#include "./control.h"
 #include "./spi.h"
 
 namespace lightkraken {
@@ -124,9 +125,50 @@ void Model::defaults() {
     }
 }
 
+void Model::applyColor() {
+    for (size_t c = 0; c < analogN; c++) {
+        rgbww col;
+        col.r = analog_config[c].components[0].value;
+        col.g = analog_config[c].components[1].value;
+        col.b = analog_config[c].components[2].value;
+        col.w = analog_config[c].components[3].value;
+        col.ww = analog_config[c].components[4].value;
+        Driver::instance().setRGBWWCIE(c, col);
+    }
+
+    uint8_t buf[512];
+    for (size_t c = 0; c < stripN; c++) {
+        size_t cpp = lightkraken::Strip::get(c).getComponentsPerPixel();
+        size_t len = 0;
+        switch(cpp) {
+            case 3: {
+                for (int32_t d = 0; d < 510; d += 3) {
+                    buf[d + 0] = (strip_config[c].color.b) & 0xFF;
+                    buf[d + 1] = (strip_config[c].color.g) & 0xFF;
+                    buf[d + 2] = (strip_config[c].color.r) & 0xFF;
+                    len += 3;
+                }
+            } break;
+            case 4: {
+                for (int32_t d = 0; d < 512; d += 4) {
+                    buf[d + 0] = (strip_config[c].color.b) & 0xFF;
+                    buf[d + 1] = (strip_config[c].color.g) & 0xFF;
+                    buf[d + 2] = (strip_config[c].color.r) & 0xFF;
+                    buf[d + 3] = (strip_config[c].color.x) & 0xFF;
+                    len += 4;
+                }
+            } break;
+        }
+        for (size_t d = 0; d < universeN; d++) {
+            Control::instance().setUniverseOutputData(strip_config[c].universe[d], buf, len, true);
+        }
+    }
+}
+
 void Model::init() {
 	defaults();
     readFlash();
+    applyColor();
 }
 
 void Model::setOutputConfig(OutputConfig outputConfig) {

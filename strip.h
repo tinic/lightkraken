@@ -48,6 +48,8 @@ namespace lightkraken {
         bool isBlack() const;
         bool needsClock() const;
 
+        size_t getComponentsPerPixel() const;
+        
         void setStripType(Type type) { strip_type = type; }
 
         void setPixelLen(size_t len);

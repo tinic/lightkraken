@@ -59,6 +59,8 @@ public:
     void save();
     void reset();
     
+    void applyColor();
+    
     bool burstMode() const { return burst_mode; }
 
     float globPWMLimit() const { return glob_pwmlimit; }
