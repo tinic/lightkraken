@@ -76,10 +76,6 @@ public:
         x(_x) {
     }
     
-    uint32_t hex() const {
-        return static_cast<uint32_t>((x<<24) | (r<<16) | (g<<8) | b);
-    }
-    
     bool operator==(const rgb8 &c) const {
         return rgbx == c.rgbx;
     }

@@ -17,7 +17,10 @@
 
 namespace lightkraken {
 
-class Model {
+struct Model {
+private:
+	uint32_t model_version;
+
 public:
     static constexpr uint32_t currentModelVersion = 0x1ed50001;
 
@@ -97,10 +100,7 @@ private:
     void readFlash();
     void writeFlash();
 
-    bool initialized = false;
     void init();
-
-	uint32_t model_version;
 
     bool dhcp;
     bool receive_broadcast;
@@ -119,6 +119,8 @@ private:
     
     StripConfig strip_config[stripN];
     AnalogConfig analog_config[analogN];
+
+    bool initialized = false;
 };
 
 } /* namespace model */

@@ -158,7 +158,9 @@ public:
             }
             
             sprintf(ss, "$.stripconfig[%d].color", c);
-            if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.color.rgbx = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
                 config.color.rgbx = strtol(buf, NULL, 16);
             }
             
@@ -412,7 +414,7 @@ public:
             buf_ptr += sprintf(buf_ptr, "{");
             buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(s.type)); 
             buf_ptr += sprintf(buf_ptr, "\"length\":%d,",int(s.len)); 
-            buf_ptr += sprintf(buf_ptr, "\"color\":\"0x%08x\",",(unsigned int)s.color.hex()); 
+            buf_ptr += sprintf(buf_ptr, "\"color\":\"0x%08x\",",(unsigned int)s.color.rgbx); 
             buf_ptr += sprintf(buf_ptr, "\"universes\" : [");
             for (size_t d=0; d<Model::universeN; d++) {
                 buf_ptr += sprintf(buf_ptr, "{");
@@ -622,7 +624,6 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             i.addAnalogConfig();
             i.addStripConfig();
             *data = i.finish(*dataLen);
-            printf("%.*s\n", *dataLen, *data);
             lightkraken::ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
