@@ -77,11 +77,8 @@ public:
     ip_addr_t *ip4Netmask() { return &ip4_netmask; }
     ip_addr_t *ip4Gateway() { return &ip4_gateway; }
     
-    const StripConfig &stripConfig(size_t index) const { return strip_config[index]; }
-    void setStripConfig(size_t index, StripConfig config) { strip_config[index] = config; }
-
-    const AnalogConfig &analogConfig(size_t index) const { return analog_config[index]; }
-    void setAnalogConfig(size_t index, AnalogConfig config) { analog_config[index] = config; }
+    StripConfig &stripConfig(size_t index) { return strip_config[index]; }
+    AnalogConfig &analogConfig(size_t index) { return analog_config[index]; }
 
     OutputConfig outputConfig() const { return output_config; }
     void setOutputConfig(OutputConfig outputConfig);

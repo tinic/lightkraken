@@ -128,6 +128,7 @@ static int on_body_end(multipartparser *) {
 static multipartparser_callbacks callbacks;
 static multipartparser parser;
 static bool uploading = false;
+static bool reset = false;
 
 err_t httpd_post_begin(void *connection, const char *uri, const char *http_request,
                     u16_t http_request_len, int content_len, char *response_uri,
@@ -143,7 +144,14 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
     
     DEBUG_PRINTF(("httpd_post_begin uri: %s\n", uri));
 
-    if (strcmp("/upload", uri) == 0) {
+    if (strcmp("/reboot", uri) == 0) {
+
+        lightkraken::Systick::instance().scheduleReset();
+        reset = true;
+        
+        return ERR_OK;
+        
+    } else if (strcmp("/upload", uri) == 0) {
     
         char *boundaryStr = lwip_strnstr(http_request,"boundary", http_request_len);
         if (boundaryStr == 0) {
@@ -230,6 +238,9 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
     (void)response_uri_len;
     if (uploading) {
         strcpy(response_uri, "/done.html");
+    }
+    if (reset) {
+        strcpy(response_uri, "/");
     }
 }
 

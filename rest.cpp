@@ -50,107 +50,126 @@ public:
     
     void end() {
         char buf[64];
+        char ss[32];
         int ival = 0;
         double dval = 0;
-        int res = 0;
         size_t post_len = strlen(post_buf);
-        res = mjson_get_bool(post_buf, post_len, "$.dhcp", &ival);
-        if (res > 0) {
+
+        if (mjson_get_bool(post_buf, post_len, "$.dhcp", &ival) > 0) {
             Model::instance().setDhcpEnabled(ival ? true : false);
         }
-        res =  mjson_get_bool(post_buf, post_len, "$.broadcast", &ival);
-        if (res > 0) {
+        
+        if (mjson_get_bool(post_buf, post_len, "$.broadcast", &ival) > 0) {
             Model::instance().setBroadcastEnabled(ival ? true : false);
         }
-        res = mjson_get_string(post_buf, post_len, "$.ipv4address", buf, sizeof(buf));
-        if (res > 0) {
+        
+        if (mjson_get_string(post_buf, post_len, "$.ipv4address", buf, sizeof(buf)) > 0) {
             int ipbits[4];
             sscanf(buf, "%d.%d.%d.%d", &ipbits[0], &ipbits[1], &ipbits[2], &ipbits[3]);
             IP4_ADDR(Model::instance().ip4Address(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
-        res = mjson_get_string(post_buf, post_len, "$.ipv4netmask", buf, sizeof(buf));
-        if (res > 0) {
+        
+        if (mjson_get_string(post_buf, post_len, "$.ipv4netmask", buf, sizeof(buf)) > 0) {
             int ipbits[4];
             sscanf(buf, "%d.%d.%d.%d", &ipbits[3], &ipbits[2], &ipbits[1], &ipbits[0]);
             IP4_ADDR(Model::instance().ip4Netmask(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
-        res = mjson_get_string(post_buf, post_len, "$.ipv4gateway", buf, sizeof(buf));
-        if (res > 0) {
+        
+        if (mjson_get_string(post_buf, post_len, "$.ipv4gateway", buf, sizeof(buf)) > 0) {
             int ipbits[4];
             sscanf(buf, "%d.%d.%d.%d", &ipbits[3], &ipbits[2], &ipbits[1], &ipbits[0]);
             IP4_ADDR(Model::instance().ip4Gateway(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
-        res = mjson_get_number(post_buf, post_len, "$.outputmode", &dval);
-        if (res > 0) {
+        
+        if (mjson_get_number(post_buf, post_len, "$.outputmode", &dval) > 0) {
             Model::instance().setOutputConfig(Model::OutputConfig(int(dval)));
+        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+            Model::instance().setOutputConfig(Model::OutputConfig(int(atof(buf))));
         }
-        res = mjson_get_number(post_buf, post_len, "$.globpwmlimit", &dval);
-        if (res > 0) {
+        
+        if (mjson_get_number(post_buf, post_len, "$.globpwmlimit", &dval) > 0) {
             Model::instance().setGlobPWMLimit(float(dval));
+        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+            Model::instance().setGlobPWMLimit(float(atof(buf)));
         }
-        res = mjson_get_number(post_buf, post_len, "$.globcomplimit", &dval);
-        if (res > 0) {
+        
+        if (mjson_get_number(post_buf, post_len, "$.globcomplimit", &dval) > 0) {
             Model::instance().setGlobCompLimit(float(dval));
+        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+            Model::instance().setGlobCompLimit(float(atof(buf)));
         }
-        res = mjson_get_number(post_buf, post_len, "$.globillum", &dval);
-        if (res > 0) {
+
+        if (mjson_get_number(post_buf, post_len, "$.globillum", &dval) > 0) {
             Model::instance().setGlobIllum(float(dval));
+        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+            Model::instance().setGlobIllum(float(atof(buf)));
         }
         
         for (int c=0; c<int(Model::analogN); c++) {
-            Model::AnalogConfig config = Model::instance().analogConfig(c);
-            char ss[32];
+            Model::AnalogConfig &config = Model::instance().analogConfig(c);
+
             sprintf(ss, "$.rgbconfig[%d].type", c);
-            res = mjson_get_number(post_buf, post_len, ss, &dval);
-            if (res > 0) {
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.type = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.type = int(atof(buf));
             }
+
             for (int d=0; d<int(Model::analogCompN); d++) {
+
                 sprintf(ss, "$.rgbconfig[%d].components[%d].universe", c, d);
-                res = mjson_get_number(post_buf, post_len, ss, &dval);
-                if (res > 0) {
+                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                     config.components[d].universe = int(dval);
+                } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.components[d].universe = int(atof(buf));
                 }
+                
                 sprintf(ss, "$.rgbconfig[%d].components[%d].offset", c, d);
-                res = mjson_get_number(post_buf, post_len, ss, &dval);
-                if (res > 0) {
+                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                     config.components[d].offset = int(dval);
+                } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.components[d].offset = int(atof(buf));
                 }
+                
                 sprintf(ss, "$.rgbconfig[%d].components[%d].value", c, d);
-                res = mjson_get_number(post_buf, post_len, ss, &dval);
-                if (res > 0) {
+                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                     config.components[d].value = int(dval);
+                } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.components[d].value = int(atof(buf));
                 }
             }
-            Model::instance().setAnalogConfig(c, config);
         }
 
         for (int c=0; c<int(Model::stripN); c++) {
-            Model::StripConfig config = Model::instance().stripConfig(c);
-            char ss[32];
+            Model::StripConfig &config = Model::instance().stripConfig(c);
+
             sprintf(ss, "$.stripconfig[%d].type", c);
-            res = mjson_get_number(post_buf, post_len, ss, &dval);
-            if (res > 0) {
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.type = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.type = int(atof(buf));
             }
+            
             sprintf(ss, "$.stripconfig[%d].length", c);
-            res = mjson_get_number(post_buf, post_len, ss, &dval);
-            if (res > 0) {
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.len = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.len = int(atof(buf));
             }
+            
             sprintf(ss, "$.stripconfig[%d].color", c);
-            res = mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf));
-            if (res > 0) {
+            if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
                 config.color.rgbx = strtol(buf, NULL, 16);
             }
+            
             for (int d=0; d<int(Model::universeN); d++) {
                 sprintf(ss, "$.stripconfig[%d].universes[%d].universe", c, d);
-                res = mjson_get_number(post_buf, post_len, ss, &dval);
-                if (res > 0) {
+                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                     config.universe[d] = int(dval);
+                } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.universe[d] = int(atof(buf));
                 }
             }
-            Model::instance().setStripConfig(c, config);
         }
     
     	Model::instance().save();
@@ -603,6 +622,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             i.addAnalogConfig();
             i.addStripConfig();
             *data = i.finish(*dataLen);
+            printf("%.*s\n", *dataLen, *data);
             lightkraken::ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
@@ -615,7 +635,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
         } break;
         case lightkraken::ConnectionManager::MethodPostSettings: {
             lightkraken::HTTPPost::instance().begin();
-            for (size_t c = 0; c > info->buffer_index; c++) {
+            for (size_t c = 0; c < info->buffer_index; c++) {
 	        	lightkraken::HTTPPost::instance().pushData(info->buffers[c]->payload, info->buffers[c]->len);
 	        	pbuf_free(info->buffers[c]);
 	        	info->buffers[c] = 0;
