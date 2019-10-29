@@ -298,7 +298,7 @@ public:
 
     void addBuildNumber() {
         handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"buildnumber\":%d", int(build_number)); 
+        buf_ptr += sprintf(buf_ptr, "\"buildnumber\": \"Rev %d (%s %s)\"  ", int(build_number), __DATE__, __TIME__); 
     }
 
     void addHostname() {
