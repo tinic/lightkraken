@@ -29,9 +29,9 @@ const int32_t build_number =
 
 namespace lightkraken {
 
-class HTTPPost {
+class HTTPPostParser {
 public:
-    static HTTPPost &instance();
+    static HTTPPostParser &instance();
     
     void begin() {
         buf_ptr = post_buf;
@@ -184,21 +184,21 @@ private:
     char post_buf[1536];
 };
 
-HTTPPost &HTTPPost::instance() {
-    static HTTPPost httpPost;
-    if (!httpPost.initialized) {
-        httpPost.initialized = true;
-        httpPost.init();
+HTTPPostParser &HTTPPostParser::instance() {
+    static HTTPPostParser HTTPPostParser;
+    if (!HTTPPostParser.initialized) {
+        HTTPPostParser.initialized = true;
+        HTTPPostParser.init();
     }
-    return httpPost;
+    return HTTPPostParser;
 }
 
-void HTTPPost::init() {
+void HTTPPostParser::init() {
 }
 
-class HTTPResponse {
+class HTTPResponseBuilder {
 public:
-    static HTTPResponse &instance();
+    static HTTPResponseBuilder &instance();
     
     void beginOKResponse() {
         buf_ptr = response_buf;
@@ -210,13 +210,15 @@ public:
     void beginJSONResponse() {
         buf_ptr = response_buf;
         buf_ptr += sprintf(buf_ptr, "HTTP/1.0 200 OK" CRLF 
-                                    "Access-Control-Allow-Origin: *" CRLF 
-                                    "Content-Type: application/json; charset=utf-8" CRLF 
+                                    "Access-Control-Allow-Origin: *" CRLF);
+
+        buf_ptr += sprintf(buf_ptr, "Content-Type: application/json; charset=utf-8" CRLF 
                                     "X-Content-Type-Options: nosniff" CRLF
                                     "Vary: Origin, Accept-Encoding" CRLF
                                     "Content-Length: @@@@@@@@@@@" CRLF
                                     "Cache-Control: no-cache" CRLF
                                     CRLF);
+        
         content_start = buf_ptr;
         buf_ptr += sprintf(buf_ptr, "{");
         first_item = true;
@@ -442,16 +444,16 @@ private:
     char response_buf[2048];
 };
 
-HTTPResponse &HTTPResponse::instance() {
-    static HTTPResponse httpResponse;
-    if (!httpResponse.initialized) {
-        httpResponse.initialized = true;
-        httpResponse.init();
+HTTPResponseBuilder &HTTPResponseBuilder::instance() {
+    static HTTPResponseBuilder HTTPResponseBuilder;
+    if (!HTTPResponseBuilder.initialized) {
+        HTTPResponseBuilder.initialized = true;
+        HTTPResponseBuilder.init();
     }
-    return httpResponse;
+    return HTTPResponseBuilder;
 }
 
-void HTTPResponse::init() {
+void HTTPResponseBuilder::init() {
 }
 
 class ConnectionManager {
@@ -530,8 +532,10 @@ ConnectionManager &ConnectionManager::instance() {
 
 }
 
+using namespace lightkraken;
+
 err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, const char *, u16_t, int, u8_t *) {
-	lightkraken::ConnectionManager::ConnectionInfo *info = lightkraken::ConnectionManager::instance().begin(handle);
+	ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().begin(handle);
 	if (!info) {
 		return ERR_ARG;
 	}
@@ -540,19 +544,19 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
         } break;
         case REST_METHOD_GET: {
             if (strcmp(url, "/status") == 0) {
-                info->method = lightkraken::ConnectionManager::MethodGetStatus;
+                info->method = ConnectionManager::MethodGetStatus;
                 return ERR_OK;
             } else if (strcmp(url, "/settings") == 0) {
-                info->method = lightkraken::ConnectionManager::MethodGetSettings;
+                info->method = ConnectionManager::MethodGetSettings;
                 return ERR_OK;
             }
         } break;
         case REST_METHOD_POST: {
             if (strcmp(url, "/settings") == 0) {
-                info->method = lightkraken::ConnectionManager::MethodPostSettings;
+                info->method = ConnectionManager::MethodPostSettings;
                 return ERR_OK;
             } else if (strcmp(url, "/bootloader") == 0) {
-                info->method = lightkraken::ConnectionManager::MethodPostBootLoader;
+                info->method = ConnectionManager::MethodPostBootLoader;
                 return ERR_OK;
             }
         } break;
@@ -565,24 +569,24 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
         case REST_METHOD_NONE: {
         } break;
     }
-	lightkraken::ConnectionManager::instance().end(handle);
+	ConnectionManager::instance().end(handle);
     return ERR_ARG;
 }
 
 err_t httpd_rest_receive_data(void *handle, struct pbuf *p) {
-	lightkraken::ConnectionManager::ConnectionInfo *info = lightkraken::ConnectionManager::instance().get(handle);
+	ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().get(handle);
 	if (!info) {
 		return ERR_ARG;
 	}
     switch(info->method) {
-		case lightkraken::ConnectionManager::MethodPostSettings: {
+		case ConnectionManager::MethodPostSettings: {
 		   info->buffers[info->buffer_index++] = p;
 		} break;
 		default:
-        case lightkraken::ConnectionManager::MethodNone:
-        case lightkraken::ConnectionManager::MethodPostBootLoader:
-        case lightkraken::ConnectionManager::MethodGetSettings:
-        case lightkraken::ConnectionManager::MethodGetStatus: {
+        case ConnectionManager::MethodNone:
+        case ConnectionManager::MethodPostBootLoader:
+        case ConnectionManager::MethodGetSettings:
+        case ConnectionManager::MethodGetStatus: {
            // drop buffers to the floor
 		   pbuf_free(p);
         } break;
@@ -591,66 +595,83 @@ err_t httpd_rest_receive_data(void *handle, struct pbuf *p) {
 }
 
 err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
-	lightkraken::ConnectionManager::ConnectionInfo *info = lightkraken::ConnectionManager::instance().get(handle);
+	ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().get(handle);
 	if (!info) {
 		return ERR_ARG;
 	}
-    lightkraken::HTTPResponse &i = lightkraken::HTTPResponse::instance();
     switch(info->method) {
-        case lightkraken::ConnectionManager::MethodGetStatus: {
-            i.beginJSONResponse();
-            i.addNetConfIPv4Address();
-            i.addNetConfIPv4Netmask();
-            i.addNetConfIPv4Gateway();
-            i.addSystemTime();
-            i.addBuildNumber();
-            i.addHostname();
-            i.addMacAddress();
-            *data = i.finish(*dataLen);
-            lightkraken::ConnectionManager::instance().end(handle);
+        case ConnectionManager::MethodGetStatus: {
+            
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+            response.beginJSONResponse();
+            response.addNetConfIPv4Address();
+            response.addNetConfIPv4Netmask();
+            response.addNetConfIPv4Gateway();
+            response.addSystemTime();
+            response.addBuildNumber();
+            response.addHostname();
+            response.addMacAddress();
+            *data = response.finish(*dataLen);
+            
+            ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
-        case lightkraken::ConnectionManager::MethodGetSettings: {
-            i.beginJSONResponse();
-            i.addDHCP();
-            i.addBroadcast();
-            i.addIPv4Address();
-            i.addIPv4Netmask();
-            i.addIPv4Gateway();
-            i.addOutputMode();
-            i.addPwmLimit();
-            i.addCompLimit();
-            i.addIllum();
-            i.addAnalogConfig();
-            i.addStripConfig();
-            *data = i.finish(*dataLen);
-            lightkraken::ConnectionManager::instance().end(handle);
+        case ConnectionManager::MethodGetSettings: {
+            
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+            response.beginJSONResponse();
+            response.addDHCP();
+            response.addBroadcast();
+            response.addIPv4Address();
+            response.addIPv4Netmask();
+            response.addIPv4Gateway();
+            response.addOutputMode();
+            response.addPwmLimit();
+            response.addCompLimit();
+            response.addIllum();
+            response.addAnalogConfig();
+            response.addStripConfig();
+            *data = response.finish(*dataLen);
+            
+            ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
-        case lightkraken::ConnectionManager::MethodPostBootLoader: {
-            lightkraken::Systick::instance().scheduleReset(4000, true);
-            i.beginOKResponse();
-            *data = i.finish(*dataLen);
-            lightkraken::ConnectionManager::instance().end(handle);
+        case ConnectionManager::MethodPostBootLoader: {
+            Systick::instance().scheduleReset(4000, true);
+
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+            response.beginOKResponse();
+            *data = response.finish(*dataLen);
+
+            ConnectionManager::instance().end(handle);
+
             return ERR_OK;
         } break;
-        case lightkraken::ConnectionManager::MethodPostSettings: {
-            lightkraken::HTTPPost::instance().begin();
+        case ConnectionManager::MethodPostSettings: {
+            
+            HTTPPostParser::instance().begin();
             for (size_t c = 0; c < info->buffer_index; c++) {
-	        	lightkraken::HTTPPost::instance().pushData(info->buffers[c]->payload, info->buffers[c]->len);
+	        	HTTPPostParser::instance().pushData(info->buffers[c]->payload, info->buffers[c]->len);
 	        	pbuf_free(info->buffers[c]);
 	        	info->buffers[c] = 0;
 	        }
-   	     	lightkraken::HTTPPost::instance().end();
-            i.beginOKResponse();
-            *data = i.finish(*dataLen);
-            lightkraken::ConnectionManager::instance().end(handle);
+   	     	HTTPPostParser::instance().end();
+            
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+            response.beginOKResponse();
+            *data = response.finish(*dataLen);
+
+            ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
-        case lightkraken::ConnectionManager::MethodNone: {
+        case ConnectionManager::MethodNone: {
+
+            ConnectionManager::instance().end(handle);
+            return ERR_OK;
         } break;
     }
-	lightkraken::ConnectionManager::instance().end(handle);
+    
+	ConnectionManager::instance().end(handle);
     return ERR_ARG;
 }
 
