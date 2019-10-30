@@ -1,6 +1,8 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
+#include <functional>
+
 namespace lightkraken {
 
 class Control {
@@ -12,6 +14,7 @@ public:
     void sync();
 
     void setEnableSyncMode(bool state) { syncMode = state; }
+	void interateAllActiveUniverses(std::function<void (uint16_t universe)> callback);
 
 private:
 

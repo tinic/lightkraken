@@ -259,10 +259,46 @@ namespace lightkraken {
             } break;
         }
     }
+    
+    bool Strip::isUniverseActive(size_t uniN) const {
+        switch(strip_type) {
+            default:
+            case SK9822_RGB:
+            case HDS107S_RGB:
+            case P9813_RGB:
+            case APA107_RGB:
+            case APA102_RGB:
+            case WS2812_RGB:
+            case SK6812_RGB:
+            case TM1804_RGB:
+            case GS8208_RGB:
+            case TM1829_RGB:
+            case TLS3001_RGB:
+            case LPD8806_RGB:
+            case UCS1904_RGB: {
+                constexpr size_t pixsize = 3;
+                constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
+                if (uniN * padlen < (comp_len * pixsize )) {
+                	return true;
+                }
+            } break;
+            case SK6812_RGBW: {
+                constexpr size_t pixsize = 4;
+                constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
+                if (uniN * padlen < (comp_len * pixsize )) {
+                	return true;
+                }
+            } break;
+        }
+        return false;
+    }
 
     void Strip::setUniverseData(size_t uniN, const uint8_t *data, size_t len) {
         if (uniN >= lightkraken::Model::universeN) {
             return;
+        }
+        if (!isUniverseActive(uniN)) {
+        	return;
         }
         zero[uniN] = 0;
         switch(strip_type) {

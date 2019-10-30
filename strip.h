@@ -57,6 +57,7 @@ namespace lightkraken {
 
         void setUniverseData(size_t N, const uint8_t *data, size_t len);
         void setData(const uint8_t *data, size_t len);
+	    bool isUniverseActive(size_t uniN) const;
 
         void transfer();
 
