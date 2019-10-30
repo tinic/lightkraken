@@ -1,4 +1,4 @@
-# Lightguy
+# Lightkraken
 Ethernet powered and controlled LED strip driver and more
 
 # Build instructions:
