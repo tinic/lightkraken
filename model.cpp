@@ -14,6 +14,7 @@ extern "C" {
 #include "./driver.h"
 #include "./control.h"
 #include "./spi.h"
+#include "./systick.h"
 
 namespace lightkraken {
 
@@ -126,6 +127,7 @@ void Model::defaults() {
 }
 
 void Model::apply() {
+    
 
     for (size_t c = 0; c < stripN; c++) {
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
@@ -174,7 +176,7 @@ void Model::apply() {
 void Model::init() {
 	defaults();
     readFlash();
-    apply();
+    Systick::instance().scheduleApply();
 }
 
 void Model::setOutputConfig(OutputConfig outputConfig) {

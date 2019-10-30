@@ -34,6 +34,7 @@ extern "C" {
 #include "./main.h"
 #include "./ethernetif.h"
 #include "./netconf.h"
+#include "./status.h"
 
 extern "C" {
     extern enet_descriptors_struct rxdesc_tab[ENET_RXBUF_NUM];
@@ -131,6 +132,8 @@ void EthernetIf::init() {
         while(1) {
         }
     }
+    
+    StatusLED::instance().setEnetUp();
 
     DEBUG_PRINTF(("ENET MAC config done.\n"));
 }

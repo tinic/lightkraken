@@ -26,7 +26,10 @@ public:
         PSE_TYPE_4_CLASS_7_8    = 0b000,
     };
     
-    PowerClass powerClass() const { return power_class; }
+    PowerClass powerClass() { readPowerState(); return power_class; }
+    
+    void setEnetUp() { enet_up = true; }
+    bool enetUp() const { return enet_up; }
 
 #else  // #ifndef BOOTLOADER
 
@@ -63,6 +66,8 @@ private:
     bool tph_state = false;
     bool powergood_state = false;
     PowerClass power_class = PSE_TYPE_INVALID;
+    
+    bool enet_up = false;
     
 #else  // #ifndef BOOTLOADER
     

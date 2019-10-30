@@ -16,6 +16,10 @@ public:
         bootloader_after_reset = bootloader;
     }
 	
+	void scheduleApply() {
+        apply_scheduled = true;
+    }
+	
 private:
 
     bool initialized = false;
@@ -24,6 +28,7 @@ private:
     uint32_t system_time = 0;
     bool bootloader_after_reset = false;
     int32_t nvic_reset_delay = 0;
+    bool apply_scheduled = false;
 };
 
 }

@@ -18,6 +18,7 @@ extern "C" {
 #include "./model.h"
 #include "./netconf.h"
 #include "./systick.h"
+#include "./status.h"
 
 const int32_t build_number = 
 #include "./build_number.h"
@@ -196,7 +197,7 @@ public:
         }
     
     	Model::instance().save();
-        Model::instance().apply();
+        Systick::instance().scheduleApply();
     }
     
 private:
