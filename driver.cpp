@@ -29,12 +29,12 @@ Driver &Driver::instance() {
 }
 
 void Driver::setRGBWWCIE(size_t terminal, const rgbww &rgb) {
-
     maybeUpdateCIE();
-
     terminal %= terminalN;
     _rgbww[terminal] = rgb;
+}
 
+void Driver::sync(size_t terminal) {
     switch(Model::instance().outputConfig()) {
     case Model::OUTPUT_CONFIG_DUAL_STRIP: {
     } break;
@@ -70,7 +70,6 @@ void Driver::setRGBWWCIE(size_t terminal, const rgbww &rgb) {
         setPulse(terminal*3 + 2, cie_lookup[_rgbww[terminal].b]);
     } break;
     }
-    
 }
 
 void Driver::setPulse(size_t idx, uint16_t pulse) {

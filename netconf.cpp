@@ -54,6 +54,7 @@ extern "C" {
 #include "lwip/dhcp.h"
 #include "lwip/timeouts.h"
 #include "lwip/priv/tcp_priv.h"
+#include "lwip/inet_chksum.h"
 }; //extern "C" {
 
 #include "./main.h"
@@ -76,10 +77,10 @@ NetConf &NetConf::instance() {
 }
 
 #ifndef BOOTLOADER
-static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *, u16_t) {
+static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *from, u16_t) {
     struct pbuf *i = p;
     for( ; i != NULL ; i = i->next) {
-        lightkraken::ArtNetPacket::dispatch(reinterpret_cast<uint8_t *>(p->payload), p->len);
+        lightkraken::ArtNetPacket::dispatch(from, reinterpret_cast<uint8_t *>(p->payload), p->len);
     }
     pbuf_free(p);
 }
@@ -134,6 +135,41 @@ void NetConf::init() {
 #endif  // #ifndef BOOTLOADER
     
     httpd_init();
+}
+
+bool NetConf::sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len) {
+
+	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
+	if (p == NULL) {
+		return false;
+	}
+	
+	err_t err = pbuf_take(p, data, len);
+	if (err != ERR_OK) {
+		return false;
+	}
+
+	/* add UDP header */
+	pbuf_add_header(p, sizeof(struct udp_hdr));
+	struct udp_hdr *uh = (struct udp_hdr *)p->payload;
+	uh->chksum = 0;
+	uh->dest = uh->src = lwip_htons(port);
+	uh->len = lwip_htons(p->tot_len);
+
+	/* add IPv4 header */
+	pbuf_add_header(p, sizeof(struct ip_hdr));
+	struct ip_hdr *ih = (struct ip_hdr *)p->payload;
+	memset(ih, 0, sizeof(*ih));
+	ih->dest.addr = to->addr;
+	ih->_len = lwip_htons(p->tot_len);
+	ih->_ttl = 32;
+	ih->_proto = IP_PROTO_UDP;
+	IPH_VHL_SET(ih, 4, sizeof(struct ip_hdr) / 4);
+	IPH_CHKSUM_SET(ih, inet_chksum(ih, sizeof(struct ip_hdr)));
+
+	err = ip4_input(p, &netif);
+
+	return err == ERR_OK;
 }
 
 void NetConf::update() {

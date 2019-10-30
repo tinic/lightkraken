@@ -21,6 +21,8 @@ public:
 
     void update();
     
+	bool sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len);
+
     const struct netif *netInterface() const { return &netif; };
 
 private:

@@ -10,6 +10,15 @@
 
 namespace lightkraken {
 
+class ArtSyncWatchDog {
+public:
+	bool starved();
+	void feed();
+private:
+	constexpr static uint32_t ArtSyncTimeout = 4000;
+	uint32_t fedtime = 0;
+};
+
 class ArtNetPacket {
 public:
 
@@ -54,7 +63,7 @@ public:
         OpDirectoryReply 	= 0x9b00
     };
 
-    static bool dispatch(const uint8_t *buf, size_t len);
+    static bool dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len);
 
 protected:
 
@@ -66,6 +75,7 @@ protected:
     int version() const;
 
 private:
+
     static Opcode maybeValid(const uint8_t *buf, size_t len);
     static bool verify(ArtNetPacket &Packet, const uint8_t *buf, size_t len);
 };

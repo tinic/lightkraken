@@ -18,10 +18,37 @@ Control &Control::instance() {
     return control;
 }
 
-void Control::transferNow() {
-    for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
-        lightkraken::Strip::get(c).transfer();
-    }
+void Control::sync() {
+    switch(Model::instance().outputConfig()) {
+    case Model::OUTPUT_CONFIG_DUAL_STRIP: {
+		for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
+			lightkraken::Strip::get(c).transfer();
+		}
+	} break;
+    case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
+		Driver::instance().sync(0);
+		for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
+			lightkraken::Strip::get(c).transfer();
+		}
+    } break;
+    case Model::OUTPUT_CONFIG_RGB_STRIP: {
+		Driver::instance().sync(0);
+		for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
+			lightkraken::Strip::get(c).transfer();
+		}
+    } break;
+    case Model::OUTPUT_CONFIG_RGBW_STRIP: {
+		Driver::instance().sync(0);
+		for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
+			lightkraken::Strip::get(c).transfer();
+		}
+    } break;
+    case Model::OUTPUT_CONFIG_RGB_RGB: {
+		for (size_t c = 0; c < Model::analogN; c++) {
+			Driver::instance().sync(c);
+		}
+	} break;
+	}
 }
 
 void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
@@ -78,6 +105,9 @@ void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components
     }
     for (size_t c = 0; c < terminals; c++) {
         Driver::instance().setRGBWWCIE(c,rgb[c]);
+		if (!syncMode) {
+			Driver::instance().sync(c);
+		}
     }
 }
 
@@ -92,15 +122,15 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
-            if (set) {
+            if (set && !syncMode) {
                 lightkraken::Strip::get(c).transfer();
             }
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
-
-        if (!nodriver) setUniverseOutputDataForDriver(1, 3, uni, data, len);
-
+        if (!nodriver) {
+        	setUniverseOutputDataForDriver(1, 3, uni, data, len);
+        }
         for (size_t c = 0; c < Model::stripN; c++) {
             bool set = false;
             for (size_t d = 0; d < Model::universeN; d++) {
@@ -109,15 +139,15 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
-            if (set) {
+            if (set && !syncMode) {
                 lightkraken::Strip::get(c).transfer();
             }
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
-
-        if (!nodriver) setUniverseOutputDataForDriver(1, 3, uni, data, len);
-
+        if (!nodriver) {
+        	setUniverseOutputDataForDriver(1, 3, uni, data, len);
+        }
         for (size_t c = 1; c < Model::stripN; c++) {
             bool set = false;
             for (size_t d = 0; d < Model::universeN; d++) {
@@ -126,15 +156,15 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
-            if (set) {
+            if (set && !syncMode) {
                 lightkraken::Strip::get(c).transfer();
             }
         }
     } break;
     case Model::OUTPUT_CONFIG_RGBW_STRIP: {
-
-        if (!nodriver) setUniverseOutputDataForDriver(1, 4, uni, data, len);
-        
+        if (!nodriver) {
+        	setUniverseOutputDataForDriver(1, 4, uni, data, len);
+        }
         for (size_t c = 1; c < Model::stripN; c++) {
             bool set = false;
             for (size_t d = 0; d < Model::universeN; d++) {
@@ -143,13 +173,15 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
-            if (set) {
+            if (set && !syncMode) {
                 lightkraken::Strip::get(c).transfer();
             }
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
-        if (!nodriver) setUniverseOutputDataForDriver(2, 3, uni, data, len);
+        if (!nodriver) {
+        	setUniverseOutputDataForDriver(Model::analogN, 3, uni, data, len);
+		}
     } break;
     }
 }
@@ -161,14 +193,12 @@ void Control::init() {
     lightkraken::Strip::get(0).dmaBusyFunc = []() {
         return false;
     };
-
     lightkraken::Strip::get(1).dmaTransferFunc = [](const uint8_t *data, size_t len) {
         SPI_2::instance().transfer(data, len, lightkraken::Strip::get(1).needsClock());
     };
     lightkraken::Strip::get(1).dmaBusyFunc = []() {
         return false;
     };
-
     DEBUG_PRINTF(("Control up.\n"));
 }
 

@@ -24,6 +24,8 @@ public:
     const rgbww &rgbwwCIE(size_t terminal) const { terminal %= terminalN; return _rgbww[terminal]; }
     void setRGBWWCIE(size_t terminal, const rgbww &rgb);
 
+	void sync(size_t terminal);
+
 private:
     void maybeUpdateCIE();
     

@@ -8,11 +8,36 @@
 #include <string.h>
 #include <algorithm>
 
+extern "C" {
+#include "lwip/udp.h"
+}; //extern "C" {
+
 #include "./artnet.h"
 #include "./model.h"
 #include "./control.h"
+#include "./systick.h"
+#include "./netconf.h"
 
 namespace lightkraken {
+
+static const int32_t build_number = 
+#include "./build_number.h"
+;
+
+static ArtSyncWatchDog syncWatchDog;
+
+void ArtSyncWatchDog::feed() {
+	fedtime = Systick::instance().systemTime();
+}
+
+bool ArtSyncWatchDog::starved() {
+	uint32_t now = Systick::instance().systemTime();
+	if (fedtime == 0 || ((now - fedtime) > ArtSyncTimeout )) {
+		fedtime = 0;
+		return true;
+	}
+	return false;
+}
 
 class OutputPacket : public ArtNetPacket {
 public:
@@ -133,6 +158,7 @@ bool ArtNetPacket::verify(ArtNetPacket &packet, const uint8_t *buf, size_t len) 
     memset(packet.packet, 0, sizeof(packet.packet));
     memcpy(packet.packet, buf, std::min(len, sizeof(packet.packet)));
     switch (opcode) {
+      	case	OpPoll:
         case 	OpSync:
         case	OpNzs:
         case	OpOutput: {
@@ -147,17 +173,71 @@ bool ArtNetPacket::verify(ArtNetPacket &packet, const uint8_t *buf, size_t len) 
 
 static constexpr uint32_t syncTimeout = 4;
 
-bool ArtNetPacket::dispatch(const uint8_t *buf, size_t len) {
+bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len) {
     ArtNetPacket::Opcode opcode = ArtNetPacket::maybeValid(buf, len);
     if (opcode != OpInvalid) {
         switch(opcode) {
+        	case	OpPoll: {
+        				struct ArtPollReply {
+        					uint16_t opCode;
+        					uint8_t  ipAddress[4];
+        					uint16_t portNumber;
+        					uint16_t versionInfo;
+        					uint8_t  netSwitch;
+        					uint8_t  subSwitch;
+        					uint16_t oem;
+        					uint8_t  uebaVersion;
+        					uint8_t  status1;
+        					uint16_t estaManufactor;
+        					uint8_t  shortName[18];
+        					uint8_t  longName[64];
+        					uint8_t  nodeReport[64];
+        					uint16_t numPorts;
+        					uint8_t  portTypes[4];
+        					uint8_t  goodInput[4];
+        					uint8_t  goodOutput[4];
+        					uint8_t  swIn[4];
+        					uint8_t  swOut[4];
+        					uint8_t  swVideo;
+        					uint8_t  swMacro;
+        					uint8_t  swRemote;
+        					uint8_t  spare1;
+        					uint8_t  spare2;
+        					uint8_t  spare3;
+        					uint8_t  style;
+        					uint8_t  macAddress[6];
+        					uint8_t  bindIp[4];
+        					uint8_t  bindIndex;
+        					uint8_t  status;
+        					uint8_t  filler[26];
+        				}  __attribute__((packed)) reply;
+
+        				memset(&reply, 0, sizeof(reply));
+        				reply.opCode = OpPollReply;
+        				reply.ipAddress[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
+        				reply.ipAddress[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
+        				reply.ipAddress[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
+        				reply.ipAddress[3] = ip4_addr4(&NetConf::instance().netInterface()->ip_addr);
+        				reply.portNumber = 1936;
+						reply.versionInfo = build_number;
+						reply.oem = 0x1ed5;
+
+						NetConf::instance().sendUdpPacket(from, 1936, (const uint8_t *)&reply, sizeof(reply));
+        			} break;
             case	OpSync: {
+            			Control::instance().setEnableSyncMode(true);
+						Control::instance().sync();
+            			syncWatchDog.feed();
                     } break;
             case	OpNzs: {
                         OutputNzsPacket outputPacket;
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
                             lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }
+            			if(syncWatchDog.starved()) {
+	            			Control::instance().sync();
+ 	            			Control::instance().setEnableSyncMode(false);
+	           			}
                         return true;
                     } break;
             case	OpOutput: {
@@ -165,6 +245,10 @@ bool ArtNetPacket::dispatch(const uint8_t *buf, size_t len) {
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
                             lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }
+            			if(syncWatchDog.starved()) {
+	            			Control::instance().sync();
+ 	            			Control::instance().setEnableSyncMode(false);
+	           			}
                         return true;
                     } break;
             default: {
