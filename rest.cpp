@@ -221,29 +221,30 @@ void HTTPPostParser::init() {
 
 class HTTPResponseBuilder {
 public:
+
     static HTTPResponseBuilder &instance();
     
     void beginOKResponse() {
         buf_ptr = response_buf;
-        buf_ptr += sprintf(buf_ptr, "HTTP/1.0 200 OK" CRLF
-                                    "Access-Control-Allow-Origin: *" CRLF);
+        addString("HTTP/1.0 200 OK" CRLF
+                  "Access-Control-Allow-Origin: *" CRLF);
         responseType = OKResponse;
     }
 
     void beginJSONResponse() {
         buf_ptr = response_buf;
-        buf_ptr += sprintf(buf_ptr, "HTTP/1.0 200 OK" CRLF 
-                                    "Access-Control-Allow-Origin: *" CRLF);
+        addString("HTTP/1.0 200 OK" CRLF 
+				  "Access-Control-Allow-Origin: *" CRLF);
 
-        buf_ptr += sprintf(buf_ptr, "Content-Type: application/json; charset=utf-8" CRLF 
-                                    "X-Content-Type-Options: nosniff" CRLF
-                                    "Vary: Origin, Accept-Encoding" CRLF
-                                    "Content-Length: @@@@@@@@@@@" CRLF
-                                    "Cache-Control: no-cache" CRLF
-                                    CRLF);
+        addString("Content-Type: application/json; charset=utf-8" CRLF 
+				  "X-Content-Type-Options: nosniff" CRLF
+				  "Vary: Origin, Accept-Encoding" CRLF
+				  "Content-Length: @@@@@@@@@@@" CRLF
+				  "Cache-Control: no-cache" CRLF
+				  CRLF);
         
         content_start = buf_ptr;
-        buf_ptr += sprintf(buf_ptr, "{");
+        addString("{");
         first_item = true;
         responseType = JSONResponse;
     }
@@ -251,7 +252,7 @@ public:
     const char *finish(u16_t &length) {
         switch (responseType) {
         case JSONResponse: {
-            buf_ptr += sprintf(buf_ptr, "}");
+            addString("}");
             
             // Patch content length
             char *contentLengthPtr = strstr(response_buf, "@@@@@@@@@@@");
@@ -277,63 +278,45 @@ public:
         }
         return 0;
     }
-    
-    void handleDelimiter() {
-        if (first_item) {
-            first_item = false;
-        } else {
-            buf_ptr += sprintf(buf_ptr, ",");
-        }
-    }
 
     void addNetConfIPv4Address() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"ipv4address\":\"%d.%d.%d.%d\"", 
+        addString("\"ipv4address\":\"%d.%d.%d.%d\"", 
                 ip4_addr1(&NetConf::instance().netInterface()->ip_addr),
                 ip4_addr2(&NetConf::instance().netInterface()->ip_addr),
                 ip4_addr3(&NetConf::instance().netInterface()->ip_addr),
-                ip4_addr4(&NetConf::instance().netInterface()->ip_addr)
-            );
+                ip4_addr4(&NetConf::instance().netInterface()->ip_addr));
     }
 
     void addNetConfIPv4Netmask() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"ipv4netmask\":\"%d.%d.%d.%d\"", 
+        addString("\"ipv4netmask\":\"%d.%d.%d.%d\"", 
                 ip4_addr1(&NetConf::instance().netInterface()->netmask),
                 ip4_addr2(&NetConf::instance().netInterface()->netmask),
                 ip4_addr3(&NetConf::instance().netInterface()->netmask),
-                ip4_addr4(&NetConf::instance().netInterface()->netmask)
-            );
+                ip4_addr4(&NetConf::instance().netInterface()->netmask));
     }
 
     void addNetConfIPv4Gateway() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"ipv4gateway\":\"%d.%d.%d.%d\"", 
+        addString("\"ipv4gateway\":\"%d.%d.%d.%d\"", 
                 ip4_addr1(&NetConf::instance().netInterface()->gw),
                 ip4_addr2(&NetConf::instance().netInterface()->gw),
                 ip4_addr3(&NetConf::instance().netInterface()->gw),
-                ip4_addr4(&NetConf::instance().netInterface()->gw)
-            );
+                ip4_addr4(&NetConf::instance().netInterface()->gw));
     }
 
     void addSystemTime() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"systemtime\":%d", int(Systick::instance().systemTime())); 
+        addString("\"systemtime\":%d", int(Systick::instance().systemTime())); 
     }
 
     void addBuildNumber() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"buildnumber\": \"Rev %d (%s %s)\"  ", int(build_number), __DATE__, __TIME__); 
+        addString("\"buildnumber\": \"Rev %d (%s %s)\"  ", int(build_number), __DATE__, __TIME__); 
     }
 
     void addHostname() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"hostname\":\"%s\"", NetConf::instance().netInterface()->hostname); 
+        addString("\"hostname\":\"%s\"", NetConf::instance().netInterface()->hostname); 
     }
 
     void addMacAddress() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"macaddress\":\"%02x:%02x:%02x:%02x:%02x:%02x\"", 
+        addString("\"macaddress\":\"%02x:%02x:%02x:%02x:%02x:%02x\"", 
                         NetConf::instance().netInterface()->hwaddr[0],
                         NetConf::instance().netInterface()->hwaddr[1],
                         NetConf::instance().netInterface()->hwaddr[2],
@@ -343,120 +326,121 @@ public:
     }
     
     void addDHCP() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"dhcp\":%s",Model::instance().dhcpEnabled()?"true":"false"); 
+        addString("\"dhcp\":%s",Model::instance().dhcpEnabled()?"true":"false"); 
     }
 
     void addBroadcast() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"broadcast\":%s",Model::instance().broadcastEnabled()?"true":"false"); 
+        addString("\"broadcast\":%s",Model::instance().broadcastEnabled()?"true":"false"); 
     }
     
     void addIPv4Address() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"ipv4address\":\"%d.%d.%d.%d\"", 
+        addString("\"ipv4address\":\"%d.%d.%d.%d\"", 
             ip4_addr1(Model::instance().ip4Address()),
             ip4_addr2(Model::instance().ip4Address()),
             ip4_addr3(Model::instance().ip4Address()),
-            ip4_addr4(Model::instance().ip4Address())
-        );
+            ip4_addr4(Model::instance().ip4Address()));
     }
     
     
     void addIPv4Netmask() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"ipv4netmask\":\"%d.%d.%d.%d\"", 
+        addString("\"ipv4netmask\":\"%d.%d.%d.%d\"", 
             ip4_addr1(Model::instance().ip4Netmask()),
             ip4_addr2(Model::instance().ip4Netmask()),
             ip4_addr3(Model::instance().ip4Netmask()),
-            ip4_addr4(Model::instance().ip4Netmask())
-        );
+            ip4_addr4(Model::instance().ip4Netmask()));
     }
     
     void addIPv4Gateway() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"ipv4gateway\":\"%d.%d.%d.%d\"", 
+        addString("\"ipv4gateway\":\"%d.%d.%d.%d\"", 
             ip4_addr1(Model::instance().ip4Gateway()),
             ip4_addr2(Model::instance().ip4Gateway()),
             ip4_addr3(Model::instance().ip4Gateway()),
-            ip4_addr4(Model::instance().ip4Gateway())
-        );
+            ip4_addr4(Model::instance().ip4Gateway()));
     }
     
     void addOutputMode() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"outputmode\":%d",Model::instance().outputConfig()); 
+        addString("\"outputmode\":%d",Model::instance().outputConfig()); 
     }
 
     void addPwmLimit() {
-        handleDelimiter();
         char str[32];
         ftoa(str, Model::instance().globPWMLimit(), NULL);
-        buf_ptr += sprintf(buf_ptr, "\"globpwmlimit\":%s",str); 
+        addString("\"globpwmlimit\":%s",str); 
     }
 
     void addCompLimit() {
-        handleDelimiter();
         char str[32];
         ftoa(str, Model::instance().globCompLimit(), NULL);
-        buf_ptr += sprintf(buf_ptr, "\"globcomplimit\":%s",str); 
+        addString("\"globcomplimit\":%s",str); 
     }
 
     void addIllum() {
-        handleDelimiter();
         char str[32];
         ftoa(str, Model::instance().globIllum(), NULL);
-        buf_ptr += sprintf(buf_ptr, "\"globillum\":%s",str); 
+        addString("\"globillum\":%s",str); 
     }
 
     void addAnalogConfig() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"rgbconfig\":["); 
+        addString("\"rgbconfig\":["); 
         for (size_t c=0; c<Model::analogN; c++) {
             const Model::AnalogConfig &a = Model::instance().analogConfig(c);
-            buf_ptr += sprintf(buf_ptr, "{");
-            buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(a.type)); 
-            buf_ptr += sprintf(buf_ptr, "\"components\" : [");
+            addString("{");
+            addString("\"type\":%d,",int(a.type)); 
+            addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
-                buf_ptr += sprintf(buf_ptr, "{");
-                buf_ptr += sprintf(buf_ptr, "\"universe\":%d,",int(a.components[d].universe)); 
-                buf_ptr += sprintf(buf_ptr, "\"offset\":%d,",int(a.components[d].offset)); 
-                buf_ptr += sprintf(buf_ptr, "\"value\":%d",int(a.components[d].value)); 
-                buf_ptr += sprintf(buf_ptr, "}%c", (d==Model::analogCompN-1)?' ':','); 
+                addString("{");
+                addString("\"universe\":%d,",int(a.components[d].universe)); 
+                addString("\"offset\":%d,",int(a.components[d].offset)); 
+                addString("\"value\":%d",int(a.components[d].value)); 
+                addString("}%c", (d==Model::analogCompN-1)?' ':','); 
             }
-            buf_ptr += sprintf(buf_ptr, "]");
-            buf_ptr += sprintf(buf_ptr, "}%c", (c==Model::analogN-1)?' ':',');
+            addString("]");
+            addString("}%c", (c==Model::analogN-1)?' ':',');
         }
-
-        buf_ptr += sprintf(buf_ptr, "]");
+        addString("]");
     }
 
     void addStripConfig() {
-        handleDelimiter();
-        buf_ptr += sprintf(buf_ptr, "\"stripconfig\":["); 
+        addString("\"stripconfig\":["); 
         for (size_t c=0; c<Model::stripN; c++) {
             const Model::StripConfig &s = Model::instance().stripConfig(c);
-            buf_ptr += sprintf(buf_ptr, "{");
-            buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(s.type)); 
-            buf_ptr += sprintf(buf_ptr, "\"length\":%d,",int(s.len)); 
-            buf_ptr += sprintf(buf_ptr, "\"color\":{\"r\":%d,\"g\":%d,\"b\":%d,\"a\":%d},",
+            addString("{");
+            addString("\"type\":%d,",int(s.type)); 
+            addString("\"length\":%d,",int(s.len)); 
+            addString("\"color\":{\"r\":%d,\"g\":%d,\"b\":%d,\"a\":%d},",
                             (int)s.color.r,
                             (int)s.color.g,
                             (int)s.color.b,
                             (int)s.color.x); 
-            buf_ptr += sprintf(buf_ptr, "\"universes\" : [");
+            addString("\"universes\" : [");
             for (size_t d=0; d<Model::universeN; d++) {
-                buf_ptr += sprintf(buf_ptr, "{");
-                buf_ptr += sprintf(buf_ptr, "\"universe\":%d",int(s.universe[d])); 
-                buf_ptr += sprintf(buf_ptr, "}%c", (d==Model::universeN-1)?' ':','); 
+                addString("{");
+                addString("\"universe\":%d",int(s.universe[d])); 
+                addString("}%c", (d==Model::universeN-1)?' ':','); 
             }
-            buf_ptr += sprintf(buf_ptr, "]");
-            buf_ptr += sprintf(buf_ptr, "}%c", (c==Model::stripN-1)?' ':',');
+            addString("]");
+            addString("}%c", (c==Model::stripN-1)?' ':',');
         }
-        buf_ptr += sprintf(buf_ptr, "]");
+        addString("]");
     }
     
 private:
+    void handleDelimiter() {
+        if (first_item) {
+            first_item = false;
+        } else {
+            addString(",");
+        }
+    }
+
+	template<typename... Args> void addString(const char *fmt, Args... args) {
+        handleDelimiter();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+        buf_ptr += sprintf(buf_ptr, fmt, args...); 
+#pragma GCC diagnostic pop
+    }
+
     enum ResponseType {
         OKResponse = 0,
         JSONResponse = 1,
