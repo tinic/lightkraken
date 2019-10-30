@@ -280,6 +280,7 @@ public:
     }
 
     void addNetConfIPv4Address() {
+        handleDelimiter();
         addString("\"ipv4address\":\"%d.%d.%d.%d\"", 
                 ip4_addr1(&NetConf::instance().netInterface()->ip_addr),
                 ip4_addr2(&NetConf::instance().netInterface()->ip_addr),
@@ -288,6 +289,7 @@ public:
     }
 
     void addNetConfIPv4Netmask() {
+        handleDelimiter();
         addString("\"ipv4netmask\":\"%d.%d.%d.%d\"", 
                 ip4_addr1(&NetConf::instance().netInterface()->netmask),
                 ip4_addr2(&NetConf::instance().netInterface()->netmask),
@@ -296,6 +298,7 @@ public:
     }
 
     void addNetConfIPv4Gateway() {
+        handleDelimiter();
         addString("\"ipv4gateway\":\"%d.%d.%d.%d\"", 
                 ip4_addr1(&NetConf::instance().netInterface()->gw),
                 ip4_addr2(&NetConf::instance().netInterface()->gw),
@@ -304,18 +307,22 @@ public:
     }
 
     void addSystemTime() {
+        handleDelimiter();
         addString("\"systemtime\":%d", int(Systick::instance().systemTime())); 
     }
 
     void addBuildNumber() {
+        handleDelimiter();
         addString("\"buildnumber\": \"Rev %d (%s %s)\"  ", int(build_number), __DATE__, __TIME__); 
     }
 
     void addHostname() {
+        handleDelimiter();
         addString("\"hostname\":\"%s\"", NetConf::instance().netInterface()->hostname); 
     }
 
     void addMacAddress() {
+        handleDelimiter();
         addString("\"macaddress\":\"%02x:%02x:%02x:%02x:%02x:%02x\"", 
                         NetConf::instance().netInterface()->hwaddr[0],
                         NetConf::instance().netInterface()->hwaddr[1],
@@ -326,14 +333,17 @@ public:
     }
     
     void addDHCP() {
+        handleDelimiter();
         addString("\"dhcp\":%s",Model::instance().dhcpEnabled()?"true":"false"); 
     }
 
     void addBroadcast() {
+        handleDelimiter();
         addString("\"broadcast\":%s",Model::instance().broadcastEnabled()?"true":"false"); 
     }
     
     void addIPv4Address() {
+        handleDelimiter();
         addString("\"ipv4address\":\"%d.%d.%d.%d\"", 
             ip4_addr1(Model::instance().ip4Address()),
             ip4_addr2(Model::instance().ip4Address()),
@@ -343,6 +353,7 @@ public:
     
     
     void addIPv4Netmask() {
+        handleDelimiter();
         addString("\"ipv4netmask\":\"%d.%d.%d.%d\"", 
             ip4_addr1(Model::instance().ip4Netmask()),
             ip4_addr2(Model::instance().ip4Netmask()),
@@ -351,6 +362,7 @@ public:
     }
     
     void addIPv4Gateway() {
+        handleDelimiter();
         addString("\"ipv4gateway\":\"%d.%d.%d.%d\"", 
             ip4_addr1(Model::instance().ip4Gateway()),
             ip4_addr2(Model::instance().ip4Gateway()),
@@ -359,16 +371,19 @@ public:
     }
     
     void addOutputMode() {
+        handleDelimiter();
         addString("\"outputmode\":%d",Model::instance().outputConfig()); 
     }
 
     void addPwmLimit() {
+        handleDelimiter();
         char str[32];
         ftoa(str, Model::instance().globPWMLimit(), NULL);
         addString("\"globpwmlimit\":%s",str); 
     }
 
     void addCompLimit() {
+        handleDelimiter();
         char str[32];
         ftoa(str, Model::instance().globCompLimit(), NULL);
         addString("\"globcomplimit\":%s",str); 
@@ -381,6 +396,7 @@ public:
     }
 
     void addAnalogConfig() {
+        handleDelimiter();
         addString("\"rgbconfig\":["); 
         for (size_t c=0; c<Model::analogN; c++) {
             const Model::AnalogConfig &a = Model::instance().analogConfig(c);
@@ -401,6 +417,7 @@ public:
     }
 
     void addStripConfig() {
+        handleDelimiter();
         addString("\"stripconfig\":["); 
         for (size_t c=0; c<Model::stripN; c++) {
             const Model::StripConfig &s = Model::instance().stripConfig(c);
@@ -434,7 +451,6 @@ private:
     }
 
 	template<typename... Args> void addString(const char *fmt, Args... args) {
-        handleDelimiter();
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-security"
         buf_ptr += sprintf(buf_ptr, fmt, args...); 
