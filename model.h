@@ -58,8 +58,7 @@ public:
 	void load();
     void save();
     void reset();
-    
-    void applyColor();
+    void apply();
     
     bool burstMode() const { return burst_mode; }
 

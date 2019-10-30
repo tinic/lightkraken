@@ -157,11 +157,32 @@ public:
                 config.len = int(atof(buf));
             }
             
-            sprintf(ss, "$.stripconfig[%d].color", c);
+            sprintf(ss, "$.stripconfig[%d].color.r", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.color.rgbx = int(dval);
+                config.color.r = int(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
-                config.color.rgbx = strtol(buf, NULL, 16);
+                config.color.r = strtol(buf, NULL, 10);
+            }
+            
+            sprintf(ss, "$.stripconfig[%d].color.g", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.color.g = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
+                config.color.g = strtol(buf, NULL, 10);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].color.b", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.color.b = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
+                config.color.b = strtol(buf, NULL, 10);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].color.a", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.color.x = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
+                config.color.x = strtol(buf, NULL, 10);
             }
             
             for (int d=0; d<int(Model::universeN); d++) {
@@ -175,7 +196,7 @@ public:
         }
     
     	Model::instance().save();
-        Model::instance().applyColor();
+        Model::instance().apply();
     }
     
 private:
@@ -417,7 +438,11 @@ public:
             buf_ptr += sprintf(buf_ptr, "{");
             buf_ptr += sprintf(buf_ptr, "\"type\":%d,",int(s.type)); 
             buf_ptr += sprintf(buf_ptr, "\"length\":%d,",int(s.len)); 
-            buf_ptr += sprintf(buf_ptr, "\"color\":\"0x%08x\",",(unsigned int)s.color.rgbx); 
+            buf_ptr += sprintf(buf_ptr, "\"color\":{\"r\":%d,\"g\":%d,\"b\":%d,\"a\":%d},",
+                            (int)s.color.r,
+                            (int)s.color.g,
+                            (int)s.color.b,
+                            (int)s.color.x); 
             buf_ptr += sprintf(buf_ptr, "\"universes\" : [");
             for (size_t d=0; d<Model::universeN; d++) {
                 buf_ptr += sprintf(buf_ptr, "{");

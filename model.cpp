@@ -125,7 +125,13 @@ void Model::defaults() {
     }
 }
 
-void Model::applyColor() {
+void Model::apply() {
+
+    for (size_t c = 0; c < stripN; c++) {
+        lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
+        lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
+    }
+
     for (size_t c = 0; c < analogN; c++) {
         rgbww col;
         col.r = analog_config[c].components[0].value;
@@ -143,17 +149,17 @@ void Model::applyColor() {
         switch(cpp) {
             case 3: {
                 for (int32_t d = 0; d < 510; d += 3) {
-                    buf[d + 0] = (strip_config[c].color.b) & 0xFF;
+                    buf[d + 0] = (strip_config[c].color.r) & 0xFF;
                     buf[d + 1] = (strip_config[c].color.g) & 0xFF;
-                    buf[d + 2] = (strip_config[c].color.r) & 0xFF;
+                    buf[d + 2] = (strip_config[c].color.b) & 0xFF;
                     len += 3;
                 }
             } break;
             case 4: {
                 for (int32_t d = 0; d < 512; d += 4) {
-                    buf[d + 0] = (strip_config[c].color.b) & 0xFF;
+                    buf[d + 0] = (strip_config[c].color.r) & 0xFF;
                     buf[d + 1] = (strip_config[c].color.g) & 0xFF;
-                    buf[d + 2] = (strip_config[c].color.r) & 0xFF;
+                    buf[d + 2] = (strip_config[c].color.b) & 0xFF;
                     buf[d + 3] = (strip_config[c].color.x) & 0xFF;
                     len += 4;
                 }
@@ -168,7 +174,7 @@ void Model::applyColor() {
 void Model::init() {
 	defaults();
     readFlash();
-    applyColor();
+    apply();
 }
 
 void Model::setOutputConfig(OutputConfig outputConfig) {
