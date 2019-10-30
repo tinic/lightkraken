@@ -47,6 +47,7 @@ void Systick::handler() {
         NVIC_SystemReset();
     }
     
+#ifndef BOOTLOADER
     if (apply_scheduled) {
         if (StatusLED::instance().enetUp()) {
             StatusLED::PowerClass powerClass = StatusLED::instance().powerClass();
@@ -63,6 +64,7 @@ void Systick::handler() {
             }
         }
     }
+#endif  // #ifndef BOOTLOADER
 
     system_time++;
 }

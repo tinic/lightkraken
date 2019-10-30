@@ -133,7 +133,9 @@ void EthernetIf::init() {
         }
     }
     
+#ifndef BOOTLOADER
     StatusLED::instance().setEnetUp();
+#endif  // #ifndef BOOTLOADER
 
     DEBUG_PRINTF(("ENET MAC config done.\n"));
 }
