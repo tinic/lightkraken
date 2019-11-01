@@ -205,11 +205,13 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 		uint8_t  macAddress[6];
 		uint8_t  bindIp[4];
 		uint8_t  bindIndex;
-		uint8_t  status;
+		uint8_t  status2;
 		uint8_t  filler[26];
 	}  __attribute__((packed)) reply;
+	static uint32_t poll_counter = 0;
 
 	memset(&reply, 0, sizeof(reply));
+	
 	reply.opCode = OpPollReply;
 	reply.ipAddress[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
 	reply.ipAddress[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
@@ -220,10 +222,20 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 	reply.netSwitch = (universe >> 8) & 0xFF;
 	reply.subSwitch = (universe >> 0) & 0xFF;
 	reply.oem = 0x1ed5;
-	reply.uebaVersion = 0;
-	reply.status1 = 0;
-	reply.estaManufactor = 0;
-
+	reply.estaManufactor = 0x1ed5;
+	strncpy((char *)reply.shortName, NetConf::instance().netInterface()->hostname, 17);
+	strncpy((char *)reply.longName, NetConf::instance().netInterface()->hostname, 63);
+	snprintf((char *)reply.longName, 63, "#%04x [#%04x] Lightkraken", (unsigned int)0, (unsigned int)(poll_counter++));
+	memcpy(reply.macAddress, NetConf::instance().netInterface()->hwaddr, 6);
+	reply.bindIp[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
+	reply.bindIp[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
+	reply.bindIp[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
+	reply.bindIp[3] = ip4_addr4(&NetConf::instance().netInterface()->ip_addr);
+	reply.status2 =  0x01 | // support web browser config
+					 0x02 | // supports dhcp
+					 (Model::instance().dhcpEnabled() ? 0x04 : 0x00) |
+					 0x08;  // ArtNet3
+					 
 	NetConf::instance().sendUdpPacket(from, 1936, (const uint8_t *)&reply, sizeof(reply));
 }
 
