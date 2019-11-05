@@ -114,11 +114,10 @@ void Model::defaults() {
     glob_illum = 0x1F;
     glob_comp_lim = 0xFF;
 
-    output_config = OUTPUT_CONFIG_RGBW_STRIP;
+    output_config = OUTPUT_CONFIG_DUAL_STRIP;
 
     burst_mode = false;
     
-    rgbSpace.setLED();
 
     int32_t counter = 0;
     for (size_t c = 0; c < stripN; c++) {
@@ -135,6 +134,7 @@ void Model::defaults() {
     counter = 0;
     for (size_t c = 0; c < analogN; c++) {
         analog_config[c].type = 0;
+	    analog_config[c].rgbSpace.setLED();
         for (size_t d = 0; d < analogCompN; d++) {
             analog_config[c].components[d].value = 0;
             analog_config[c].components[d].universe = 0;
@@ -144,8 +144,6 @@ void Model::defaults() {
 }
 
 void Model::apply() {
-
-	Driver::instance().setRGBColorSpace(rgbSpace);
 
     for (size_t c = 0; c < stripN; c++) {
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
@@ -160,6 +158,7 @@ void Model::apply() {
         col.w = analog_config[c].components[3].value;
         col.ww = analog_config[c].components[4].value;
         Driver::instance().setsRGBWWCIE(c, col);
+		Driver::instance().setRGBColorSpace(c, analog_config[c].rgbSpace);
     }
 
     uint8_t buf[512];

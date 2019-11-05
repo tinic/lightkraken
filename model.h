@@ -46,6 +46,7 @@ public:
 
     struct AnalogConfig {
         uint32_t type;
+	    RGBColorSpace rgbSpace;
         struct Component {
             uint16_t universe;
             uint16_t offset;
@@ -96,8 +97,6 @@ public:
     ip_addr_t *ip4Netmask() { return &ip4_netmask; }
     ip_addr_t *ip4Gateway() { return &ip4_gateway; }
 
-    RGBColorSpace &rgbColorSpace() { return rgbSpace; }
-    
     StripConfig &stripConfig(size_t index) { return strip_config[index]; }
     AnalogConfig &analogConfig(size_t index) { return analog_config[index]; }
 
@@ -138,7 +137,6 @@ private:
     StripConfig strip_config[stripN];
     AnalogConfig analog_config[analogN];
     
-    RGBColorSpace rgbSpace;
 
     bool initialized = false;
 };

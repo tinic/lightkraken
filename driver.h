@@ -41,7 +41,7 @@ public:
 
 	void sync(size_t terminal);
 	
-	void setRGBColorSpace(const RGBColorSpace &rgbSpace) { colorConverter.setRGBColorSpace(rgbSpace); }
+	void setRGBColorSpace(size_t terminal, const RGBColorSpace &rgbSpace) { colorConverter[terminal].setRGBColorSpace(rgbSpace); }
 
 private:
     void setPulse(size_t idx, uint16_t pulse);
@@ -50,7 +50,7 @@ private:
     void init();
     
     rgbww _srgbww[terminalN];
-    ColorSpaceConverter colorConverter; 
+    ColorSpaceConverter colorConverter[terminalN]; 
     CIETransferfromsRGBTransferLookup transferLookup;
 };
 

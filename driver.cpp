@@ -57,7 +57,7 @@ void Driver::sync(size_t terminal) {
 			uint16_t rp = 0;
 			uint16_t gp = 0;
 			uint16_t bp = 0;
-        	colorConverter.sRGB8toLEDPWM(
+        	colorConverter[terminal].sRGB8toLEDPWM(
         		_srgbww[terminal].r,
         		_srgbww[terminal].g,
         		_srgbww[terminal].b,
@@ -72,7 +72,7 @@ void Driver::sync(size_t terminal) {
 			uint16_t rp = 0;
 			uint16_t gp = 0;
 			uint16_t bp = 0;
-        	colorConverter.sRGB8toLEDPWM(
+        	colorConverter[terminal].sRGB8toLEDPWM(
         		_srgbww[terminal].r,
         		_srgbww[terminal].g,
         		_srgbww[terminal].b,
@@ -87,7 +87,7 @@ void Driver::sync(size_t terminal) {
 			uint16_t rp = 0;
 			uint16_t gp = 0;
 			uint16_t bp = 0;
-        	colorConverter.sRGB8toLEDPWM(
+        	colorConverter[terminal].sRGB8toLEDPWM(
         		_srgbww[terminal].r,
         		_srgbww[terminal].g,
         		_srgbww[terminal].b,
@@ -103,7 +103,7 @@ void Driver::sync(size_t terminal) {
 		uint16_t rp = 0;
 		uint16_t gp = 0;
 		uint16_t bp = 0;
-		colorConverter.sRGB8toLEDPWM(
+		colorConverter[terminal].sRGB8toLEDPWM(
 			_srgbww[terminal].r,
 			_srgbww[terminal].g,
 			_srgbww[terminal].b,
@@ -143,8 +143,9 @@ void Driver::init() {
 
 	RGBColorSpace rgbSpace;
 	rgbSpace.setLED();
-	colorConverter.setRGBColorSpace(rgbSpace);
-	
+	for (size_t c = 0; c < terminalN; c++) {
+		colorConverter[c].setRGBColorSpace(rgbSpace);
+	}
 	transferLookup.init();
 
     PwmTimer0::instance().setPulse(0x0);
