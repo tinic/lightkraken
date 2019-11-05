@@ -27,16 +27,13 @@ public:
 	void sync(size_t terminal);
 
 private:
-    void maybeUpdateCIE();
-    
     void setPulse(size_t idx, uint16_t pulse);
 
     bool initialized = false;
     void init();
     
     rgbww _rgbww[terminalN];
-    uint16_t cie_lookup[256];
-    float pwm_limit = 0.0f;
+    ColorSpaceConverter colorConverter; 
 };
 
 };

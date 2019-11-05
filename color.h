@@ -5,6 +5,56 @@
 
 namespace lightkraken {
 
+//#define TEST_SRGB_IDENTITY
+
+class ColorSpaceConverter {
+public:
+
+    void sRGBtoLEDPWM(
+            uint8_t srgb_r,
+            uint8_t srgb_g,
+            uint8_t srgb_b,
+            uint16_t pwm_l,
+            uint16_t &pwm_r,
+            uint16_t &pwm_g,
+            uint16_t &pwm_b) const;
+
+    void setRGBSpace(
+#ifdef TEST_SRGB_IDENTITY
+        float xw = 0.31271f, float yw = 0.32902f, // D65 white point
+        float xr = 0.64000f, float yr = 0.33000f,
+        float xg = 0.30000f, float yg = 0.60000f,
+        float xb = 0.15000f, float yb = 0.06000f);
+#else
+        float xw = 0.34567f, float yw = 0.35850f, // D50 white point
+        float xr = 0.67630f, float yr = 0.32370f, // from http://ww1.microchip.com/downloads/en/AppNotes/00001562B.pdf
+        float xg = 0.20880f, float yg = 0.74070f,
+        float xb = 0.14050f, float yb = 0.03910f);
+#endif
+
+private:
+
+    static float srgbl2ledl[9];
+    static float ledl2srgbl[9];
+
+    void sRGBtoLED(float *col) const;
+    void sRGBL2LEDL(float *ledl, const float *srgbl) const;
+    void LEDL2sRGBL(float *ledl, const float *srgbl) const;
+    void sRGB2sRGBL(float *srgbl, const float *srgb) const;
+    void sRGBL2sRGB(float *srgb, const float *srgbl) const;
+    void LEDL2LED(float *led, const float *ledl) const;
+    void LED2LEDL(float *ledl, const float *led) const;
+    void invertMatrix(float *r, const float *a) const;
+    void concatMatrix(float *d, const float *a, const float *b) const;
+    void generateRGBMatrix(    float xw, float yw,
+                            float xr, float yr,
+                            float xg, float yg,
+                            float xb, float yb,
+                            float *rgb2xyz,
+                            float *xyz2rgb) const;
+};
+
+
 class rgbww {
 public:
 

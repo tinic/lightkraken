@@ -29,7 +29,6 @@ Driver &Driver::instance() {
 }
 
 void Driver::setRGBWWCIE(size_t terminal, const rgbww &rgb) {
-    maybeUpdateCIE();
     terminal %= terminalN;
     _rgbww[terminal] = rgb;
 }
@@ -40,34 +39,63 @@ void Driver::sync(size_t terminal) {
     } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
         if (terminal == 0) {
-            // TODO: Convert through XYZ color space
-            setPulse(0 + 0, cie_lookup[_rgbww[terminal].r]);
-            setPulse(0 + 1, cie_lookup[_rgbww[terminal].g]);
-            setPulse(0 + 2, cie_lookup[_rgbww[terminal].b]);
+			uint16_t rp = 0;
+			uint16_t gp = 0;
+			uint16_t bp = 0;
+        	colorConverter.sRGBtoLEDPWM(
+        		_rgbww[terminal].r,
+        		_rgbww[terminal].g,
+        		_rgbww[terminal].b,
+        		PwmTimer::pwmPeriod, rp, gp, bp);
+            setPulse(0 + 0, rp);
+            setPulse(0 + 1, gp);
+            setPulse(0 + 2, bp);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
         if (terminal == 0) {
-            // TODO: Convert through XYZ color space
-            setPulse(3 + 0, cie_lookup[_rgbww[terminal].r]);
-            setPulse(0 + 1, cie_lookup[_rgbww[terminal].g]);
-            setPulse(0 + 2, cie_lookup[_rgbww[terminal].b]);
+			uint16_t rp = 0;
+			uint16_t gp = 0;
+			uint16_t bp = 0;
+        	colorConverter.sRGBtoLEDPWM(
+        		_rgbww[terminal].r,
+        		_rgbww[terminal].g,
+        		_rgbww[terminal].b,
+        		PwmTimer::pwmPeriod, rp, gp, bp);
+            setPulse(3 + 0, rp);
+            setPulse(0 + 1, gp);
+            setPulse(0 + 2, bp);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGBW_STRIP: {
         if (terminal == 0) {
-            // TODO: Convert through XYZ color space
-            setPulse(0, cie_lookup[_rgbww[terminal].r]);
-            setPulse(1, cie_lookup[_rgbww[terminal].g]);
-            setPulse(2, cie_lookup[_rgbww[terminal].b]);
-            setPulse(3, cie_lookup[_rgbww[terminal].w]);
+			uint16_t rp = 0;
+			uint16_t gp = 0;
+			uint16_t bp = 0;
+        	colorConverter.sRGBtoLEDPWM(
+        		_rgbww[terminal].r,
+        		_rgbww[terminal].g,
+        		_rgbww[terminal].b,
+        		PwmTimer::pwmPeriod, rp, gp, bp);
+
+            setPulse(0, rp);
+            setPulse(1, gp);
+            setPulse(2, bp);
+            setPulse(3, 0x00);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
-        // TODO: Convert color space
-        setPulse(terminal*3 + 0, cie_lookup[_rgbww[terminal].r]);
-        setPulse(terminal*3 + 1, cie_lookup[_rgbww[terminal].g]);
-        setPulse(terminal*3 + 2, cie_lookup[_rgbww[terminal].b]);
+		uint16_t rp = 0;
+		uint16_t gp = 0;
+		uint16_t bp = 0;
+		colorConverter.sRGBtoLEDPWM(
+			_rgbww[terminal].r,
+			_rgbww[terminal].g,
+			_rgbww[terminal].b,
+			PwmTimer::pwmPeriod, rp, gp, bp);
+        setPulse(terminal*3 + 0, rp);
+        setPulse(terminal*3 + 1, gp);
+        setPulse(terminal*3 + 2, bp);
     } break;
     }
 }
@@ -96,20 +124,10 @@ void Driver::setPulse(size_t idx, uint16_t pulse) {
     }
 }
 
-void Driver::maybeUpdateCIE() {
-    if (Model::instance().globPWMLimit() != pwm_limit) {
-        pwm_limit = Model::instance().globPWMLimit();
-        for (size_t c = 0; c<256; c++) {
-            float f = float(c) * (1.0f / 255.0f);
-            float v = (f > 0.08f) ? powf( (f + 0.160f) / 1.160f, 3.0f) : (f / 9.03296296296296296294f);
-            cie_lookup[c] = uint16_t(v * float(PwmTimer::pwmPeriod) * pwm_limit);
-        }
-    }
-}
-
 void Driver::init() {
-    maybeUpdateCIE();
-    
+
+	colorConverter.setRGBSpace();
+
     PwmTimer0::instance().setPulse(0x0);
     PwmTimer1::instance().setPulse(0x0);
     PwmTimer2::instance().setPulse(0x0);
