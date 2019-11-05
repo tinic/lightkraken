@@ -45,6 +45,7 @@ private:
     struct netif netif;
     uint32_t tcp_timer = 0;
     uint32_t arp_timer = 0;
+    uint32_t config_timer = 0;
     ip_addr_t ip_address = {0};
 };
 

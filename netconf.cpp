@@ -77,6 +77,8 @@ NetConf &NetConf::instance() {
 }
 
 #ifndef BOOTLOADER
+static struct udp_pcb *upcb_artnet = 0;
+
 static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *from, u16_t) {
     struct pbuf *i = p;
     for( ; i != NULL ; i = i->next) {
@@ -124,8 +126,12 @@ void NetConf::init() {
     }
 
 #ifndef BOOTLOADER
-    static struct udp_pcb *upcb_artnet = 0;
     upcb_artnet = udp_new();
+    if (Model::instance().broadcastEnabled()) {
+		ip_set_option(upcb_artnet, SOF_BROADCAST);
+	} else {
+		ip_reset_option(upcb_artnet, SOF_BROADCAST);
+	}
     if (udp_bind(upcb_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
         udp_recv(upcb_artnet, udp_receive_artnet_callback, NULL);
     } else {
@@ -189,6 +195,17 @@ void NetConf::update() {
         arp_timer =  localtime;
         etharp_tmr();
     }
+
+#ifndef BOOTLOADER
+    if ((localtime - config_timer) >= 1000){ 
+        config_timer =  localtime;
+		if (Model::instance().broadcastEnabled()) {
+			ip_set_option(upcb_artnet, SOF_BROADCAST);
+		} else {
+			ip_reset_option(upcb_artnet, SOF_BROADCAST);
+		}
+    }
+#endif  // #ifndef BOOTLOADER
 
 #if LWIP_DHCP
     const int32_t MAX_DHCP_TRIES = 4;
