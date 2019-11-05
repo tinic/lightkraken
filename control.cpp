@@ -145,7 +145,7 @@ void Control::interateAllActiveUniverses(std::function<void (uint16_t universe)>
 void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
     rgbww rgb[Driver::terminalN];
     for (size_t c = 0; c < terminals; c++) {
-        rgb[c] = Driver::instance().rgbwwCIE(c);
+        rgb[c] = Driver::instance().srgbwwCIE(c);
     }
     for (size_t c = 0; c < terminals; c++) {
         switch(components) {
@@ -195,7 +195,7 @@ void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components
         }
     }
     for (size_t c = 0; c < terminals; c++) {
-        Driver::instance().setRGBWWCIE(c,rgb[c]);
+        Driver::instance().setsRGBWWCIE(c,rgb[c]);
 		if (!syncMode) {
 			Driver::instance().sync(c);
 		}

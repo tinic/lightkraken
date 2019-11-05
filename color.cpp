@@ -1,12 +1,24 @@
 
 #include "color.h"
+#include "pwmtimer.h"
 
 #include <math.h>
 #include <memory.h>
 
 namespace lightkraken {
 
-void ColorSpaceConverter::sRGBtoLEDPWM(
+void CIETransferfromsRGBTransferLookup::init() {
+	for (size_t c = 0; c<256; c++) {
+		float f = float(c) * (1.0f / 255.0f);
+		// from sRGB transfer to linear
+		f = (f < 0.04045f) ? (f / 12.92f) : powf((f + 0.055f) / 1.055f, 2.4f);
+		// linear to CIE transfer
+		f = (f > 0.08f) ? powf( (f + 0.160f) / 1.160f, 3.0f) : (f / 9.03296296296296296294f);
+		lookup[c] = uint16_t(f * float(PwmTimer::pwmPeriod));
+	}
+}
+
+void ColorSpaceConverter::sRGB8toLEDPWM(
 		uint8_t srgb_r, 
 		uint8_t srgb_g, 
 		uint8_t srgb_b,
@@ -32,18 +44,13 @@ void ColorSpaceConverter::sRGBtoLEDPWM(
 	pwm_b = uint16_t(col[2]*float(pwm_l));
 }
 
-void ColorSpaceConverter::setRGBSpace(
-	float xw, float yw,
-	float xr, float yr,
-	float xg, float yg, 
-	float xb, float yb) {
-	
+void ColorSpaceConverter::setRGBColorSpace(const RGBColorSpace &rgbSpace) {
     // Generate XYZ to LED matrices
     generateRGBMatrix(
-        xw, yw,
-        xr, yr,
-        xg, yg,
-        xb, yb,
+        rgbSpace.xw, rgbSpace.yw,
+        rgbSpace.xr, rgbSpace.yr,
+        rgbSpace.xg, rgbSpace.yg,
+        rgbSpace.xb, rgbSpace.yb,
         ledl2srgbl, // ledl2xyz really here
         srgbl2ledl); // xyz2ledl really here
         

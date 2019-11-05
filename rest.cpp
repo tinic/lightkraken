@@ -108,12 +108,69 @@ public:
         
         for (int c=0; c<int(Model::analogN); c++) {
             Model::AnalogConfig &config = Model::instance().analogConfig(c);
+            RGBColorSpace &rgbColorSpace = Model::instance().rgbColorSpace();
 
             sprintf(ss, "$.rgbconfig[%d].type", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.type = int(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
                 config.type = int(atof(buf));
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].rgbspace.xw", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                rgbColorSpace.xw = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                rgbColorSpace.xw = float(dval);
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].rgbspace.yw", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                rgbColorSpace.yw = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                rgbColorSpace.yw = float(dval);
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].rgbspace.xr", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                rgbColorSpace.xr = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                rgbColorSpace.xr = float(dval);
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].rgbspace.yr", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                rgbColorSpace.yr = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                rgbColorSpace.yr = float(dval);
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].rgbspace.xg", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                rgbColorSpace.xg = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                rgbColorSpace.xg = float(dval);
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].rgbspace.yg", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                rgbColorSpace.yg = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                rgbColorSpace.yg = float(dval);
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].rgbspace.xb", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                rgbColorSpace.xb = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                rgbColorSpace.xb = float(dval);
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].rgbspace.yb", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                rgbColorSpace.yb = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                rgbColorSpace.yb = float(dval);
             }
 
             for (int d=0; d<int(Model::analogCompN); d++) {
@@ -398,11 +455,22 @@ public:
 
     void addAnalogConfig() {
         handleDelimiter();
+		char str[32];
         addString("\"rgbconfig\":["); 
         for (size_t c=0; c<Model::analogN; c++) {
             const Model::AnalogConfig &a = Model::instance().analogConfig(c);
             addString("{");
             addString("\"type\":%d,",int(a.type)); 
+            addString("\"rgbspace\" : {");
+			ftoa(str, Model::instance().rgbColorSpace().xw, NULL); addString("\"xw\":%s,",str); 
+			ftoa(str, Model::instance().rgbColorSpace().yw, NULL); addString("\"yw\":%s,",str); 
+			ftoa(str, Model::instance().rgbColorSpace().xr, NULL); addString("\"xr\":%s,",str); 
+			ftoa(str, Model::instance().rgbColorSpace().yr, NULL); addString("\"yr\":%s,",str); 
+			ftoa(str, Model::instance().rgbColorSpace().xg, NULL); addString("\"xg\":%s,",str); 
+			ftoa(str, Model::instance().rgbColorSpace().yg, NULL); addString("\"yg\":%s,",str); 
+			ftoa(str, Model::instance().rgbColorSpace().xb, NULL); addString("\"xb\":%s,",str); 
+			ftoa(str, Model::instance().rgbColorSpace().yb, NULL); addString("\"yb\":%s,",str); 
+            addString("},");
             addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
                 addString("{");

@@ -21,10 +21,12 @@ public:
     
     static Driver &instance();
 
-    const rgbww &rgbwwCIE(size_t terminal) const { terminal %= terminalN; return _rgbww[terminal]; }
-    void setRGBWWCIE(size_t terminal, const rgbww &rgb);
+    const rgbww &srgbwwCIE(size_t terminal) const { terminal %= terminalN; return _srgbww[terminal]; }
+    void setsRGBWWCIE(size_t terminal, const rgbww &rgb);
 
 	void sync(size_t terminal);
+	
+	void setRGBColorSpace(const RGBColorSpace &rgbSpace) { colorConverter.setRGBColorSpace(rgbSpace); }
 
 private:
     void setPulse(size_t idx, uint16_t pulse);
@@ -32,8 +34,9 @@ private:
     bool initialized = false;
     void init();
     
-    rgbww _rgbww[terminalN];
+    rgbww _srgbww[terminalN];
     ColorSpaceConverter colorConverter; 
+    CIETransferfromsRGBTransferLookup transferLookup;
 };
 
 };

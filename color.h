@@ -7,10 +7,38 @@ namespace lightkraken {
 
 //#define TEST_SRGB_IDENTITY
 
+struct RGBColorSpace {
+
+	void setsRGB() {
+        xw = 0.31271f; yw = 0.32902f; // D65 white point
+        xr = 0.64000f; yr = 0.33000f;
+        xg = 0.30000f; yg = 0.60000f;
+        xb = 0.15000f; yb = 0.06000f;
+	}
+
+	void setLED() {
+        xw = 0.34567f; yw = 0.35850f; // D50 white point
+        xr = 0.67630f; yr = 0.32370f; // from http://ww1.microchip.com/downloads/en/AppNotes/00001562B.pdf
+        xg = 0.20880f; yg = 0.74070f;
+        xb = 0.14050f; yb = 0.03910f;
+	}
+
+	float xw; float yw;
+	float xr; float yr;
+	float xg; float yg;
+	float xb; float yb;
+};
+
+class CIETransferfromsRGBTransferLookup {
+public:
+	void init();
+    uint16_t lookup[256];
+};
+
 class ColorSpaceConverter {
 public:
 
-    void sRGBtoLEDPWM(
+    void sRGB8toLEDPWM(
             uint8_t srgb_r,
             uint8_t srgb_g,
             uint8_t srgb_b,
@@ -19,18 +47,7 @@ public:
             uint16_t &pwm_g,
             uint16_t &pwm_b) const;
 
-    void setRGBSpace(
-#ifdef TEST_SRGB_IDENTITY
-        float xw = 0.31271f, float yw = 0.32902f, // D65 white point
-        float xr = 0.64000f, float yr = 0.33000f,
-        float xg = 0.30000f, float yg = 0.60000f,
-        float xb = 0.15000f, float yb = 0.06000f);
-#else
-        float xw = 0.34567f, float yw = 0.35850f, // D50 white point
-        float xr = 0.67630f, float yr = 0.32370f, // from http://ww1.microchip.com/downloads/en/AppNotes/00001562B.pdf
-        float xg = 0.20880f, float yg = 0.74070f,
-        float xb = 0.14050f, float yb = 0.03910f);
-#endif
+    void setRGBColorSpace(const RGBColorSpace &rgbSpace);
 
 private:
 

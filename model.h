@@ -22,7 +22,7 @@ private:
 	uint32_t model_version;
 
 public:
-    static constexpr uint32_t currentModelVersion = 0x1ed50001;
+    static constexpr uint32_t currentModelVersion = 0x1ed50002;
 
     static constexpr size_t stripN = 2;
     static constexpr size_t analogN = 2;
@@ -80,6 +80,8 @@ public:
     ip_addr_t *ip4Address() { return &ip4_address; }
     ip_addr_t *ip4Netmask() { return &ip4_netmask; }
     ip_addr_t *ip4Gateway() { return &ip4_gateway; }
+
+    RGBColorSpace &rgbColorSpace() { return rgbSpace; }
     
     StripConfig &stripConfig(size_t index) { return strip_config[index]; }
     AnalogConfig &analogConfig(size_t index) { return analog_config[index]; }
@@ -120,6 +122,8 @@ private:
     
     StripConfig strip_config[stripN];
     AnalogConfig analog_config[analogN];
+    
+    RGBColorSpace rgbSpace;
 
     bool initialized = false;
 };

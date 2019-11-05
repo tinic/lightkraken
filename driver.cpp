@@ -28,9 +28,9 @@ Driver &Driver::instance() {
     return driver;
 }
 
-void Driver::setRGBWWCIE(size_t terminal, const rgbww &rgb) {
+void Driver::setsRGBWWCIE(size_t terminal, const rgbww &rgb) {
     terminal %= terminalN;
-    _rgbww[terminal] = rgb;
+    _srgbww[terminal] = rgb;
 }
 
 void Driver::sync(size_t terminal) {
@@ -42,10 +42,10 @@ void Driver::sync(size_t terminal) {
 			uint16_t rp = 0;
 			uint16_t gp = 0;
 			uint16_t bp = 0;
-        	colorConverter.sRGBtoLEDPWM(
-        		_rgbww[terminal].r,
-        		_rgbww[terminal].g,
-        		_rgbww[terminal].b,
+        	colorConverter.sRGB8toLEDPWM(
+        		_srgbww[terminal].r,
+        		_srgbww[terminal].g,
+        		_srgbww[terminal].b,
         		PwmTimer::pwmPeriod, rp, gp, bp);
             setPulse(0 + 0, rp);
             setPulse(0 + 1, gp);
@@ -57,10 +57,10 @@ void Driver::sync(size_t terminal) {
 			uint16_t rp = 0;
 			uint16_t gp = 0;
 			uint16_t bp = 0;
-        	colorConverter.sRGBtoLEDPWM(
-        		_rgbww[terminal].r,
-        		_rgbww[terminal].g,
-        		_rgbww[terminal].b,
+        	colorConverter.sRGB8toLEDPWM(
+        		_srgbww[terminal].r,
+        		_srgbww[terminal].g,
+        		_srgbww[terminal].b,
         		PwmTimer::pwmPeriod, rp, gp, bp);
             setPulse(3 + 0, rp);
             setPulse(0 + 1, gp);
@@ -72,26 +72,26 @@ void Driver::sync(size_t terminal) {
 			uint16_t rp = 0;
 			uint16_t gp = 0;
 			uint16_t bp = 0;
-        	colorConverter.sRGBtoLEDPWM(
-        		_rgbww[terminal].r,
-        		_rgbww[terminal].g,
-        		_rgbww[terminal].b,
+        	colorConverter.sRGB8toLEDPWM(
+        		_srgbww[terminal].r,
+        		_srgbww[terminal].g,
+        		_srgbww[terminal].b,
         		PwmTimer::pwmPeriod, rp, gp, bp);
 
             setPulse(0, rp);
             setPulse(1, gp);
             setPulse(2, bp);
-            setPulse(3, 0x00);
+            setPulse(3, transferLookup.lookup[_srgbww[terminal].w]);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
 		uint16_t rp = 0;
 		uint16_t gp = 0;
 		uint16_t bp = 0;
-		colorConverter.sRGBtoLEDPWM(
-			_rgbww[terminal].r,
-			_rgbww[terminal].g,
-			_rgbww[terminal].b,
+		colorConverter.sRGB8toLEDPWM(
+			_srgbww[terminal].r,
+			_srgbww[terminal].g,
+			_srgbww[terminal].b,
 			PwmTimer::pwmPeriod, rp, gp, bp);
         setPulse(terminal*3 + 0, rp);
         setPulse(terminal*3 + 1, gp);
@@ -126,7 +126,11 @@ void Driver::setPulse(size_t idx, uint16_t pulse) {
 
 void Driver::init() {
 
-	colorConverter.setRGBSpace();
+	RGBColorSpace rgbSpace;
+	rgbSpace.setLED();
+	colorConverter.setRGBColorSpace(rgbSpace);
+	
+	transferLookup.init();
 
     PwmTimer0::instance().setPulse(0x0);
     PwmTimer1::instance().setPulse(0x0);
