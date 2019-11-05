@@ -390,6 +390,7 @@ public:
     }
 
     void addIllum() {
+        handleDelimiter();
         char str[32];
         ftoa(str, Model::instance().globIllum(), NULL);
         addString("\"globillum\":%s",str); 
