@@ -490,7 +490,7 @@ public:
 			ftoa(str, a.rgbSpace.xg, NULL); addString("\"xg\":%s,",str); 
 			ftoa(str, a.rgbSpace.yg, NULL); addString("\"yg\":%s,",str); 
 			ftoa(str, a.rgbSpace.xb, NULL); addString("\"xb\":%s,",str); 
-			ftoa(str, a.rgbSpace.yb, NULL); addString("\"yb\":%s,",str); 
+			ftoa(str, a.rgbSpace.yb, NULL); addString("\"yb\":%s",str); 
             addString("},");
             addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
