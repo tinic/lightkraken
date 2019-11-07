@@ -23,6 +23,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "color.h"
 #include "pwmtimer.h"
 
+#include "cmsis_gcc.h"
+
 #include <algorithm>
 
 #include <math.h>
@@ -90,7 +92,6 @@ void ColorSpaceConverter::sRGB8toLED16(
     uint8_t off_b,
     size_t channels) {
 
-    
     for (size_t c = 0; c < len; c += channels) {
         constexpr const int32_t theta = int32_t(0.080f * float(1UL<<24));
         constexpr const int32_t delta = int32_t(0.160f * float(1UL<<24));
@@ -126,10 +127,10 @@ void ColorSpaceConverter::sRGB8toLED16(
             z = mul_8_24(z, const_mul1);
         }
         
-        dst[off_r] = uint16_t(std::clamp(x >> 8, int32_t(0), int32_t(65535)));
-        dst[off_g] = uint16_t(std::clamp(y >> 8, int32_t(0), int32_t(65535)));
-        dst[off_b] = uint16_t(std::clamp(z >> 8, int32_t(0), int32_t(65535)));
-        
+		dst[off_r] = __USAT(x >> 8, 15);
+		dst[off_g] = __USAT(y >> 8, 15);
+		dst[off_b] = __USAT(z >> 8, 15);
+
         src += channels;
         dst += channels;
     }
@@ -159,7 +160,7 @@ void ColorSpaceConverter::sRGB8TransfertoLED16Transfer(
             x = mul_8_24(x, const_mul1);
         }
 
-        dst[off_out] = uint16_t(std::clamp(x >> 8, int32_t(0), int32_t(65535)));
+		dst[off_out] = __USAT(x >> 8, 15);
         
         src += channels;
         dst += channels;
