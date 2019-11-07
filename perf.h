@@ -15,8 +15,13 @@ public:
 		SLOT_COUNT
 	};
 
+#ifndef BOOTLOADER
 	PerfMeasure(Slot slot);
 	~PerfMeasure();
+#else  // #ifndef BOOTLOADER
+	PerfMeasure(Slot) {};
+	~PerfMeasure() {};
+#endif  // #ifndef BOOTLOADER
 
 	static void print();
 

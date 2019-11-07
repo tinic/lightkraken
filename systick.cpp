@@ -91,10 +91,14 @@ uint64_t Systick::systemTick() {
 }
 
 void Systick::handler() {
+
+#ifndef BOOTLOADER
     static uint32_t perf_print = 0;
     if ((perf_print++ & 0x1FF) == 0x0) {
 		PerfMeasure::print();
     }
+#endif  // #ifndef BOOTLOADER
+
     static uint32_t status_led = 0;
     if ((status_led++ & 0xF) == 0x0) {
         lightkraken::StatusLED::instance().schedule();
