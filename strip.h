@@ -67,6 +67,7 @@ namespace lightkraken {
         void setStripType(Type type) { strip_type = type; }
         
         void setUseRGBColorSpace(bool state) { convertsrgb = state; }
+        void setDither(bool state) { dither = state; }
         void setRGBColorSpace(const RGBColorSpace &colorSpace);
 
         void setPixelLen(size_t len);
@@ -99,11 +100,13 @@ namespace lightkraken {
         void ws2812_alike_convert(size_t start, size_t end);
         void tls3001_alike_convert(size_t &len);
 
+        bool dither = false;
         bool convertsrgb = false;
         bool transfer_flag;
         bool strip_reset = false;
         Type strip_type = WS2812_RGB;
         size_t comp_len = 0;
+        int8_t comp_err[compMaxLen];
         uint16_t comp_buf[compMaxLen];
         uint8_t spi_buf[spiMaxLen];
     };

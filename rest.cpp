@@ -275,6 +275,10 @@ public:
             if (mjson_get_bool(post_buf, post_len, "$.stripconfig[%d].usergbspace", &ival) > 0) {
                 config.useRgbSpace = ival ? true : false;
             }
+
+            if (mjson_get_bool(post_buf, post_len, "$.stripconfig[%d].dither", &ival) > 0) {
+                config.dither = ival ? true : false;
+            }
             
             sprintf(ss, "$.stripconfig[%d].rgbspace.xw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
@@ -590,6 +594,7 @@ public:
             addString("\"type\":%d,",int(s.type)); 
             addString("\"length\":%d,",int(s.len)); 
             addString("\"usergbspace\":%s,",s.useRgbSpace?"true":"false"); 
+            addString("\"dither\":%s,",s.dither?"true":"false"); 
             addString("\"rgbspace\" : {");
 			ftoa(str, s.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
 			ftoa(str, s.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 

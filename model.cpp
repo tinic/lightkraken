@@ -149,6 +149,7 @@ void Model::apply() {
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         lightkraken::Strip::get(c).setUseRGBColorSpace(strip_config[c].useRgbSpace);
+        lightkraken::Strip::get(c).setDither(strip_config[c].dither);
 		lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
     }
 

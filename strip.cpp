@@ -560,10 +560,8 @@ namespace lightkraken {
     void Strip::lpd8806_rgb_alike_convert(size_t start, size_t end) {
         uint8_t *dst = spi_buf + start;
         *dst++ = 0x00;
-        for (size_t c = std::max(start, size_t(1)); c <= std::min(end, comp_len - 1 + 1); c += 3) {
-            *dst++ = 0x80 | (comp_buf[c-1+0] >> 9);
-            *dst++ = 0x80 | (comp_buf[c-1+1] >> 9);
-            *dst++ = 0x80 | (comp_buf[c-1+2] >> 9);
+        for (size_t c = std::max(start, size_t(1)); c <= std::min(end, comp_len - 1 + 1); c++) {
+            *dst++ = 0x80 | (comp_buf[c-1] >> 9);
         }
     }
 
@@ -601,12 +599,23 @@ namespace lightkraken {
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
         }
-        for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
-            uint32_t p = uint32_t(comp_buf[c-head_len]) >> 8;
-            *dst++ = 0x88888888UL |
-                    (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-                    (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
-        }
+        if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
+			for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
+				int32_t v = comp_buf[c-head_len] + ( int32_t(comp_err[c-head_len]) << 1 );
+				int32_t p = v >> 8;
+				comp_err[c-head_len] = int8_t((v - (p << 8)) >> 1);
+				*dst++ = 0x88888888UL |
+						(((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
+						(((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+			}
+        } else {
+			for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
+				uint32_t p = uint32_t(comp_buf[c-head_len]) >> 8;
+				*dst++ = 0x88888888UL |
+						(((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
+						(((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+			}
+		}
         for (size_t c = std::max(start, comp_len); c <= end; c++) {
             *dst++ = 0x00;
         }

@@ -60,6 +60,7 @@ public:
         rgb8 color;
 	    RGBColorSpace rgbSpace;
         uint8_t useRgbSpace;
+        uint8_t dither;
         uint16_t len;
         uint16_t universe[universeN];
     };
