@@ -30,7 +30,8 @@ public:
     static Systick &instance();
     
     uint32_t systemTime() const { return system_time; }
-    
+	uint64_t systemTick();
+ 
     void handler();
     
 	void scheduleReset(int32_t countdown = 2000, bool bootloader = false) { 

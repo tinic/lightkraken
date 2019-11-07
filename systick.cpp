@@ -44,6 +44,38 @@ void SysTick_Handler(void) {
 
 namespace lightkraken {
 
+static uint64_t large_dwt_cyccnt() {
+
+	static const uint32_t TRCENA 	= 0x01000000;
+	static const uint32_t CYCCNTENA = 0x00000001;
+
+    volatile uint32_t *DWT_CYCCNT  = reinterpret_cast<volatile uint32_t *>(0xE0001004);
+    volatile uint32_t *DWT_CONTROL = reinterpret_cast<volatile uint32_t *>(0xE0001000);
+    volatile uint32_t *SCB_DEMCR   = reinterpret_cast<volatile uint32_t *>(0xE000EDFC);
+
+    static uint32_t PREV_DWT_CYCCNT = 0;
+    static uint64_t LARGE_DWT_CYCCNT = 0;
+
+    static bool init = false;
+    if (!init) {
+        init = true;
+        *SCB_DEMCR   = *SCB_DEMCR | TRCENA; // TRCENA
+        *DWT_CYCCNT  = 0; // reset the counter
+        *DWT_CONTROL = *DWT_CONTROL | CYCCNTENA; // enable the counter
+    }
+
+    uint32_t CURRENT_DWT_CYCCNT = *DWT_CYCCNT;
+
+    // wrap around
+    if (PREV_DWT_CYCCNT > CURRENT_DWT_CYCCNT) {
+        LARGE_DWT_CYCCNT += 0x100000000UL;
+    }
+
+    PREV_DWT_CYCCNT = CURRENT_DWT_CYCCNT;
+
+    return LARGE_DWT_CYCCNT + CURRENT_DWT_CYCCNT;
+}
+
 Systick &Systick::instance() {
     static Systick systick;
     if (!systick.initialized) {
@@ -51,6 +83,10 @@ Systick &Systick::instance() {
         systick.init();
     }
     return systick;
+}
+
+uint64_t Systick::systemTick() {
+    return large_dwt_cyccnt();
 }
 
 void Systick::handler() {
@@ -88,7 +124,11 @@ void Systick::handler() {
             }
         }
     }
+
 #endif  // #ifndef BOOTLOADER
+
+	// Handle wrap around if required
+	large_dwt_cyccnt();
 
     system_time++;
 }
@@ -100,5 +140,3 @@ void Systick::init() {
 }
 
 }
-
-
