@@ -665,6 +665,7 @@ public:
 		MethodNone,
 		MethodGetStatus,
 		MethodGetSettings,
+		MethodGetOneSetting,
 		MethodPostSettings,
 		MethodPostBootLoader,
 	};
@@ -685,6 +686,7 @@ public:
 			struct pbuf *buffers[16];
 			size_t buffer_index;
 			uint32_t time_stamp;
+			char property[16];
 	};
 	
 	ConnectionInfo *begin(void *handle) {
@@ -751,6 +753,11 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
                 return ERR_OK;
             } else if (strcmp(url, "/settings") == 0) {
                 info->method = ConnectionManager::MethodGetSettings;
+                return ERR_OK;
+            } else if (strncmp(url, "/settings/", strlen("/settings/")) == 0) {
+                info->method = ConnectionManager::MethodGetOneSetting;
+                strncpy(info->property, url + strlen("/settings/"), 15);
+                info->property[15] = 0;
                 return ERR_OK;
             }
         } break;
@@ -819,8 +826,42 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
-        case ConnectionManager::MethodGetSettings: {
+        case ConnectionManager::MethodGetOneSetting: {
+
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+			response.beginJSONResponse();
+        	if (strcmp(info->property, "dhcp")) {
+	            response.addDHCP();
+        	} else if (strcmp(info->property, "tag")) {
+	            response.addTag();
+        	} else if (strcmp(info->property, "broadcast")) {
+	            response.addBroadcast();
+        	} else if (strcmp(info->property, "ipv4address")) {
+	            response.addIPv4Address();
+        	} else if (strcmp(info->property, "ipv4netmask")) {
+	            response.addIPv4Netmask();
+        	} else if (strcmp(info->property, "ipv4gateway")) {
+	            response.addIPv4Gateway();
+        	} else if (strcmp(info->property, "outputmode")) {
+	            response.addOutputMode();
+        	} else if (strcmp(info->property, "globpwmlimit")) {
+	            response.addPwmLimit();
+        	} else if (strcmp(info->property, "globcomplimit")) {
+	            response.addCompLimit();
+        	} else if (strcmp(info->property, "globillum")) {
+	            response.addIllum();
+        	} else if (strcmp(info->property, "rgbconfig")) {
+	            response.addAnalogConfig();
+        	} else if (strcmp(info->property, "stripconfig")) {
+	            response.addStripConfig();
+        	}
+            *data = response.finish(*dataLen);
             
+            ConnectionManager::instance().end(handle);
+            return ERR_OK;
+        } break;
+        case ConnectionManager::MethodGetSettings: {
+
             HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
             response.beginJSONResponse();
             response.addTag();
