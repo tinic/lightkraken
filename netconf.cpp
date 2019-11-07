@@ -48,6 +48,7 @@ extern "C" {
 #include "./model.h"
 #include "./artnet.h"
 #include "./systick.h"
+#include "./perf.h"
 
 namespace lightkraken {
 
@@ -167,6 +168,7 @@ void NetConf::update() {
     uint32_t localtime = lightkraken::Systick::instance().systemTime();
 
     if (enet_rxframe_size_get()){
+		PerfMeasure perf(PerfMeasure::SLOT_ENET_INPUT);
         EthernetIf::ethernetif_input(&netif);
     }
 

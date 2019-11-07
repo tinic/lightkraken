@@ -34,6 +34,7 @@ extern "C" {
 #include "./model.h"
 #include "./strip.h"
 #include "./control.h"
+#include "./perf.h"
 
 extern "C" {
 __attribute__((used)) // required for -flto
@@ -90,6 +91,10 @@ uint64_t Systick::systemTick() {
 }
 
 void Systick::handler() {
+    static uint32_t perf_print = 0;
+    if ((perf_print++ & 0x1FF) == 0x0) {
+		PerfMeasure::print();
+    }
     static uint32_t status_led = 0;
     if ((status_led++ & 0xF) == 0x0) {
         lightkraken::StatusLED::instance().schedule();

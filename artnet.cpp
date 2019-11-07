@@ -33,6 +33,7 @@ extern "C" {
 #include "./control.h"
 #include "./systick.h"
 #include "./netconf.h"
+#include "./perf.h"
 
 namespace lightkraken {
 
@@ -256,6 +257,7 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 }
 
 bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len) {
+	PerfMeasure perf(PerfMeasure::SLOT_ARNET_DISPATCH);
     ArtNetPacket::Opcode opcode = ArtNetPacket::maybeValid(buf, len);
     if (opcode != OpInvalid) {
         switch(opcode) {

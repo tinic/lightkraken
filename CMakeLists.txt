@@ -124,7 +124,7 @@ include(${LWIP_DIR}/src/Filelists.cmake)
 if(BOOTLOADER)
 set(main_SRCS main.cpp glue.cpp ethernetif.cpp netconf.cpp systick.cpp status.cpp bootloader.cpp multipartparser.cpp)
 else(BOOTLOADER)
-set(main_SRCS main.cpp color.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ftoa.cpp)
+set(main_SRCS main.cpp color.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ftoa.cpp perf.cpp)
 endif(BOOTLOADER)
 
 set(SOURCE_FILES ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC} ${lwipcore_SRCS} ${lwipcore4_SRCS} ${lwipnetif_SRCS} ${lwiphttp_SRCS} ${main_SRCS})

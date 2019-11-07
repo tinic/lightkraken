@@ -27,7 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./strip.h"
 #include "./model.h"
 #include "./color.h"
-
+#include "./perf.h"
 
 namespace lightkraken {
 
@@ -217,6 +217,7 @@ namespace lightkraken {
     }
 
     void Strip::setData(const uint8_t *data, size_t len) {
+		PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
         switch(strip_type) {
             default:
             case SK9822_RGB:
@@ -332,6 +333,7 @@ namespace lightkraken {
     }
 
     void Strip::setUniverseData(size_t uniN, const uint8_t *data, size_t len) {
+		PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
         if (uniN >= lightkraken::Model::universeN) {
             return;
         }
@@ -420,6 +422,7 @@ namespace lightkraken {
     }
 
     void Strip::transfer() {
+		PerfMeasure perf(PerfMeasure::SLOT_STRIP_TRANFER);
         size_t len = 0;
         if (Model::instance().burstMode() &&
             strip_type != TLS3001_RGB) {
