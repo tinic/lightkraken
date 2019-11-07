@@ -192,6 +192,11 @@ void Model::apply() {
     }
 }
 
+void Model::setTag(const char *str) { 
+	strncpy(tag_str, str, sizeof(tag_str) - 1); 
+	tag_str[sizeof(tag_str)-1] = 0; 
+}
+
 void Model::init() {
 	defaults();
     readFlash();

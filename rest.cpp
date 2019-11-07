@@ -72,7 +72,7 @@ public:
     }
     
     void end() {
-        char buf[64];
+        char buf[256];
         char ss[64];
         int ival = 0;
         double dval = 0;
@@ -84,6 +84,10 @@ public:
         
         if (mjson_get_bool(post_buf, post_len, "$.broadcast", &ival) > 0) {
             Model::instance().setBroadcastEnabled(ival ? true : false);
+        }
+
+        if (mjson_get_string(post_buf, post_len, "$.tag", buf, sizeof(buf)) > 0) {
+        	Model::instance().setTag(buf);
         }
         
         if (mjson_get_string(post_buf, post_len, "$.ipv4address", buf, sizeof(buf)) > 0) {
@@ -446,6 +450,11 @@ public:
                 ip4_addr2(&NetConf::instance().netInterface()->gw),
                 ip4_addr3(&NetConf::instance().netInterface()->gw),
                 ip4_addr4(&NetConf::instance().netInterface()->gw));
+    }
+
+    void addTag() {
+        handleDelimiter();
+        addString("\"tag\":\"%s\"", Model::instance().tag()); 
     }
 
     void addSystemTime() {
@@ -814,6 +823,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             
             HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
             response.beginJSONResponse();
+            response.addTag();
             response.addDHCP();
             response.addBroadcast();
             response.addIPv4Address();

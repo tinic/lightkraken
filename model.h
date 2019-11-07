@@ -98,6 +98,9 @@ public:
     bool dhcpEnabled() const { return dhcp; }
     void setDhcpEnabled(bool state) { dhcp = state; }
     
+    const char *tag() const { return tag_str; }
+    void setTag(const char *str);
+    
     bool broadcastEnabled() const { return receive_broadcast; }
     void setBroadcastEnabled(bool state) { receive_broadcast = state; }
 
@@ -149,6 +152,7 @@ private:
     StripConfig strip_config[stripN];
     AnalogConfig analog_config[analogN];
     
+    char tag_str[256];
 
     bool initialized = false;
 };
