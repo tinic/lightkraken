@@ -37,7 +37,7 @@ private:
 	uint32_t model_version;
 
 public:
-    static constexpr uint32_t currentModelVersion = 0x1ed50003;
+    static constexpr uint32_t currentModelVersion = 0x1ed50004;
 
     static constexpr size_t stripN = 2;
     static constexpr size_t analogN = 2;
@@ -47,6 +47,7 @@ public:
     struct AnalogConfig {
         uint32_t type;
 	    RGBColorSpace rgbSpace;
+        uint8_t useRgbSpace;
         struct Component {
             uint16_t universe;
             uint16_t offset;
@@ -57,6 +58,8 @@ public:
     struct StripConfig {
         uint32_t type;
         rgb8 color;
+	    RGBColorSpace rgbSpace;
+        uint8_t useRgbSpace;
         uint16_t len;
         uint16_t universe[universeN];
     };

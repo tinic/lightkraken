@@ -92,7 +92,6 @@ void Driver::sync(size_t terminal) {
         		_srgbww[terminal].g,
         		_srgbww[terminal].b,
         		PwmTimer::pwmPeriod, rp, gp, bp);
-
             setPulse(0, rp);
             setPulse(1, gp);
             setPulse(2, bp);

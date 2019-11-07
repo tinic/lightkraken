@@ -148,6 +148,8 @@ void Model::apply() {
     for (size_t c = 0; c < stripN; c++) {
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
+        lightkraken::Strip::get(c).setUseRGBColorSpace(strip_config[c].useRgbSpace);
+		lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
     }
 
     for (size_t c = 0; c < analogN; c++) {

@@ -138,6 +138,10 @@ public:
                 config.type = int(atof(buf));
             }
 
+            if (mjson_get_bool(post_buf, post_len, "$.rgbconfig[%d].usergbspace", &ival) > 0) {
+                config.useRgbSpace = ival ? true : false;
+            }
+            
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                  config.rgbSpace.xw = float(dval);
@@ -263,7 +267,67 @@ public:
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
                 config.color.x = strtol(buf, NULL, 10);
             }
+
+            if (mjson_get_bool(post_buf, post_len, "$.stripconfig[%d].usergbspace", &ival) > 0) {
+                config.useRgbSpace = ival ? true : false;
+            }
             
+            sprintf(ss, "$.stripconfig[%d].rgbspace.xw", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                 config.rgbSpace.xw = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                 config.rgbSpace.xw = float(dval);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].rgbspace.yw", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.rgbSpace.yw = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                 config.rgbSpace.yw = float(dval);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].rgbspace.xr", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                 config.rgbSpace.xr = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                 config.rgbSpace.xr = float(dval);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].rgbspace.yr", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                 config.rgbSpace.yr = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                 config.rgbSpace.yr = float(dval);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].rgbspace.xg", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                 config.rgbSpace.xg = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                 config.rgbSpace.xg = float(dval);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].rgbspace.yg", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                 config.rgbSpace.yg = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                 config.rgbSpace.yg = float(dval);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].rgbspace.xb", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                 config.rgbSpace.xb = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                 config.rgbSpace.xb = float(dval);
+            }
+
+            sprintf(ss, "$.stripconfig[%d].rgbspace.yb", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                 config.rgbSpace.yb = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                 config.rgbSpace.yb = float(dval);
+            }
+
             for (int d=0; d<int(Model::universeN); d++) {
                 sprintf(ss, "$.stripconfig[%d].universes[%d].universe", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
@@ -482,6 +546,7 @@ public:
             const Model::AnalogConfig &a = Model::instance().analogConfig(c);
             addString("{");
             addString("\"type\":%d,",int(a.type)); 
+            addString("\"usergbspace\":%s,",a.useRgbSpace?"true":"false"); 
             addString("\"rgbspace\" : {");
 			ftoa(str, a.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
 			ftoa(str, a.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
@@ -508,12 +573,24 @@ public:
 
     void addStripConfig() {
         handleDelimiter();
+		char str[32];
         addString("\"stripconfig\":["); 
         for (size_t c=0; c<Model::stripN; c++) {
             const Model::StripConfig &s = Model::instance().stripConfig(c);
             addString("{");
             addString("\"type\":%d,",int(s.type)); 
             addString("\"length\":%d,",int(s.len)); 
+            addString("\"usergbspace\":%s,",s.useRgbSpace?"true":"false"); 
+            addString("\"rgbspace\" : {");
+			ftoa(str, s.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
+			ftoa(str, s.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
+			ftoa(str, s.rgbSpace.xr, NULL); addString("\"xr\":%s,",str); 
+			ftoa(str, s.rgbSpace.yr, NULL); addString("\"yr\":%s,",str); 
+			ftoa(str, s.rgbSpace.xg, NULL); addString("\"xg\":%s,",str); 
+			ftoa(str, s.rgbSpace.yg, NULL); addString("\"yg\":%s,",str); 
+			ftoa(str, s.rgbSpace.xb, NULL); addString("\"xb\":%s,",str); 
+			ftoa(str, s.rgbSpace.yb, NULL); addString("\"yb\":%s",str); 
+            addString("},");
             addString("\"color\":{\"r\":%d,\"g\":%d,\"b\":%d,\"a\":%d},",
                             (int)s.color.r,
                             (int)s.color.g,

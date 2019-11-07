@@ -76,8 +76,17 @@ public:
             uint16_t *dst,
             uint8_t off_r,
             uint8_t off_g,
-            uint8_t off_b);
-            
+            uint8_t off_b,
+            size_t channels);
+
+    void sRGB8TransfertoLED16Transfer(
+            size_t len,
+            const uint8_t *src,
+            uint16_t *dst,
+            uint8_t off_in,
+            uint8_t off_out,
+            size_t channels);
+
     void setRGBColorSpace(const RGBColorSpace &rgbSpace);
 
 private:

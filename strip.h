@@ -65,6 +65,9 @@ namespace lightkraken {
         size_t getComponentsPerPixel() const;
         
         void setStripType(Type type) { strip_type = type; }
+        
+        void setUseRGBColorSpace(bool state) { convertsrgb = state; }
+        void setRGBColorSpace(const RGBColorSpace &colorSpace);
 
         void setPixelLen(size_t len);
         size_t getMaxPixelLen() const;

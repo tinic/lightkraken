@@ -87,11 +87,11 @@ void ColorSpaceConverter::sRGB8toLED16(
     uint16_t *dst,
     uint8_t off_r,
     uint8_t off_g,
-    uint8_t off_b) {
+    uint8_t off_b,
+    size_t channels) {
 
     
-    for (size_t c = 0; c < len; c += 3) {
-        
+    for (size_t c = 0; c < len; c += channels) {
         constexpr const int32_t theta = int32_t(0.080f * float(1UL<<24));
         constexpr const int32_t delta = int32_t(0.160f * float(1UL<<24));
         constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<24));
@@ -130,8 +130,39 @@ void ColorSpaceConverter::sRGB8toLED16(
         dst[off_g] = uint16_t(std::clamp(y >> 8, int32_t(0), int32_t(65535)));
         dst[off_b] = uint16_t(std::clamp(z >> 8, int32_t(0), int32_t(65535)));
         
-        src += 3;
-        dst += 3;
+        src += channels;
+        dst += channels;
+    }
+}
+
+__attribute__ ((hot, optimize("O3")))
+void ColorSpaceConverter::sRGB8TransfertoLED16Transfer(
+    size_t len,
+    const uint8_t *src,
+    uint16_t *dst,
+    uint8_t off_in,
+    uint8_t off_out,
+    size_t channels) {
+
+    for (size_t c = 0; c < len; c += channels) {
+        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<24));
+        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<24));
+        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<24));
+        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<24));
+
+        int32_t x = srgb_2_srgbl_lookup_8_24[src[off_in]];
+
+        if ( x > theta ) {
+            x = mul_8_24(x + delta, const_mul0);
+            x = mul_8_24(x, mul_8_24(x, x)); 
+        } else {
+            x = mul_8_24(x, const_mul1);
+        }
+
+        dst[off_out] = uint16_t(std::clamp(x >> 8, int32_t(0), int32_t(65535)));
+        
+        src += channels;
+        dst += channels;
     }
 }
 
