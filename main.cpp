@@ -33,7 +33,7 @@ extern "C" {
 #include "./strip.h"
 #include "./model.h"
 #include "./status.h"
-#include "./spi.h"
+#include "./control.h"
 
 #ifdef BOOTLOADER
 #include "./bootloader.h"
@@ -72,8 +72,7 @@ int main() {
         lightkraken::StatusLED::instance().update();
         
 #ifndef BOOTLOADER
-        lightkraken::SPI_2::instance().update();
-        lightkraken::SPI_0::instance().update();
+		lightkraken::Control::instance().update();
 #endif  //#ifndef BOOTLOADER
     }
     return 0;

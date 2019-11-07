@@ -115,9 +115,9 @@ void Model::defaults() {
     glob_comp_lim = 0xFF;
 
     output_config = OUTPUT_CONFIG_DUAL_STRIP;
+    output_mode = MODE_MAIN_LOOP;
 
-    burst_mode = false;
-    
+    burst_mode = true;
 
     int32_t counter = 0;
     for (size_t c = 0; c < stripN; c++) {
@@ -200,6 +200,10 @@ void Model::init() {
 
 void Model::setOutputConfig(OutputConfig outputConfig) {
     output_config = outputConfig;
+}
+
+void Model::setOutputMode(OutputMode outputMode) {
+    output_mode = outputMode;
 }
 
 Model &Model::instance() {

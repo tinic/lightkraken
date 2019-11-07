@@ -33,9 +33,9 @@ extern "C" {
 #include "lwip/apps/httpd.h"
 #include "lwip/ip4_addr.h"
 #include "./mjson.h"
-#include "./ftoa.h"
 };
 
+#include "./ftoa.h"
 #include "./color.h"
 #include "./model.h"
 #include "./netconf.h"

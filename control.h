@@ -25,6 +25,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <functional>
 
+#include "./spi.h"
+
 namespace lightkraken {
 
 class Control {
@@ -34,6 +36,8 @@ public:
     void setUniverseOutputData(uint16_t universe, const uint8_t *data, size_t len, bool nodriver = false);
 
     void sync();
+    void syncFromInterrupt(const SPI &spi);
+    void update();
 
     void setEnableSyncMode(bool state) { syncMode = state; }
 	void interateAllActiveUniverses(std::function<void (uint16_t universe)> callback);

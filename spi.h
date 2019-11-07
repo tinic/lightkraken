@@ -25,18 +25,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace lightkraken {
 
-class SPI_0 {
-public:
-    static SPI_0 &instance();
-
-    void transfer(const uint8_t *buf, size_t len, bool wantsSCLK);
-    void update();
-
-private:
+class SPI {
+protected:
     bool initialized = false;
-    void init();
-
-    void dma_setup();
     const uint8_t *cbuf = 0;
     bool sclk = false;
     size_t clen = 0;
@@ -44,23 +35,30 @@ private:
     bool scheduled = false;
 };
 
-class SPI_2 {
+class SPI_0 : public SPI {
+public:
+    static SPI_0 &instance();
+
+    void transfer(const uint8_t *buf, size_t len, bool wantsSCLK);
+    void update();
+    bool busy() const;
+private:
+
+    void init();
+    void dma_setup();
+};
+
+class SPI_2 : public SPI {
 public:
     static SPI_2 &instance();
 
     void transfer(const uint8_t *buf, size_t len, bool wantsSCLK);
     void update();
-
+    bool busy() const;
 private:
-    bool initialized = false;
-    void init();
 
+    void init();
     void dma_setup();
-    const uint8_t *cbuf = 0;
-    bool sclk = false;
-    size_t clen = 0;
-    bool active = false;
-    bool scheduled = false;
 };
 
 }

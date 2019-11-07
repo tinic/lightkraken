@@ -64,6 +64,11 @@ public:
         uint16_t universe[universeN];
     };
 
+	enum OutputMode {
+		MODE_MAIN_LOOP,
+		MODE_INTERRUPT	
+	};
+
     enum OutputConfig {
         OUTPUT_CONFIG_DUAL_STRIP, 	    // channel0: strip      channel1: strip
         OUTPUT_CONFIG_RGB_STRIP, 	    // channel0: strip 	    channel1: rgb
@@ -105,6 +110,9 @@ public:
 
     OutputConfig outputConfig() const { return output_config; }
     void setOutputConfig(OutputConfig outputConfig);
+
+    OutputMode outputMode() const { return output_mode; }
+    void setOutputMode(OutputMode outputMode);
     
     uint16_t universeStrip(int32_t strip, int32_t dmx512Index) const { 
         strip %= stripN;
@@ -130,6 +138,7 @@ private:
     ip_addr_t ip4_gateway;
     
     OutputConfig output_config;
+	OutputMode output_mode;
 
     bool burst_mode;
 

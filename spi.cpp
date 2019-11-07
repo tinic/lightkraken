@@ -27,6 +27,7 @@ extern "C" {
 }
 
 #include "./spi.h"
+#include "./control.h"
 
 extern "C" {
 
@@ -34,7 +35,7 @@ __attribute__((used))
 void DMA0_Channel2_IRQHandler() {
     if(dma_interrupt_flag_get(DMA0, DMA_CH2, DMA_INT_FLAG_FTF)) {
         dma_interrupt_flag_clear(DMA0, DMA_CH2, DMA_INT_FLAG_G);   
-        printf("1!!\n");
+        lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_0::instance());
     }
 }
 
@@ -42,7 +43,7 @@ __attribute__((used))
 void DMA1_Channel1_IRQHandler() {
     if(dma_interrupt_flag_get(DMA1, DMA_CH1, DMA_INT_FLAG_FTF)) {
         dma_interrupt_flag_clear(DMA1, DMA_CH1, DMA_INT_FLAG_G);         
-        printf("2!!\n");
+        lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_2::instance());
     }
 }
 
@@ -59,18 +60,25 @@ SPI_0 &SPI_0::instance() {
     return spi0;
 }
 
+bool SPI_0::busy() const {
+	if(!dma_flag_get(DMA0, DMA_CH2, DMA_FLAG_FTF) ||
+		dma_transfer_number_get(DMA0, DMA_CH2)) {
+		return true;
+	}
+	return false;
+}
+
 void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 
     gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
     gpio_bit_set(GPIOA, GPIO_PIN_10);
     
-    if (active) {
-        if(!dma_flag_get(DMA0, DMA_CH2, DMA_FLAG_FTF) ||
-            dma_transfer_number_get(DMA0, DMA_CH2)) {
-            scheduled = true;
-            return;
-        }
-    }
+	if (active) {
+		if (busy()) {
+			scheduled = true;
+			return;
+		}
+	}
 
     dma_channel_disable(DMA0, DMA_CH2);
     active = false;
@@ -87,10 +95,10 @@ void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 }
 
 void SPI_0::update() {
-    if (scheduled) {
-        scheduled = false;
-        transfer(cbuf, clen, sclk);
-    }
+	if (scheduled) {
+		scheduled = false;
+		transfer(cbuf, clen, sclk);
+	}
 }
 
 void SPI_0::dma_setup() {
@@ -155,18 +163,25 @@ SPI_2 &SPI_2::instance() {
     return spi2;
 }
 
+bool SPI_2::busy() const {
+	if(!dma_flag_get(DMA1, DMA_CH1, DMA_FLAG_FTF) ||
+		dma_transfer_number_get(DMA1, DMA_CH1)) {
+		return true;
+	}
+	return false;
+}
+
 void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 
     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
     gpio_bit_set(GPIOB, GPIO_PIN_9);
     
-    if (active) {
-        if(!dma_flag_get(DMA1, DMA_CH1, DMA_FLAG_FTF) ||
-            dma_transfer_number_get(DMA1, DMA_CH1)) {
-            scheduled = true;
-            return;
-        }
-    }
+	if (active) {
+		if(busy()) {
+			scheduled = true;
+			return;
+		}
+	}
     
     dma_channel_disable(DMA1, DMA_CH1);
     active = false;
@@ -184,10 +199,10 @@ void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 }
 
 void SPI_2::update() {
-    if (scheduled) {
-        scheduled = false;
-        transfer(cbuf, clen, sclk);
-    }
+	if (scheduled) {
+		scheduled = false;
+		transfer(cbuf, clen, sclk);
+	}
 }
 
 void SPI_2::dma_setup() {
@@ -241,6 +256,7 @@ void SPI_2::init() {
     rcu_periph_clock_enable(RCU_DMA1);
 
     gpio_pin_remap_config(GPIO_SPI2_REMAP, ENABLE);
+
 }
 
 }  // namespace lightkraken {

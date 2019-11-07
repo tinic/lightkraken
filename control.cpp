@@ -40,29 +40,73 @@ Control &Control::instance() {
     return control;
 }
 
+void Control::syncFromInterrupt(const SPI &spi) {
+	if (Model::instance().outputMode() != Model::MODE_INTERRUPT) {
+		return;
+	}
+    switch(Model::instance().outputConfig()) {
+    case Model::OUTPUT_CONFIG_DUAL_STRIP: {
+    	if (&spi == &SPI_0::instance()) {
+			lightkraken::Strip::get(0).transfer();
+		}
+    	if (&spi == &SPI_2::instance()) {
+			lightkraken::Strip::get(1).transfer();
+		}
+    } break;
+    case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
+    	if (&spi == &SPI_0::instance()) {
+			lightkraken::Strip::get(0).transfer();
+		}
+    	if (&spi == &SPI_2::instance()) {
+			lightkraken::Strip::get(1).transfer();
+		}
+    } break;
+    case Model::OUTPUT_CONFIG_RGB_STRIP: {
+    	if (&spi == &SPI_2::instance()) {
+			lightkraken::Strip::get(1).transfer();
+		}
+    } break;
+    case Model::OUTPUT_CONFIG_RGBW_STRIP: {
+    	if (&spi == &SPI_2::instance()) {
+			lightkraken::Strip::get(1).transfer();
+		}
+    } break;
+    case Model::OUTPUT_CONFIG_RGB_RGB: {
+    } break;
+    }
+}
+
 void Control::sync() {
     switch(Model::instance().outputConfig()) {
     case Model::OUTPUT_CONFIG_DUAL_STRIP: {
-		for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
-			lightkraken::Strip::get(c).transfer();
+		if (Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
+			for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
+				lightkraken::Strip::get(c).transfer();
+			}
 		}
 	} break;
     case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
 		Driver::instance().sync(0);
-		for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
-			lightkraken::Strip::get(c).transfer();
+		if (Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
+			for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
+				lightkraken::Strip::get(c).transfer();
+			}
 		}
     } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
 		Driver::instance().sync(0);
-		for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
-			lightkraken::Strip::get(c).transfer();
+		if (Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
+			for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
+				lightkraken::Strip::get(c).transfer();
+			}
 		}
     } break;
     case Model::OUTPUT_CONFIG_RGBW_STRIP: {
 		Driver::instance().sync(0);
-		for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
-			lightkraken::Strip::get(c).transfer();
+		if (Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
+			for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
+				lightkraken::Strip::get(c).transfer();
+			}
 		}
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
@@ -235,7 +279,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
-            if (set && !syncMode) {
+            if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
                 lightkraken::Strip::get(c).transfer();
             }
         }
@@ -252,7 +296,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
-            if (set && !syncMode) {
+            if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
                 lightkraken::Strip::get(c).transfer();
             }
         }
@@ -269,7 +313,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
-            if (set && !syncMode) {
+            if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
                 lightkraken::Strip::get(c).transfer();
             }
         }
@@ -286,7 +330,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
-            if (set && !syncMode) {
+            if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
                 lightkraken::Strip::get(c).transfer();
             }
         }
@@ -299,19 +343,29 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     }
 }
 
+void Control::update() {
+	if (lightkraken::Model::instance().outputMode() == lightkraken::Model::MODE_MAIN_LOOP) {
+		lightkraken::SPI_2::instance().update();
+		lightkraken::SPI_0::instance().update();
+	}
+}
+
 void Control::init() {
+
     lightkraken::Strip::get(0).dmaTransferFunc = [](const uint8_t *data, size_t len) {
         SPI_0::instance().transfer(data, len, lightkraken::Strip::get(0).needsClock());
     };
     lightkraken::Strip::get(0).dmaBusyFunc = []() {
-        return false;
+        return SPI_0::instance().busy();
     };
+
     lightkraken::Strip::get(1).dmaTransferFunc = [](const uint8_t *data, size_t len) {
         SPI_2::instance().transfer(data, len, lightkraken::Strip::get(1).needsClock());
     };
     lightkraken::Strip::get(1).dmaBusyFunc = []() {
-        return false;
+        return SPI_2::instance().busy();
     };
+    
     DEBUG_PRINTF(("Control up.\n"));
 }
 
