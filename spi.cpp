@@ -33,7 +33,8 @@ extern "C" {
 __attribute__((used))
 void DMA0_Channel2_IRQHandler() {
     if(dma_interrupt_flag_get(DMA0, DMA_CH2, DMA_INT_FLAG_FTF)) {
-        dma_interrupt_flag_clear(DMA0, DMA_CH2, DMA_INT_FLAG_G);         
+        dma_interrupt_flag_clear(DMA0, DMA_CH2, DMA_INT_FLAG_G);   
+        printf("1!!\n");
     }
 }
 
@@ -41,6 +42,7 @@ __attribute__((used))
 void DMA1_Channel1_IRQHandler() {
     if(dma_interrupt_flag_get(DMA1, DMA_CH1, DMA_INT_FLAG_FTF)) {
         dma_interrupt_flag_clear(DMA1, DMA_CH1, DMA_INT_FLAG_G);         
+        printf("2!!\n");
     }
 }
 

@@ -24,6 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define _COLOR_H_
 
 #include <stdint.h>
+#include <memory.h>
 
 namespace lightkraken {
 
@@ -69,14 +70,25 @@ public:
             uint16_t &pwm_g,
             uint16_t &pwm_b) const;
 
+    void sRGB8toLED16(
+            size_t len,
+            const uint8_t *src,
+            uint16_t *dst,
+            uint8_t off_r,
+            uint8_t off_g,
+            uint8_t off_b);
+            
     void setRGBColorSpace(const RGBColorSpace &rgbSpace);
 
 private:
 
-    static float srgbl2ledl[9];
-    static float ledl2srgbl[9];
+    float srgbl2ledl[9];
+    float ledl2srgbl[9];
+    
+    int32_t srgb_2_srgbl_lookup_8_24[256];
+    int32_t srgbl2ledl_8_24[9];
+    int32_t ledl2srgbl_8_24[9];
 
-    void sRGBtoLED(float *col) const;
     void sRGBL2LEDL(float *ledl, const float *srgbl) const;
     void LEDL2sRGBL(float *ledl, const float *srgbl) const;
     void sRGB2sRGBL(float *srgbl, const float *srgb) const;

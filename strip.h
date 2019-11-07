@@ -60,7 +60,6 @@ namespace lightkraken {
 
         static Strip &get(size_t index);
 
-        bool isBlack() const;
         bool needsClock() const;
 
         size_t getComponentsPerPixel() const;
@@ -97,12 +96,12 @@ namespace lightkraken {
         void ws2812_alike_convert(size_t start, size_t end);
         void tls3001_alike_convert(size_t &len);
 
+        bool convertsrgb = false;
         bool transfer_flag;
         bool strip_reset = false;
-        uint8_t zero[lightkraken::Model::universeN];
         Type strip_type = WS2812_RGB;
         size_t comp_len = 0;
-        uint8_t comp_buf[compMaxLen];
+        uint16_t comp_buf[compMaxLen];
         uint8_t spi_buf[spiMaxLen];
     };
 

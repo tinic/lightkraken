@@ -73,7 +73,7 @@ public:
     
     void end() {
         char buf[64];
-        char ss[32];
+        char ss[64];
         int ival = 0;
         double dval = 0;
         size_t post_len = strlen(post_buf);

@@ -32,6 +32,8 @@ extern "C" {
 #include "./systick.h"
 #include "./status.h"
 #include "./model.h"
+#include "./strip.h"
+#include "./control.h"
 
 extern "C" {
 __attribute__((used)) // required for -flto
@@ -68,7 +70,7 @@ void Systick::handler() {
         }
         NVIC_SystemReset();
     }
-    
+
 #ifndef BOOTLOADER
     if (apply_scheduled) {
         if (StatusLED::instance().enetUp()) {

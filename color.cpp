@@ -23,10 +23,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "color.h"
 #include "pwmtimer.h"
 
+#include <algorithm>
+
 #include <math.h>
 #include <memory.h>
+#include <stdio.h>
+#include <string.h>
 
 namespace lightkraken {
+    
 
 void CIETransferfromsRGBTransferLookup::init() {
 	for (size_t c = 0; c<256; c++) {
@@ -47,11 +52,16 @@ void ColorSpaceConverter::sRGB8toLEDPWM(
 		uint16_t &pwm_r,
 		uint16_t &pwm_g,
 		uint16_t &pwm_b) const {
+            
 	float col[3];
 	col[0] = float(srgb_r) * (1.0f / 255.0f);
 	col[1] = float(srgb_g) * (1.0f / 255.0f);
 	col[2] = float(srgb_b) * (1.0f / 255.0f);
-	sRGBtoLED(col);
+    
+	sRGB2sRGBL(col, col); // sRGB to Linear sRGB
+	sRGBL2LEDL(col, col); // Linear sRGB -> XYZ -> Linear LED RGB
+    LEDL2LED(col, col); // Linear LED RGB -> LED RGB
+    
 	for (size_t c = 0; c < 3; c++) {
 		if (col[c] < 0.0f) {
 			col[c] = 0.0f;
@@ -60,9 +70,69 @@ void ColorSpaceConverter::sRGB8toLEDPWM(
 			col[c] = 1.0f;
 		}
 	}
+	
 	pwm_r = uint16_t(col[0]*float(pwm_l));
 	pwm_g = uint16_t(col[1]*float(pwm_l));
 	pwm_b = uint16_t(col[2]*float(pwm_l));
+}
+
+static int32_t mul_8_24(int32_t x, int32_t y) {
+    return int32_t((int64_t(x) * int64_t(y)) >> 24);
+}
+
+__attribute__ ((hot, optimize("O3")))
+void ColorSpaceConverter::sRGB8toLED16(
+    size_t len,
+    const uint8_t *src,
+    uint16_t *dst,
+    uint8_t off_r,
+    uint8_t off_g,
+    uint8_t off_b) {
+
+    
+    for (size_t c = 0; c < len; c += 3) {
+        
+        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<24));
+        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<24));
+        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<24));
+        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<24));
+
+        int32_t lr = srgb_2_srgbl_lookup_8_24[src[0]];
+        int32_t lg = srgb_2_srgbl_lookup_8_24[src[1]];
+        int32_t lb = srgb_2_srgbl_lookup_8_24[src[2]];
+        
+        int32_t x = mul_8_24(srgbl2ledl_8_24[0], lr) + mul_8_24(srgbl2ledl_8_24[1], lg) + mul_8_24(srgbl2ledl_8_24[2], lb);
+        int32_t y = mul_8_24(srgbl2ledl_8_24[3], lr) + mul_8_24(srgbl2ledl_8_24[4], lg) + mul_8_24(srgbl2ledl_8_24[5], lb);
+        int32_t z = mul_8_24(srgbl2ledl_8_24[6], lr) + mul_8_24(srgbl2ledl_8_24[7], lg) + mul_8_24(srgbl2ledl_8_24[8], lb);
+
+        if ( x > theta ) {
+            x = mul_8_24(x + delta, const_mul0);
+            x = mul_8_24(x, mul_8_24(x, x)); 
+        } else {
+            x = mul_8_24(x, const_mul1);
+        }
+
+        if ( y > theta ) {
+            y = mul_8_24(y + delta, const_mul0);
+            y = mul_8_24(y, mul_8_24(y, y)); 
+        } else {
+            y = mul_8_24(y, const_mul1);
+        }
+
+        if ( z > theta ) {
+            z = mul_8_24(z + delta, const_mul0);
+            z = mul_8_24(z, mul_8_24(z, z)); 
+        } else {
+            z = mul_8_24(z, const_mul1);
+        }
+        
+        dst[off_r] = uint16_t(std::clamp(x >> 8, int32_t(0), int32_t(65535)));
+        dst[off_g] = uint16_t(std::clamp(y >> 8, int32_t(0), int32_t(65535)));
+        dst[off_b] = uint16_t(std::clamp(z >> 8, int32_t(0), int32_t(65535)));
+        
+        src += 3;
+        dst += 3;
+    }
 }
 
 void ColorSpaceConverter::setRGBColorSpace(const RGBColorSpace &rgbSpace) {
@@ -91,16 +161,17 @@ void ColorSpaceConverter::setRGBColorSpace(const RGBColorSpace &rgbSpace) {
     };
 
     concatMatrix(srgbl2ledl, srgbl2xyz, srgbl2ledl);
-}
 
-void ColorSpaceConverter::sRGBtoLED(float *col) const {
-	sRGB2sRGBL(col, col); // sRGB to Linear sRGB
-	sRGBL2LEDL(col, col); // sLinear sRGB -> XYZ -> Linear LED RGB
-#ifdef TEST_SRGB_IDENTITY
-    sRGBL2sRGB(col, col); // Linera LED RGB -> LED RGB
-#else  // #ifdef TEST_SRGB_IDENTITY
-    LEDL2LED(col, col); // Linera LED RGB -> LED RGB
-#endif  // #ifdef TEST_SRGB_IDENTITY
+    for (size_t c = 0; c < 256; c++) {
+        float v = float(c) * (1.0f / 255.0f);
+        srgb_2_srgbl_lookup_8_24[c] = int32_t((v < 0.04045f) ? (v / 12.92f) : powf((v + 0.055f) / 1.055f, 2.4f) * float(1UL<<24));
+    }
+    
+    for (size_t c = 0; c < 9; c++) {
+        srgbl2ledl_8_24[c] = int32_t(srgbl2ledl[c] * float(1UL<<24));
+        ledl2srgbl_8_24[c] = int32_t(ledl2srgbl[c] * float(1UL<<24));
+    }
+    
 }
 
 void ColorSpaceConverter::sRGBL2LEDL(float *ledl, const float *srgbl) const {
@@ -227,9 +298,6 @@ void ColorSpaceConverter::generateRGBMatrix(
 
 	invertMatrix(xyz2rgb, rgb2xyz);
 }
-
-float ColorSpaceConverter::srgbl2ledl[9];
-float ColorSpaceConverter::ledl2srgbl[9];
 
 }
 
