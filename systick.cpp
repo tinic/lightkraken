@@ -94,7 +94,7 @@ void Systick::handler() {
 
 #ifndef BOOTLOADER
     static uint32_t perf_print = 0;
-    if ((perf_print++ & 0x1FF) == 0x0) {
+    if ((perf_print++ & 0x3FF) == 0x0) {
 		PerfMeasure::print();
     }
 #endif  // #ifndef BOOTLOADER

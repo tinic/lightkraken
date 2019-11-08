@@ -78,20 +78,14 @@ void ColorSpaceConverter::sRGB8toLEDPWM(
 	pwm_b = uint16_t(col[2]*float(pwm_l));
 }
 
-__attribute__((used))
-static int32_t mul_8_24(int32_t x, int32_t y) {
-    return int32_t((int64_t(x) * int64_t(y)) >> 24);
-}
+static constexpr int32_t fixed_shift = 24;
+static constexpr int32_t fixed_post_shift = 8;
 
 __attribute__((used))
-static int32_t mul_8_16(int32_t x, int32_t y) {
-    return int32_t((int64_t(x) * int64_t(y)) >> 16);
+static int32_t mul_fixed(int32_t x, int32_t y) {
+    return int32_t((int64_t(x) * int64_t(y)) >> fixed_shift);
 }
 
-__attribute__((used))
-static int32_t mul_8_8(int32_t x, int32_t y) {
-    return int32_t((x * y) >> 8);
-}
 
 __attribute__ ((hot, optimize("O3")))
 void ColorSpaceConverter::sRGB8toLED16(
@@ -104,123 +98,44 @@ void ColorSpaceConverter::sRGB8toLED16(
     size_t channels) {
 
     for (size_t c = 0; c < len; c += channels) {
-#if 1
-        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<24));
-        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<24));
-        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<24));
-        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<24));
 
-        int32_t lr = srgb_2_srgbl_lookup_8_24[src[0]];
-        int32_t lg = srgb_2_srgbl_lookup_8_24[src[1]];
-        int32_t lb = srgb_2_srgbl_lookup_8_24[src[2]];
+        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
+        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<fixed_shift));
+
+        int32_t lr = srgb_2_srgbl_lookup_fixed[src[0]];
+        int32_t lg = srgb_2_srgbl_lookup_fixed[src[1]];
+        int32_t lb = srgb_2_srgbl_lookup_fixed[src[2]];
         
-        int32_t x = mul_8_24(srgbl2ledl_8_24[0], lr) + mul_8_24(srgbl2ledl_8_24[1], lg) + mul_8_24(srgbl2ledl_8_24[2], lb);
-        int32_t y = mul_8_24(srgbl2ledl_8_24[3], lr) + mul_8_24(srgbl2ledl_8_24[4], lg) + mul_8_24(srgbl2ledl_8_24[5], lb);
-        int32_t z = mul_8_24(srgbl2ledl_8_24[6], lr) + mul_8_24(srgbl2ledl_8_24[7], lg) + mul_8_24(srgbl2ledl_8_24[8], lb);
+        int32_t x = mul_fixed(srgbl2ledl_fixed[0], lr) + mul_fixed(srgbl2ledl_fixed[1], lg) + mul_fixed(srgbl2ledl_fixed[2], lb);
+        int32_t y = mul_fixed(srgbl2ledl_fixed[3], lr) + mul_fixed(srgbl2ledl_fixed[4], lg) + mul_fixed(srgbl2ledl_fixed[5], lb);
+        int32_t z = mul_fixed(srgbl2ledl_fixed[6], lr) + mul_fixed(srgbl2ledl_fixed[7], lg) + mul_fixed(srgbl2ledl_fixed[8], lb);
 
         if ( x > theta ) {
-            x = mul_8_24(x + delta, const_mul0);
-            x = mul_8_24(x, mul_8_24(x, x)); 
+            x = mul_fixed(x + delta, const_mul0);
+            x = mul_fixed(x, mul_fixed(x, x)); 
         } else {
-            x = mul_8_24(x, const_mul1);
+            x = mul_fixed(x, const_mul1);
         }
 
         if ( y > theta ) {
-            y = mul_8_24(y + delta, const_mul0);
-            y = mul_8_24(y, mul_8_24(y, y)); 
+            y = mul_fixed(y + delta, const_mul0);
+            y = mul_fixed(y, mul_fixed(y, y)); 
         } else {
-            y = mul_8_24(y, const_mul1);
+            y = mul_fixed(y, const_mul1);
         }
 
         if ( z > theta ) {
-            z = mul_8_24(z + delta, const_mul0);
-            z = mul_8_24(z, mul_8_24(z, z)); 
+            z = mul_fixed(z + delta, const_mul0);
+            z = mul_fixed(z, mul_fixed(z, z)); 
         } else {
-            z = mul_8_24(z, const_mul1);
+            z = mul_fixed(z, const_mul1);
         }
         
-		dst[off_r] = __USAT(x >> 8, 15);
-		dst[off_g] = __USAT(y >> 8, 15);
-		dst[off_b] = __USAT(z >> 8, 15);
-#endif  // #if 0
-#if 0
-        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<16));
-        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<16));
-        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<16));
-        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<16));
-
-        int32_t lr = srgb_2_srgbl_lookup_8_16[src[0]];
-        int32_t lg = srgb_2_srgbl_lookup_8_16[src[1]];
-        int32_t lb = srgb_2_srgbl_lookup_8_16[src[2]];
-        
-        int32_t x = mul_8_16(srgbl2ledl_8_16[0], lr) + mul_8_16(srgbl2ledl_8_16[1], lg) + mul_8_16(srgbl2ledl_8_16[2], lb);
-        int32_t y = mul_8_16(srgbl2ledl_8_16[3], lr) + mul_8_16(srgbl2ledl_8_16[4], lg) + mul_8_16(srgbl2ledl_8_16[5], lb);
-        int32_t z = mul_8_16(srgbl2ledl_8_16[6], lr) + mul_8_16(srgbl2ledl_8_16[7], lg) + mul_8_16(srgbl2ledl_8_16[8], lb);
-
-        if ( x > theta ) {
-            x = mul_8_16(x + delta, const_mul0);
-            x = mul_8_16(x, mul_8_16(x, x)); 
-        } else {
-            x = mul_8_16(x, const_mul1);
-        }
-
-        if ( y > theta ) {
-            y = mul_8_16(y + delta, const_mul0);
-            y = mul_8_16(y, mul_8_16(y, y)); 
-        } else {
-            y = mul_8_16(y, const_mul1);
-        }
-
-        if ( z > theta ) {
-            z = mul_8_16(z + delta, const_mul0);
-            z = mul_8_16(z, mul_8_16(z, z)); 
-        } else {
-            z = mul_8_16(z, const_mul1);
-        }
-        
-		dst[off_r] = __USAT(x, 15);
-		dst[off_g] = __USAT(y, 15);
-		dst[off_b] = __USAT(z, 15);
-#endif  // #if 0
-#if 0
-        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<8));
-        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<8));
-        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<8));
-        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<8));
-
-        int32_t lr = srgb_2_srgbl_lookup_8_8[src[0]];
-        int32_t lg = srgb_2_srgbl_lookup_8_8[src[1]];
-        int32_t lb = srgb_2_srgbl_lookup_8_8[src[2]];
-        
-        int32_t x = mul_8_8(srgbl2ledl_8_8[0], lr) + mul_8_8(srgbl2ledl_8_8[1], lg) + mul_8_8(srgbl2ledl_8_8[2], lb);
-        int32_t y = mul_8_8(srgbl2ledl_8_8[3], lr) + mul_8_8(srgbl2ledl_8_8[4], lg) + mul_8_8(srgbl2ledl_8_8[5], lb);
-        int32_t z = mul_8_8(srgbl2ledl_8_8[6], lr) + mul_8_8(srgbl2ledl_8_8[7], lg) + mul_8_8(srgbl2ledl_8_8[8], lb);
-
-        if ( x > theta ) {
-            x = mul_8_8(x + delta, const_mul0);
-            x = mul_8_8(x, mul_8_8(x, x)); 
-        } else {
-            x = mul_8_8(x, const_mul1);
-        }
-
-        if ( y > theta ) {
-            y = mul_8_8(y + delta, const_mul0);
-            y = mul_8_8(y, mul_8_8(y, y)); 
-        } else {
-            y = mul_8_8(y, const_mul1);
-        }
-
-        if ( z > theta ) {
-            z = mul_8_8(z + delta, const_mul0);
-            z = mul_8_8(z, mul_8_8(z, z)); 
-        } else {
-            z = mul_8_8(z, const_mul1);
-        }
-        
-		dst[off_r] = __USAT(x << 8, 15);
-		dst[off_g] = __USAT(y << 8, 15);
-		dst[off_b] = __USAT(z << 8, 15);
-#endif  // #if 0
+		dst[off_r] = __USAT(x >> fixed_post_shift, 15);
+		dst[off_g] = __USAT(y >> fixed_post_shift, 15);
+		dst[off_b] = __USAT(z >> fixed_post_shift, 15);
 
         src += channels;
         dst += channels;
@@ -237,21 +152,21 @@ void ColorSpaceConverter::sRGB8TransfertoLED16Transfer(
     size_t channels) {
 
     for (size_t c = 0; c < len; c += channels) {
-        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<24));
-        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<24));
-        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<24));
-        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<24));
+        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
+        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<fixed_shift));
 
-        int32_t x = srgb_2_srgbl_lookup_8_24[src[off_in]];
+        int32_t x = srgb_2_srgbl_lookup_fixed[src[off_in]];
 
         if ( x > theta ) {
-            x = mul_8_24(x + delta, const_mul0);
-            x = mul_8_24(x, mul_8_24(x, x)); 
+            x = mul_fixed(x + delta, const_mul0);
+            x = mul_fixed(x, mul_fixed(x, x)); 
         } else {
-            x = mul_8_24(x, const_mul1);
+            x = mul_fixed(x, const_mul1);
         }
 
-		dst[off_out] = __USAT(x >> 8, 15);
+		dst[off_out] = __USAT(x >> fixed_post_shift, 15);
         
         src += channels;
         dst += channels;
@@ -287,18 +202,12 @@ void ColorSpaceConverter::setRGBColorSpace(const RGBColorSpace &rgbSpace) {
 
     for (size_t c = 0; c < 256; c++) {
         float v = float(c) * (1.0f / 255.0f);
-        srgb_2_srgbl_lookup_8_24[c] = int32_t((v < 0.04045f) ? (v / 12.92f) : powf((v + 0.055f) / 1.055f, 2.4f) * float(1UL<<24));
-        srgb_2_srgbl_lookup_8_16[c] = int32_t((v < 0.04045f) ? (v / 12.92f) : powf((v + 0.055f) / 1.055f, 2.4f) * float(1UL<<16));
-        srgb_2_srgbl_lookup_8_8[c] = int32_t((v < 0.04045f) ? (v / 12.92f) : powf((v + 0.055f) / 1.055f, 2.4f) * float(1UL<<8));
+        srgb_2_srgbl_lookup_fixed[c] = int32_t((v < 0.04045f) ? (v / 12.92f) : powf((v + 0.055f) / 1.055f, 2.4f) * float(1UL<<fixed_shift));
     }
 
     for (size_t c = 0; c < 9; c++) {
-        srgbl2ledl_8_24[c] = int32_t(srgbl2ledl[c] * float(1UL<<24));
-        ledl2srgbl_8_24[c] = int32_t(ledl2srgbl[c] * float(1UL<<24));
-        srgbl2ledl_8_16[c] = int32_t(srgbl2ledl[c] * float(1UL<<16));
-        ledl2srgbl_8_16[c] = int32_t(ledl2srgbl[c] * float(1UL<<16));
-        srgbl2ledl_8_8[c] = int32_t(srgbl2ledl[c] * float(1UL<<8));
-        ledl2srgbl_8_8[c] = int32_t(ledl2srgbl[c] * float(1UL<<8));
+        srgbl2ledl_fixed[c] = int32_t(srgbl2ledl[c] * float(1UL<<fixed_shift));
+        ledl2srgbl_fixed[c] = int32_t(ledl2srgbl[c] * float(1UL<<fixed_shift));
     }
 
 }

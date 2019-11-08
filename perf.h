@@ -29,6 +29,7 @@ private:
 
 	struct Entry {
 		uint64_t accumulated;
+		uint64_t last;
 		uint64_t max;
 		uint64_t min;
 		uint64_t count;
