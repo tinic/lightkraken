@@ -41,6 +41,7 @@ extern "C" {
 #include "./netconf.h"
 #include "./systick.h"
 #include "./status.h"
+#include "./perf.h"
 
 const int32_t build_number = 
 #include "./build_number.h"
@@ -866,6 +867,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             return ERR_OK;
         } break;
         case ConnectionManager::MethodGetSettings: {
+            PerfMeasure perf(PerfMeasure::SLOT_REST_GET);
 
             HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
             response.beginJSONResponse();
@@ -898,6 +900,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             return ERR_OK;
         } break;
         case ConnectionManager::MethodPostSettings: {
+            PerfMeasure perf(PerfMeasure::SLOT_REST_POST);
             
             HTTPPostParser::instance().begin();
             for (size_t c = 0; c < info->buffer_index; c++) {

@@ -28,6 +28,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./driver.h"
 #include "./strip.h"
 #include "./spi.h"
+#include "./perf.h"
 
 namespace lightkraken {
 
@@ -269,6 +270,7 @@ void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components
 }
 
 void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t len, bool nodriver) {
+	PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
     switch(Model::instance().outputConfig()) {
     case Model::OUTPUT_CONFIG_DUAL_STRIP: {
         for (size_t c = 0; c < Model::stripN; c++) {

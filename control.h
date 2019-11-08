@@ -40,6 +40,7 @@ public:
     void update();
 
     void setEnableSyncMode(bool state) { syncMode = state; }
+    bool syncModeEnabled() const { return syncMode; }
 	void interateAllActiveUniverses(std::function<void (uint16_t universe)> callback);
 
 private:

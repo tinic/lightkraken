@@ -14,6 +14,9 @@ static const char *slotNames[] = {
 	"Strip copy      ",
 	"Strip transfer  ",
 	"SPI Interrupt   ",
+	"Set Uni data    ",
+	"REST GET        ",
+	"REST POST       ",
 	""
 };
 

@@ -102,15 +102,7 @@ ArtNetPacket::Opcode ArtNetPacket::maybeValid(const uint8_t *buf, size_t len) {
 
     bool sizeValid = len <= sizeof(packet);
 
-    bool validSignature =
-        (buf[0] == 'A') &&
-        (buf[1] == 'r') &&
-        (buf[2] == 't') &&
-        (buf[3] == '-') &&
-        (buf[4] == 'N') &&
-        (buf[5] == 'e') &&
-        (buf[6] == 't') &&
-        (buf[7] == 0);
+    bool validSignature = memcmp(buf, "Art-Net", 8) == 0;
 
     bool opcodeValid = false;
 
@@ -172,7 +164,6 @@ bool ArtNetPacket::verify(ArtNetPacket &packet, const uint8_t *buf, size_t len) 
     if (opcode == OpInvalid) {
         return false;
     }
-    memset(packet.packet, 0, sizeof(packet.packet));
     memcpy(packet.packet, buf, std::min(len, sizeof(packet.packet)));
     switch (opcode) {
       	case	OpPoll:
@@ -276,7 +267,7 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
                             lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }
-            			if(syncWatchDog.starved()) {
+            			if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
 	            			Control::instance().sync();
  	            			Control::instance().setEnableSyncMode(false);
 	           			}
@@ -287,7 +278,7 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
                             lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }
-            			if(syncWatchDog.starved()) {
+            			if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
 	            			Control::instance().sync();
  	            			Control::instance().setEnableSyncMode(false);
 	           			}
