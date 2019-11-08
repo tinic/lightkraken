@@ -98,6 +98,14 @@ private:
     int32_t srgbl2ledl_8_24[9];
     int32_t ledl2srgbl_8_24[9];
 
+    int32_t srgb_2_srgbl_lookup_8_16[256];
+    int32_t srgbl2ledl_8_16[9];
+    int32_t ledl2srgbl_8_16[9];
+
+    int32_t srgb_2_srgbl_lookup_8_8[256];
+    int32_t srgbl2ledl_8_8[9];
+    int32_t ledl2srgbl_8_8[9];
+
     void sRGBL2LEDL(float *ledl, const float *srgbl) const;
     void LEDL2sRGBL(float *ledl, const float *srgbl) const;
     void sRGB2sRGBL(float *srgbl, const float *srgb) const;
