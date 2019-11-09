@@ -81,7 +81,6 @@ bool SPI_0::busy() const {
 }
 
 void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
-
     gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
     gpio_bit_set(GPIOA, GPIO_PIN_10);
 
@@ -92,7 +91,7 @@ void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 		}
 	}
 
-    dma_channel_disable(DMA0, DMA_CH2);
+	dma_channel_disable(DMA0, DMA_CH2);
     active = false;
 
     if (cbuf != buf || clen != len || wantsSCLK != sclk) {
@@ -149,14 +148,14 @@ void SPI_0::dma_setup() {
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
     dma_init(DMA0, DMA_CH2, &dma_init_struct);
     dma_circulation_disable(DMA0, DMA_CH2);
-    if (Model::instance().outputMode() != Model::MODE_INTERRUPT) {
+    dma_memory_to_memory_disable(DMA0, DMA_CH2);
+    
+    if (Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
         dma_interrupt_disable(DMA0, DMA_CH2, DMA_INT_FTF);
     } else {
         dma_interrupt_enable(DMA0, DMA_CH2, DMA_INT_FTF);
+        nvic_irq_enable(DMA0_Channel2_IRQn, 0, 0);
     }
-    dma_memory_to_memory_disable(DMA0, DMA_CH2);
-    
-    nvic_irq_enable(DMA0_Channel2_IRQn, 0, 0);
 
     spi_dma_enable(SPI0, SPI_DMA_TRANSMIT);
 }
@@ -189,7 +188,6 @@ bool SPI_2::busy() const {
 }
 
 void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
-
     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
     gpio_bit_set(GPIOB, GPIO_PIN_9);
     
@@ -258,14 +256,14 @@ void SPI_2::dma_setup() {
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
     dma_init(DMA1, DMA_CH1, &dma_init_struct);
     dma_circulation_disable(DMA1, DMA_CH1);
-    if (Model::instance().outputMode() != Model::MODE_INTERRUPT) {
+    dma_memory_to_memory_disable(DMA1, DMA_CH1);
+
+    if (Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
         dma_interrupt_disable(DMA1, DMA_CH1, DMA_INT_FTF);
     } else {
         dma_interrupt_enable(DMA1, DMA_CH1, DMA_INT_FTF);
+        nvic_irq_enable(DMA1_Channel1_IRQn, 0, 0);
     }
-    dma_memory_to_memory_disable(DMA1, DMA_CH1);
-
-    nvic_irq_enable(DMA1_Channel1_IRQn, 0, 0);
 
     spi_dma_enable(SPI2, SPI_DMA_TRANSMIT);
 }

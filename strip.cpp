@@ -473,11 +473,15 @@ namespace lightkraken {
         if (Model::instance().burstMode() &&
             strip_type != TLS3001_RGB) {
             const uint8_t *buf = prepareHead(len);
-            if (dmaTransferFunc) dmaTransferFunc((uint8_t *)(buf), uint16_t(len));
+            if (dmaTransferFunc) {
+                dmaTransferFunc((uint8_t *)(buf), uint16_t(len));
+            }
             prepareTail();
         } else {
             const uint8_t *buf = prepare(len);
-            if (dmaTransferFunc) dmaTransferFunc((uint8_t *)(buf), uint16_t(len));
+            if (dmaTransferFunc) {
+                dmaTransferFunc((uint8_t *)(buf), uint16_t(len));
+            }
         }
     }
 
@@ -632,14 +636,14 @@ namespace lightkraken {
         int32_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
         if (use32Bit()) {
             uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
-            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, comp_len - 1 + 1); c += 3) {
+            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, 1 + comp_len - 1); c += 3) {
                 *dst++ = illum;
                 *dst++ = (comp_buf32[c-head_len+0] >> 8) & 0xFF;
                 *dst++ = (comp_buf32[c-head_len+1] >> 8) & 0xFF;
                 *dst++ = (comp_buf32[c-head_len+2] >> 8) & 0xFF;
             }
         } else {
-            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, comp_len - 1 + 1); c += 3) {
+            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, 1 + comp_len - 1); c += 3) {
                 *dst++ = illum;
                 *dst++ = comp_buf[c-head_len+0];
                 *dst++ = comp_buf[c-head_len+1];
@@ -647,7 +651,7 @@ namespace lightkraken {
             }
         }
         // latch words
-        for (size_t c = std::max(start, comp_len); c <= end; c++) {
+        for (size_t c = std::max(start, 1 + comp_len); c <= end; c++) {
             *dst++ = 0xFF;
             *dst++ = 0xFF;
             *dst++ = 0xFF;
@@ -665,7 +669,7 @@ namespace lightkraken {
         if (use32Bit()) {
             uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
             if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
-                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
+                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
                     int32_t v = int32_t(comp_buf32[c-head_len] & 0xFFFF) + int32_t(int16_t(comp_buf32[c-head_len] >> 16));
                     int32_t p = v >> 8;
                     comp_buf32[c-head_len] = uint32_t(int32_t(comp_buf32[c-head_len] & 0xFFFF) | (int32_t((v - (p << 8))) << 16));
@@ -674,7 +678,7 @@ namespace lightkraken {
                             (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
                 }
             } else {
-                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
+                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
                     uint32_t p = ( uint32_t(comp_buf32[c-head_len]) >> 8 ) & 0xFF;
                     *dst++ = 0x88888888UL |
                             (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
@@ -682,14 +686,14 @@ namespace lightkraken {
                 }
             }
         } else {
-			for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
+			for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
 				uint32_t p = uint32_t(comp_buf[c-head_len]);
 				*dst++ = 0x88888888UL |
 						(((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
 						(((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
 			}
 		}
-        for (size_t c = std::max(start, comp_len); c <= end; c++) {
+        for (size_t c = std::max(start, head_len + comp_len); c <= end; c++) {
             *dst++ = 0x00;
         }
     }

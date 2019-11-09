@@ -367,6 +367,7 @@ void Control::init() {
     lightkraken::Strip::get(1).dmaBusyFunc = []() {
         return SPI_2::instance().busy();
     };
+
     
     DEBUG_PRINTF(("Control up.\n"));
 }

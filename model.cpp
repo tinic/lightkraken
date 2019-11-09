@@ -117,7 +117,7 @@ void Model::defaults() {
     output_config = OUTPUT_CONFIG_DUAL_STRIP;
     output_mode = MODE_MAIN_LOOP;
 
-    burst_mode = true;
+    burst_mode = false;
 
     int32_t counter = 0;
     memset(strip_config, 0, sizeof(strip_config));
@@ -144,7 +144,7 @@ void Model::defaults() {
 }
 
 void Model::apply() {
-
+    
     for (size_t c = 0; c < stripN; c++) {
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
@@ -170,7 +170,7 @@ void Model::apply() {
         size_t len = 0;
         switch(cpp) {
             case 3: {
-                for (size_t d = 0; d < Strip::compMaxLen; d += 3) {
+                for (size_t d = 0; d < sizeof(buf); d += 3) {
                     buf[d + 0] = (strip_config[c].color.r) & 0xFF;
                     buf[d + 1] = (strip_config[c].color.g) & 0xFF;
                     buf[d + 2] = (strip_config[c].color.b) & 0xFF;
@@ -178,7 +178,7 @@ void Model::apply() {
                 }
             } break;
             case 4: {
-                for (size_t d = 0; d < Strip::compMaxLen; d += 4) {
+                for (size_t d = 0; d < sizeof(buf); d += 4) {
                     buf[d + 0] = (strip_config[c].color.r) & 0xFF;
                     buf[d + 1] = (strip_config[c].color.g) & 0xFF;
                     buf[d + 2] = (strip_config[c].color.b) & 0xFF;
