@@ -158,7 +158,8 @@ OF SUCH DAMAGE.
 #define CHECKSUM_CHECK_UDP              0
 /* CHECKSUM_CHECK_TCP==0: check checksums by hardware for incoming TCP packets.*/
 #define CHECKSUM_CHECK_TCP              0
-//    #define CHECKSUM_GEN_ICMP               0
+/* CHECKSUM_GEN_ICMP==0: check checksums by hardware for incoming ICMP packets.*/
+#define CHECKSUM_GEN_ICMP               0
 
 /* Lwip debug options */
 //#define LWIP_DEBUG 1

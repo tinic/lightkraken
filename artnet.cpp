@@ -225,7 +225,7 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 	reply.ipAddress[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
 	reply.ipAddress[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
 	reply.ipAddress[3] = ip4_addr4(&NetConf::instance().netInterface()->ip_addr);
-	reply.portNumber = 1936;
+	reply.portNumber = 6454;
 	reply.versionInfo = build_number;
 	reply.netSwitch = (universe >> 8) & 0xFF;
 	reply.subSwitch = (universe >> 0) & 0xFF;
@@ -243,8 +243,10 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 					 0x02 | // supports dhcp
 					 (Model::instance().dhcpEnabled() ? 0x04 : 0x00) |
 					 0x08;  // ArtNet3
-					 
-	NetConf::instance().sendUdpPacket(from, 1936, (const uint8_t *)&reply, sizeof(reply));
+
+    printf(">>>>>>>>>>>>>>>>>>>>>\n");
+	NetConf::instance().sendUdpPacket(from, 6454, (const uint8_t *)&reply, sizeof(reply));
+    printf("<<<<<<<<<<<<<<<<<<<<<\n");
 }
 
 bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len) {
@@ -253,17 +255,20 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
     if (opcode != OpInvalid) {
         switch(opcode) {
         	case	OpPoll: {
+                        printf("OpPoll\n");
         				Control::instance().interateAllActiveUniverses([from](uint16_t universe){ 
         					sendArtPollReply(from, universe); 
         				});
         			} break;
             case	OpSync: {
+                        //printf("OpSync\n");
             			Control::instance().setEnableSyncMode(true);
 						Control::instance().sync();
             			syncWatchDog.feed();
                     } break;
             case	OpNzs: {
                         OutputNzsPacket outputPacket;
+                        //printf("OpNzs %04x\n", outputPacket.universe());
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
                             lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }
@@ -275,6 +280,7 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
                     } break;
             case	OpOutput: {
                         OutputPacket outputPacket;
+                        //printf("OpOutput %04x\n", outputPacket.universe());
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
                             lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }

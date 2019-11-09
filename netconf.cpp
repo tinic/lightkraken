@@ -129,7 +129,7 @@ void NetConf::init() {
 }
 
 bool NetConf::sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len) {
-
+    
 	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
 	if (p == NULL) {
 		return false;
@@ -139,26 +139,8 @@ bool NetConf::sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint
 	if (err != ERR_OK) {
 		return false;
 	}
-
-	/* add UDP header */
-	pbuf_add_header(p, sizeof(struct udp_hdr));
-	struct udp_hdr *uh = (struct udp_hdr *)p->payload;
-	uh->chksum = 0;
-	uh->dest = uh->src = lwip_htons(port);
-	uh->len = lwip_htons(p->tot_len);
-
-	/* add IPv4 header */
-	pbuf_add_header(p, sizeof(struct ip_hdr));
-	struct ip_hdr *ih = (struct ip_hdr *)p->payload;
-	memset(ih, 0, sizeof(*ih));
-	ih->dest.addr = to->addr;
-	ih->_len = lwip_htons(p->tot_len);
-	ih->_ttl = 32;
-	ih->_proto = IP_PROTO_UDP;
-	IPH_VHL_SET(ih, 4, sizeof(struct ip_hdr) / 4);
-	IPH_CHKSUM_SET(ih, inet_chksum(ih, sizeof(struct ip_hdr)));
-
-	err = ip4_input(p, &netif);
+	
+	udp_sendto(upcb_artnet, p, to, port);
 
 	return err == ERR_OK;
 }
