@@ -126,6 +126,7 @@ void Model::defaults() {
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
         strip_config[c].len = 256;
         strip_config[c].color = rgb8();
+        strip_config[c].rgbSpace.setLED();
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         for (size_t d = 0; d < universeN; d++) {
             strip_config[c].universe[d] = counter++;
@@ -189,6 +190,11 @@ void Model::apply() {
         for (size_t d = 0; d < universeN; d++) {
             Control::instance().setUniverseOutputData(strip_config[c].universe[d], buf, len, true);
         }
+    }
+
+    if (output_mode == MODE_INTERRUPT) {
+        lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_0::instance());
+        lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_2::instance());
     }
 }
 

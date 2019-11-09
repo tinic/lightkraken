@@ -110,11 +110,17 @@ public:
         }
         
         if (mjson_get_number(post_buf, post_len, "$.outputmode", &dval) > 0) {
+            Model::instance().setOutputMode(Model::OutputMode(int(dval)));
+        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+            Model::instance().setOutputMode(Model::OutputMode(int(atof(buf))));
+        }
+
+        if (mjson_get_number(post_buf, post_len, "$.outputconfig", &dval) > 0) {
             Model::instance().setOutputConfig(Model::OutputConfig(int(dval)));
         } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
             Model::instance().setOutputConfig(Model::OutputConfig(int(atof(buf))));
         }
-        
+
         if (mjson_get_number(post_buf, post_len, "$.globpwmlimit", &dval) > 0) {
             Model::instance().setGlobPWMLimit(float(dval));
         } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
@@ -149,58 +155,58 @@ public:
             
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.xw = float(dval);
+                config.rgbSpace.xw = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xw = float(dval);
+                config.rgbSpace.xw = float(atof(buf));
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.yw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.rgbSpace.yw = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yw = float(dval);
+                config.rgbSpace.yw = float(atof(buf));
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xr", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.xr = float(dval);
+                config.rgbSpace.xr = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xr = float(dval);
+                config.rgbSpace.xr = float(atof(buf));
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.yr", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.yr = float(dval);
+                config.rgbSpace.yr = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yr = float(dval);
+                config.rgbSpace.yr = float(atof(buf));
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xg", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.xg = float(dval);
+                config.rgbSpace.xg = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xg = float(dval);
+                config.rgbSpace.xg = float(atof(buf));
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.yg", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.yg = float(dval);
+                config.rgbSpace.yg = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yg = float(dval);
+                config.rgbSpace.yg = float(atof(buf));
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.xb = float(dval);
+                config.rgbSpace.xb = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xb = float(dval);
+                config.rgbSpace.xb = float(atof(buf));
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.yb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.yb = float(dval);
+                config.rgbSpace.yb = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yb = float(dval);
+                config.rgbSpace.yb = float(atof(buf));
             }
 
             for (int d=0; d<int(Model::analogCompN); d++) {
@@ -285,56 +291,56 @@ public:
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                  config.rgbSpace.xw = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xw = float(dval);
+                 config.rgbSpace.xw = float(atof(buf));
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.rgbSpace.yw = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yw = float(dval);
+                config.rgbSpace.yw = float(atof(buf));
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.xr", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.xr = float(dval);
+                config.rgbSpace.xr = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xr = float(dval);
+                config.rgbSpace.xr = float(atof(buf));
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yr", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.yr = float(dval);
+                config.rgbSpace.yr = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yr = float(dval);
+                config.rgbSpace.yr = float(atof(buf));
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.xg", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.xg = float(dval);
+                config.rgbSpace.xg = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xg = float(dval);
+                config.rgbSpace.xg = float(atof(buf));
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yg", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.yg = float(dval);
+                config.rgbSpace.yg = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yg = float(dval);
+                config.rgbSpace.yg = float(atof(buf));
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.xb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.xb = float(dval);
+                config.rgbSpace.xb = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xb = float(dval);
+                config.rgbSpace.xb = float(atof(buf));
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                  config.rgbSpace.yb = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yb = float(dval);
+                 config.rgbSpace.yb = float(atof(buf));
             }
 
             for (int d=0; d<int(Model::universeN); d++) {
@@ -526,9 +532,14 @@ public:
             ip4_addr4(Model::instance().ip4Gateway()));
     }
     
+    void addOutputConfig() {
+        handleDelimiter();
+        addString("\"outputconfig\":%d",Model::instance().outputConfig()); 
+    }
+
     void addOutputMode() {
         handleDelimiter();
-        addString("\"outputmode\":%d",Model::instance().outputConfig()); 
+        addString("\"outputmode\":%d",Model::instance().outputMode()); 
     }
 
     void addPwmLimit() {
@@ -878,6 +889,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             response.addIPv4Netmask();
             response.addIPv4Gateway();
             response.addOutputMode();
+            response.addOutputConfig();
             response.addPwmLimit();
             response.addCompLimit();
             response.addIllum();
