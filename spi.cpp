@@ -35,7 +35,7 @@ extern "C" {
 __attribute__((used))
 void DMA0_Channel2_IRQHandler() {
     if(dma_interrupt_flag_get(DMA0, DMA_CH2, DMA_INT_FLAG_FTF)) {
-        dma_interrupt_flag_clear(DMA0, DMA_CH2, DMA_INT_FLAG_G);   
+        dma_interrupt_flag_clear(DMA0, DMA_CH2, DMA_INT_FLAG_FTF);   
 		lightkraken::PerfMeasure perf(lightkraken::PerfMeasure::SLOT_SPI_INTERRUPT);
         lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_0::instance());
     }
@@ -44,7 +44,7 @@ void DMA0_Channel2_IRQHandler() {
 __attribute__((used))
 void DMA1_Channel1_IRQHandler() {
     if(dma_interrupt_flag_get(DMA1, DMA_CH1, DMA_INT_FLAG_FTF)) {
-        dma_interrupt_flag_clear(DMA1, DMA_CH1, DMA_INT_FLAG_G);         
+        dma_interrupt_flag_clear(DMA1, DMA_CH1, DMA_INT_FLAG_FTF);         
 		lightkraken::PerfMeasure perf(lightkraken::PerfMeasure::SLOT_SPI_INTERRUPT);
         lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_2::instance());
     }
@@ -140,6 +140,7 @@ void SPI_0::dma_setup() {
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
     dma_init(DMA0, DMA_CH2, &dma_init_struct);
     dma_circulation_disable(DMA0, DMA_CH2);
+    //dma_interrupt_enable(DMA0, DMA_CH2, DMA_INT_FTF);
     dma_memory_to_memory_disable(DMA0, DMA_CH2);
     
     nvic_irq_enable(DMA0_Channel2_IRQn, 0, 0);
@@ -244,6 +245,7 @@ void SPI_2::dma_setup() {
     dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;
     dma_init(DMA1, DMA_CH1, &dma_init_struct);
     dma_circulation_disable(DMA1, DMA_CH1);
+    //dma_interrupt_enable(DMA1, DMA_CH1, DMA_INT_FTF);
     dma_memory_to_memory_disable(DMA1, DMA_CH1);
 
     nvic_irq_enable(DMA1_Channel1_IRQn, 0, 0);
