@@ -86,6 +86,8 @@ namespace lightkraken {
         bool pendingTransferFlag() { if (transfer_flag) { transfer_flag = false; return true; } return false; }
 
     private:
+        bool use32Bit();
+        
         void init();
 
         void setLen(size_t len);
@@ -106,8 +108,7 @@ namespace lightkraken {
         bool strip_reset = false;
         Type strip_type = WS2812_RGB;
         size_t comp_len = 0;
-        int8_t comp_err[compMaxLen];
-        uint16_t comp_buf[compMaxLen];
+        uint8_t comp_buf[compMaxLen];
         uint8_t spi_buf[spiMaxLen];
     };
 

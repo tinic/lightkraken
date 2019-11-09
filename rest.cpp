@@ -78,7 +78,7 @@ public:
         int ival = 0;
         double dval = 0;
         size_t post_len = strlen(post_buf);
-
+        
         if (mjson_get_bool(post_buf, post_len, "$.dhcp", &ival) > 0) {
             Model::instance().setDhcpEnabled(ival ? true : false);
         }
@@ -352,7 +352,7 @@ public:
                 }
             }
         }
-    
+
     	Model::instance().save();
         Systick::instance().scheduleApply();
     }
@@ -361,7 +361,7 @@ private:
     bool initialized = false;
     void init();
     char *buf_ptr;
-    char post_buf[1536];
+    char post_buf[3072];
 };
 
 HTTPPostParser &HTTPPostParser::instance() {
@@ -661,7 +661,7 @@ private:
     bool first_item = true;
     char *buf_ptr;
     char *content_start;
-    char response_buf[2048];
+    char response_buf[3072];
 };
 
 HTTPResponseBuilder &HTTPResponseBuilder::instance() {
@@ -700,8 +700,6 @@ public:
 		public:
 			void *handle;
 			RestMethod method;
-			struct pbuf *buffers[16];
-			size_t buffer_index;
 			uint32_t time_stamp;
 			char property[16];
 	};
@@ -781,6 +779,7 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
         case REST_METHOD_POST: {
             if (strcmp(url, "/settings") == 0) {
                 info->method = ConnectionManager::MethodPostSettings;
+                HTTPPostParser::instance().begin();
                 return ERR_OK;
             } else if (strcmp(url, "/bootloader") == 0) {
                 info->method = ConnectionManager::MethodPostBootLoader;
@@ -807,7 +806,8 @@ err_t httpd_rest_receive_data(void *handle, struct pbuf *p) {
 	}
     switch(info->method) {
 		case ConnectionManager::MethodPostSettings: {
-		   info->buffers[info->buffer_index++] = p;
+            HTTPPostParser::instance().pushData(p->payload, p->len);
+            pbuf_free(p);
 		} break;
 		default:
         case ConnectionManager::MethodNone:
@@ -896,7 +896,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             response.addAnalogConfig();
             response.addStripConfig();
             *data = response.finish(*dataLen);
-            
+
             ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
@@ -914,12 +914,6 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
         case ConnectionManager::MethodPostSettings: {
             PerfMeasure perf(PerfMeasure::SLOT_REST_POST);
             
-            HTTPPostParser::instance().begin();
-            for (size_t c = 0; c < info->buffer_index; c++) {
-	        	HTTPPostParser::instance().pushData(info->buffers[c]->payload, info->buffers[c]->len);
-	        	pbuf_free(info->buffers[c]);
-	        	info->buffers[c] = 0;
-	        }
    	     	HTTPPostParser::instance().end();
             
             HTTPResponseBuilder &response = HTTPResponseBuilder::instance();

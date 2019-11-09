@@ -88,10 +88,96 @@ static int32_t mul_fixed(int32_t x, int32_t y) {
 
 
 __attribute__ ((hot, optimize("O3")))
+void ColorSpaceConverter::sRGB8toLED8(
+    size_t len,
+    const uint8_t *src,
+    uint8_t *dst,
+    uint8_t off_r,
+    uint8_t off_g,
+    uint8_t off_b,
+    size_t channels) {
+
+    for (size_t c = 0; c < len; c += channels) {
+
+        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
+        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<fixed_shift));
+
+        int32_t lr = srgb_2_srgbl_lookup_fixed[src[0]];
+        int32_t lg = srgb_2_srgbl_lookup_fixed[src[1]];
+        int32_t lb = srgb_2_srgbl_lookup_fixed[src[2]];
+        
+        int32_t x = mul_fixed(srgbl2ledl_fixed[0], lr) + mul_fixed(srgbl2ledl_fixed[1], lg) + mul_fixed(srgbl2ledl_fixed[2], lb);
+        int32_t y = mul_fixed(srgbl2ledl_fixed[3], lr) + mul_fixed(srgbl2ledl_fixed[4], lg) + mul_fixed(srgbl2ledl_fixed[5], lb);
+        int32_t z = mul_fixed(srgbl2ledl_fixed[6], lr) + mul_fixed(srgbl2ledl_fixed[7], lg) + mul_fixed(srgbl2ledl_fixed[8], lb);
+
+        if ( x > theta ) {
+            x = mul_fixed(x + delta, const_mul0);
+            x = mul_fixed(x, mul_fixed(x, x)); 
+        } else {
+            x = mul_fixed(x, const_mul1);
+        }
+
+        if ( y > theta ) {
+            y = mul_fixed(y + delta, const_mul0);
+            y = mul_fixed(y, mul_fixed(y, y)); 
+        } else {
+            y = mul_fixed(y, const_mul1);
+        }
+
+        if ( z > theta ) {
+            z = mul_fixed(z + delta, const_mul0);
+            z = mul_fixed(z, mul_fixed(z, z)); 
+        } else {
+            z = mul_fixed(z, const_mul1);
+        }
+        
+		dst[off_r] = __USAT((x >> fixed_post_shift) >> 8, 7);
+		dst[off_g] = __USAT((y >> fixed_post_shift) >> 8, 7);
+		dst[off_b] = __USAT((z >> fixed_post_shift) >> 8, 7);
+
+        src += channels;
+        dst += channels;
+    }
+}
+
+__attribute__ ((hot, optimize("O3")))
+void ColorSpaceConverter::sRGB8TransfertoLED8Transfer(
+    size_t len,
+    const uint8_t *src,
+    uint8_t *dst,
+    uint8_t off_in,
+    uint8_t off_out,
+    size_t channels) {
+
+    for (size_t c = 0; c < len; c += channels) {
+        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
+        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<fixed_shift));
+
+        int32_t x = srgb_2_srgbl_lookup_fixed[src[off_in]];
+
+        if ( x > theta ) {
+            x = mul_fixed(x + delta, const_mul0);
+            x = mul_fixed(x, mul_fixed(x, x)); 
+        } else {
+            x = mul_fixed(x, const_mul1);
+        }
+
+		dst[off_out] = __USAT((x >> fixed_post_shift) >> 8, 7);
+        
+        src += channels;
+        dst += channels;
+    }
+}
+
+__attribute__ ((hot, optimize("O3")))
 void ColorSpaceConverter::sRGB8toLED16(
     size_t len,
     const uint8_t *src,
-    uint16_t *dst,
+    uint32_t *dst,
     uint8_t off_r,
     uint8_t off_g,
     uint8_t off_b,
@@ -146,7 +232,7 @@ __attribute__ ((hot, optimize("O3")))
 void ColorSpaceConverter::sRGB8TransfertoLED16Transfer(
     size_t len,
     const uint8_t *src,
-    uint16_t *dst,
+    uint32_t *dst,
     uint8_t off_in,
     uint8_t off_out,
     size_t channels) {

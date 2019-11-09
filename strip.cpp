@@ -215,6 +215,10 @@ namespace lightkraken {
         comp_len = std::min(getMaxLen(), size_t(len));
         memset(&comp_buf[comp_len], 0, sizeof(comp_buf)-comp_len);
     }
+    
+    bool Strip::use32Bit() {
+        return convertsrgb && dither && (Model::instance().outputMode() == Model::MODE_INTERRUPT);
+    }
 
     void Strip::setData(const uint8_t *data, size_t len) {
 		PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
@@ -233,12 +237,16 @@ namespace lightkraken {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = Model::universeN * ( size_t(dmxMaxLen / pixsize) * pixsize );
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[0], 1, 0, 2, 3); 
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[0]), 1, 0, 2, 3); 
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[0], 1, 0, 2, 3); 
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 3) {
-                        comp_buf[c + 0] = data[c+1] << 8;
-                        comp_buf[c + 1] = data[c+0] << 8;
-                        comp_buf[c + 2] = data[c+2] << 8;
+                        comp_buf[c + 0] = data[c+1];
+                        comp_buf[c + 1] = data[c+0];
+                        comp_buf[c + 2] = data[c+2];
                     }
                 }
             } break;
@@ -246,12 +254,16 @@ namespace lightkraken {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = Model::universeN * ( size_t(dmxMaxLen / pixsize) * pixsize );
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[0], 2, 1, 0, 3); 
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[0]), 2, 1, 0, 3); 
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[0], 2, 1, 0, 3); 
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 3) {
-                        comp_buf[c + 0] = data[c+2] << 8;
-                        comp_buf[c + 1] = data[c+1] << 8;
-                        comp_buf[c + 2] = data[c+0] << 8;
+                        comp_buf[c + 0] = data[c+2];
+                        comp_buf[c + 1] = data[c+1];
+                        comp_buf[c + 2] = data[c+0];
                     }
                 }
             } break;
@@ -259,12 +271,16 @@ namespace lightkraken {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = Model::universeN * ( size_t(dmxMaxLen / pixsize) * pixsize );
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[0], 0, 1, 2, 3); 
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[0]), 0, 1, 2, 3); 
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[0], 0, 1, 2, 3); 
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 3) {
-                        comp_buf[c + 0] = data[c+0] << 8;
-                        comp_buf[c + 1] = data[c+1] << 8;
-                        comp_buf[c + 2] = data[c+2] << 8;
+                        comp_buf[c + 0] = data[c+0];
+                        comp_buf[c + 1] = data[c+1];
+                        comp_buf[c + 2] = data[c+2];
                     }
                 }
             } break;
@@ -272,14 +288,19 @@ namespace lightkraken {
                 constexpr size_t pixsize = 4;
                 constexpr size_t padlen = Model::universeN * ( size_t(dmxMaxLen / pixsize) * pixsize );
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[0], 0, 1, 2, 4); 
-                    converter.sRGB8TransfertoLED16Transfer(std::min(len, padlen), data, &comp_buf[0], 3, 3, 4);
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[0]), 0, 1, 2, 4); 
+                        converter.sRGB8TransfertoLED16Transfer(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[0]), 3, 3, 4);
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[0], 0, 1, 2, 4); 
+                        converter.sRGB8TransfertoLED8Transfer(std::min(len, padlen), data, &comp_buf[0], 3, 3, 4);
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 4) {
-                        comp_buf[c + 0] = data[c+0] << 8;
-                        comp_buf[c + 1] = data[c+1] << 8;
-                        comp_buf[c + 2] = data[c+2] << 8;
-                        comp_buf[c + 3] = data[c+3] << 8;
+                        comp_buf[c + 0] = data[c+0];
+                        comp_buf[c + 1] = data[c+1];
+                        comp_buf[c + 2] = data[c+2];
+                        comp_buf[c + 3] = data[c+3];
                     }
                 }
             } break;
@@ -287,12 +308,16 @@ namespace lightkraken {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = Model::universeN * ( size_t(dmxMaxLen / pixsize) * pixsize );
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[0], 2, 0, 1, 3); 
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[0]), 2, 0, 1, 3); 
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[0], 2, 0, 1, 3); 
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 3) {
-                        comp_buf[c + 0] = data[c+2] << 8;
-                        comp_buf[c + 1] = data[c+0] << 8;
-                        comp_buf[c + 2] = data[c+1] << 8;
+                        comp_buf[c + 0] = data[c+2];
+                        comp_buf[c + 1] = data[c+0];
+                        comp_buf[c + 2] = data[c+1];
                     }
                 }
             } break;
@@ -355,12 +380,16 @@ namespace lightkraken {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[padlen * uniN], 1, 0, 2, 3); 
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[padlen * uniN]), 1, 0, 2, 3); 
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[padlen * uniN], 1, 0, 2, 3); 
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 3) {
-                        comp_buf[padlen * uniN + c + 0] = data[c+1] << 8;
-                        comp_buf[padlen * uniN + c + 1] = data[c+0] << 8;
-                        comp_buf[padlen * uniN + c + 2] = data[c+2] << 8;
+                        comp_buf[padlen * uniN + c + 0] = data[c+1];
+                        comp_buf[padlen * uniN + c + 1] = data[c+0];
+                        comp_buf[padlen * uniN + c + 2] = data[c+2];
                     }
                 }
             } break;
@@ -368,12 +397,16 @@ namespace lightkraken {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[padlen * uniN], 2, 1, 0, 3); 
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[padlen * uniN]), 2, 1, 0, 3); 
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[padlen * uniN], 2, 1, 0, 3); 
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 3) {
-                        comp_buf[padlen * uniN + c + 0] = data[c+2] << 8;
-                        comp_buf[padlen * uniN + c + 1] = data[c+1] << 8;
-                        comp_buf[padlen * uniN + c + 2] = data[c+0] << 8;
+                        comp_buf[padlen * uniN + c + 0] = data[c+2];
+                        comp_buf[padlen * uniN + c + 1] = data[c+1];
+                        comp_buf[padlen * uniN + c + 2] = data[c+0];
                     }
                 }
             } break;
@@ -381,12 +414,16 @@ namespace lightkraken {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[padlen * uniN], 0, 1, 2, 3); 
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[padlen * uniN]), 0, 1, 2, 3); 
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[padlen * uniN], 0, 1, 2, 3); 
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 3) {
-                        comp_buf[padlen * uniN + c + 0] = data[c+0] << 8;
-                        comp_buf[padlen * uniN + c + 1] = data[c+1] << 8;
-                        comp_buf[padlen * uniN + c + 2] = data[c+2] << 8;
+                        comp_buf[padlen * uniN + c + 0] = data[c+0];
+                        comp_buf[padlen * uniN + c + 1] = data[c+1];
+                        comp_buf[padlen * uniN + c + 2] = data[c+2];
                     }
                 }
             } break;
@@ -394,14 +431,19 @@ namespace lightkraken {
                 constexpr size_t pixsize = 4;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[padlen * uniN], 0, 1, 2, 4); 
-                    converter.sRGB8TransfertoLED16Transfer(std::min(len, padlen), data, &comp_buf[padlen * uniN], 3, 3, 4);
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[padlen * uniN]), 0, 1, 2, 4); 
+                        converter.sRGB8TransfertoLED16Transfer(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[padlen * uniN]), 3, 3, 4);
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[padlen * uniN], 0, 1, 2, 4); 
+                        converter.sRGB8TransfertoLED8Transfer(std::min(len, padlen), data, &comp_buf[padlen * uniN], 3, 3, 4);
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 4) {
-                        comp_buf[padlen * uniN + c + 0] = data[c+0] << 8;
-                        comp_buf[padlen * uniN + c + 1] = data[c+1] << 8;
-                        comp_buf[padlen * uniN + c + 2] = data[c+2] << 8;
-                        comp_buf[padlen * uniN + c + 3] = data[c+3] << 8;
+                        comp_buf[padlen * uniN + c + 0] = data[c+0];
+                        comp_buf[padlen * uniN + c + 1] = data[c+1];
+                        comp_buf[padlen * uniN + c + 2] = data[c+2];
+                        comp_buf[padlen * uniN + c + 3] = data[c+3];
                     }
                 }
             } break;
@@ -409,12 +451,16 @@ namespace lightkraken {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
                 if (convertsrgb) {
-                    converter.sRGB8toLED16(std::min(len, padlen), data, &comp_buf[padlen * uniN], 2, 0, 1, 3); 
+                    if (use32Bit()) {
+                        converter.sRGB8toLED16(std::min(len, padlen), data, reinterpret_cast<uint32_t *>(&comp_buf[padlen * uniN]), 2, 0, 1, 3); 
+                    } else {
+                        converter.sRGB8toLED8(std::min(len, padlen), data, &comp_buf[padlen * uniN], 2, 0, 1, 3); 
+                    }
                 } else {
                     for (size_t c = 0; c < std::min(len, padlen); c += 3) {
-                        comp_buf[padlen * uniN + c + 0] = data[c+2] << 8;
-                        comp_buf[padlen * uniN + c + 1] = data[c+0] << 8;
-                        comp_buf[padlen * uniN + c + 2] = data[c+1] << 8;
+                        comp_buf[padlen * uniN + c + 0] = data[c+2];
+                        comp_buf[padlen * uniN + c + 1] = data[c+0];
+                        comp_buf[padlen * uniN + c + 2] = data[c+1];
                     }
                 }
             } break;
@@ -560,8 +606,15 @@ namespace lightkraken {
     void Strip::lpd8806_rgb_alike_convert(size_t start, size_t end) {
         uint8_t *dst = spi_buf + start;
         *dst++ = 0x00;
-        for (size_t c = std::max(start, size_t(1)); c <= std::min(end, comp_len - 1 + 1); c++) {
-            *dst++ = 0x80 | (comp_buf[c-1] >> 9);
+        if (use32Bit()) {
+            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
+            for (size_t c = std::max(start, size_t(1)); c <= std::min(end, comp_len - 1 + 1); c++) {
+                *dst++ = 0x80 | ((comp_buf32[c-1] >> 9) & 0x7F);
+            }
+        } else {
+            for (size_t c = std::max(start, size_t(1)); c <= std::min(end, comp_len - 1 + 1); c++) {
+                *dst++ = 0x80 | (comp_buf[c-1] >> 1);
+            }
         }
     }
 
@@ -577,11 +630,21 @@ namespace lightkraken {
             *dst++ = 0x00;
         }
         int32_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
-        for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, comp_len - 1 + 1); c += 3) {
-            *dst++ = illum;
-            *dst++ = comp_buf[c-head_len+0] >> 8;
-            *dst++ = comp_buf[c-head_len+1] >> 8;
-            *dst++ = comp_buf[c-head_len+2] >> 8;
+        if (use32Bit()) {
+            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
+            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, comp_len - 1 + 1); c += 3) {
+                *dst++ = illum;
+                *dst++ = (comp_buf32[c-head_len+0] >> 8) & 0xFF;
+                *dst++ = (comp_buf32[c-head_len+1] >> 8) & 0xFF;
+                *dst++ = (comp_buf32[c-head_len+2] >> 8) & 0xFF;
+            }
+        } else {
+            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, comp_len - 1 + 1); c += 3) {
+                *dst++ = illum;
+                *dst++ = comp_buf[c-head_len+0];
+                *dst++ = comp_buf[c-head_len+1];
+                *dst++ = comp_buf[c-head_len+2];
+            }
         }
         // latch words
         for (size_t c = std::max(start, comp_len); c <= end; c++) {
@@ -599,18 +662,28 @@ namespace lightkraken {
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
         }
-        if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
-			for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
-				int32_t v = comp_buf[c-head_len] + ( int32_t(comp_err[c-head_len]) << 1 );
-				int32_t p = v >> 8;
-				comp_err[c-head_len] = int8_t((v - (p << 8)) >> 1);
-				*dst++ = 0x88888888UL |
-						(((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-						(((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
-			}
+        if (use32Bit()) {
+            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
+            if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
+                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
+                    int32_t v = int32_t(comp_buf32[c-head_len] & 0xFFFF) + int32_t(int16_t(comp_buf32[c-head_len] >> 16));
+                    int32_t p = v >> 8;
+                    comp_buf32[c-head_len] = uint32_t(int32_t(comp_buf32[c-head_len] & 0xFFFF) | (int32_t((v - (p << 8))) << 16));
+                    *dst++ = 0x88888888UL |
+                            (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
+                            (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+                }
+            } else {
+                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
+                    uint32_t p = ( uint32_t(comp_buf32[c-head_len]) >> 8 ) & 0xFF;
+                    *dst++ = 0x88888888UL |
+                            (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
+                            (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+                }
+            }
         } else {
 			for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c ++) {
-				uint32_t p = uint32_t(comp_buf[c-head_len]) >> 8;
+				uint32_t p = uint32_t(comp_buf[c-head_len]);
 				*dst++ = 0x88888888UL |
 						(((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
 						(((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
@@ -636,9 +709,16 @@ namespace lightkraken {
             buf.push(0, 12*(comp_len/3));
         } else {
             buf.push(start, 19);
-            for (size_t c = 0; c < comp_len; c++) {
-                uint32_t p = uint32_t(comp_buf[c]) >> 8;
-                buf.push((p<<19)|(p<<11), 13);
+            if (use32Bit()) {
+                for (size_t c = 0; c < comp_len; c++) {
+                    uint32_t p = uint32_t((comp_buf[c] >> 8) & 0xFF);
+                    buf.push((p<<19)|(p<<11), 13);
+                }
+            } else {
+                for (size_t c = 0; c < comp_len; c++) {
+                    uint32_t p = uint32_t(comp_buf[c]);
+                    buf.push((p<<19)|(p<<11), 13);
+                }
             }
             buf.push(0, 100);
             buf.push(start, 19);
