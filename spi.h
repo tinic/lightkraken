@@ -26,13 +26,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace lightkraken {
 
 class SPI {
+public:
+
+    void setFast(bool state) { fast = state; changed = true; }
+    
 protected:
+
     bool initialized = false;
     const uint8_t *cbuf = 0;
     bool sclk = false;
     size_t clen = 0;
     bool active = false;
     bool scheduled = false;
+    bool fast = true;
+    bool changed = false;
 };
 
 class SPI_0 : public SPI {
@@ -42,6 +49,7 @@ public:
     void transfer(const uint8_t *buf, size_t len, bool wantsSCLK);
     void update();
     bool busy() const;
+    
 private:
 
     void init();

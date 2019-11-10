@@ -346,6 +346,9 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
 }
 
 void Control::update() {
+    lightkraken::SPI_0::instance().setFast(lightkraken::Strip::get(0).needsClock() == false);
+    lightkraken::SPI_2::instance().setFast(lightkraken::Strip::get(1).needsClock() == false);
+    
 	if (lightkraken::Model::instance().outputMode() == lightkraken::Model::MODE_MAIN_LOOP) {
 		lightkraken::SPI_2::instance().update();
 		lightkraken::SPI_0::instance().update();

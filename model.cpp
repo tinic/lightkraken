@@ -206,6 +206,7 @@ void Model::setTag(const char *str) {
 void Model::init() {
 	defaults();
     readFlash();
+    
     Systick::instance().scheduleApply();
 }
 

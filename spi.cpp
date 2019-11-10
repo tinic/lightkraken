@@ -94,7 +94,8 @@ void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 	dma_channel_disable(DMA0, DMA_CH2);
     active = false;
 
-    if (cbuf != buf || clen != len || wantsSCLK != sclk) {
+    if (changed || cbuf != buf || clen != len || wantsSCLK != sclk) {
+        changed = false;
         cbuf = buf;
         clen = len;
         sclk = wantsSCLK;
@@ -128,7 +129,7 @@ void SPI_0::dma_setup() {
     spi_init_struct.frame_size           = SPI_FRAMESIZE_8BIT;
     spi_init_struct.clock_polarity_phase = SPI_CK_PL_LOW_PH_1EDGE;
     spi_init_struct.nss                  = SPI_NSS_SOFT;
-    spi_init_struct.prescale             = SPI_PSC_32;
+    spi_init_struct.prescale             = fast ? SPI_PSC_32 : SPI_PSC_64;
     spi_init_struct.endian               = SPI_ENDIAN_MSB;
     spi_init(SPI0, &spi_init_struct);
     
@@ -201,7 +202,8 @@ void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
     dma_channel_disable(DMA1, DMA_CH1);
     active = false;
 
-    if (cbuf != buf || clen != len || wantsSCLK != sclk) {
+    if (changed || cbuf != buf || clen != len || wantsSCLK != sclk) {
+        changed = false;
         cbuf = buf;
         clen = len;
         sclk = wantsSCLK;
@@ -236,7 +238,7 @@ void SPI_2::dma_setup() {
     spi_init_struct.frame_size           = SPI_FRAMESIZE_8BIT;
     spi_init_struct.clock_polarity_phase = SPI_CK_PL_LOW_PH_1EDGE;
     spi_init_struct.nss                  = SPI_NSS_SOFT;
-    spi_init_struct.prescale             = SPI_PSC_16;
+    spi_init_struct.prescale             = fast ? SPI_PSC_16 : SPI_PSC_32;
     spi_init_struct.endian               = SPI_ENDIAN_MSB;
     spi_init(SPI2, &spi_init_struct);
     
