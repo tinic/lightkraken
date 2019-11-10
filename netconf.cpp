@@ -128,6 +128,7 @@ void NetConf::init() {
     httpd_init();
 }
 
+#ifndef BOOTLOADER
 bool NetConf::sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len) {
     
 	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
@@ -144,6 +145,7 @@ bool NetConf::sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint
 
 	return err == ERR_OK;
 }
+#endif  // #ifndef BOOTLOADER
 
 void NetConf::update() {
 

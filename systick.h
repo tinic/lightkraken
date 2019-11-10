@@ -30,7 +30,9 @@ public:
     static Systick &instance();
     
     uint32_t systemTime() const { return system_time; }
+#ifndef BOOTLOADER
 	uint64_t systemTick();
+#endif  // #ifndef BOOTLOADER
  
     void handler();
     

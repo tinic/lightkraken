@@ -45,6 +45,7 @@ void SysTick_Handler(void) {
 
 namespace lightkraken {
 
+#ifndef BOOTLOADER
 static uint64_t large_dwt_cyccnt() {
 
 	static const uint32_t TRCENA 	= 0x01000000;
@@ -76,6 +77,7 @@ static uint64_t large_dwt_cyccnt() {
 
     return LARGE_DWT_CYCCNT + CURRENT_DWT_CYCCNT;
 }
+#endif  // #ifndef BOOTLOADER
 
 Systick &Systick::instance() {
     static Systick systick;
@@ -86,9 +88,11 @@ Systick &Systick::instance() {
     return systick;
 }
 
+#ifndef BOOTLOADER
 uint64_t Systick::systemTick() {
     return large_dwt_cyccnt();
 }
+#endif // #ifndef BOOTLOADER
 
 void Systick::handler() {
     
@@ -137,8 +141,10 @@ void Systick::handler() {
 
 #endif  // #ifndef BOOTLOADER
 
+#ifndef BOOTLOADER
 	// Handle wrap around if required
 	large_dwt_cyccnt();
+#endif // #ifndef BOOTLOADER
 
     system_time++;
 }
