@@ -20,53 +20,47 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef SYSTICK_H
-#define SYSTICK_H
 
-extern "C" {
-#include "lwip/udp.h"
-}; //extern "C" {
+#include <stdint.h>
+
+#include "./random.h"
 
 namespace lightkraken {
 
-class Systick {
-public:
-    static Systick &instance();
-    
-    uint32_t systemTime() const { return system_time; }
-
-#ifndef BOOTLOADER
-	uint64_t systemTick();
-    void schedulePollReply(const ip_addr_t *from, uint16_t universe);
-    void scheduleApply() { apply_scheduled = true; }
-#endif  // #ifndef BOOTLOADER
- 
-    void handler();
-    
-	void scheduleReset(int32_t countdown = 2000, bool bootloader = false) { 
-        nvic_reset_delay = countdown; 
-        bootloader_after_reset = bootloader;
+PseudoRandom &PseudoRandom::instance() {
+    static PseudoRandom pseudoRandom;
+    if (!pseudoRandom.initialized) {
+        pseudoRandom.initialized = true;
+        pseudoRandom.init();
     }
-	
-private:
+    return pseudoRandom;
+}
 
-    bool initialized = false;
-    void init();
+void PseudoRandom::set_seed(uint32_t seed) {
+    uint32_t i;
+    a = 0xf1ea5eed, b = c = d = seed;
+    for (i=0; i<20; ++i) {
+        (void)get();
+    }
+}
 
-    uint32_t system_time = 0;
-    bool bootloader_after_reset = false;
-    int32_t nvic_reset_delay = 0;
+#define rot(x,k) (((x)<<(k))|((x)>>(32-(k))))
+uint32_t PseudoRandom::get() {
+    uint32_t e = a - rot(b, 27);
+    a = b ^ rot(c, 17);
+    b = c + d;
+    c = d + e;
+    d = e + a;
+    return d;
+}
 
-#ifndef BOOTLOADER
-    bool apply_scheduled = false;
-    struct {
-        ip_addr_t from;
-        uint32_t universe;
-        int32_t delay;
-    } pollReply[8];
-#endif  // #ifndef BOOTLOADER
-    
-};
+void PseudoRandom::init() {
+    set_seed(
+        *reinterpret_cast<uint32_t*>(0x1FFFF7E8) ^
+        *reinterpret_cast<uint32_t*>(0x1FFFF7EC) ^
+        *reinterpret_cast<uint32_t*>(0x1FFFF7F0)
+    );
+}
 
 }
-#endif  // #ifndef SYSTICK_H
+

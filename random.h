@@ -20,53 +20,33 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef SYSTICK_H
-#define SYSTICK_H
-
-extern "C" {
-#include "lwip/udp.h"
-}; //extern "C" {
+#ifndef _RANDOM_H_
+#define _RANDOM_H_
 
 namespace lightkraken {
 
-class Systick {
+class PseudoRandom {
 public:
-    static Systick &instance();
+    static PseudoRandom &instance();
     
-    uint32_t systemTime() const { return system_time; }
-
-#ifndef BOOTLOADER
-	uint64_t systemTick();
-    void schedulePollReply(const ip_addr_t *from, uint16_t universe);
-    void scheduleApply() { apply_scheduled = true; }
-#endif  // #ifndef BOOTLOADER
- 
-    void handler();
-    
-	void scheduleReset(int32_t countdown = 2000, bool bootloader = false) { 
-        nvic_reset_delay = countdown; 
-        bootloader_after_reset = bootloader;
+    int32_t get(int32_t lower, int32_t upper) {
+        return (static_cast<int32_t>(get()) % (upper-lower)) + lower;
     }
-	
-private:
 
+private:
     bool initialized = false;
     void init();
 
-    uint32_t system_time = 0;
-    bool bootloader_after_reset = false;
-    int32_t nvic_reset_delay = 0;
+    void set_seed(uint32_t seed);
+    uint32_t get();
 
-#ifndef BOOTLOADER
-    bool apply_scheduled = false;
-    struct {
-        ip_addr_t from;
-        uint32_t universe;
-        int32_t delay;
-    } pollReply[8];
-#endif  // #ifndef BOOTLOADER
-    
+    uint32_t a; 
+    uint32_t b; 
+    uint32_t c; 
+    uint32_t d; 
 };
 
 }
-#endif  // #ifndef SYSTICK_H
+
+#endif  // #ifndef _RANDOM_H_
+

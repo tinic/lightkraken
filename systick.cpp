@@ -25,7 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern "C" {
 #include "gd32f10x.h"
 #include "cmsis_gcc.h"
-
+#include "lwip/udp.h"
 }; //extern "C" {
 
 #include "./main.h"
@@ -35,6 +35,8 @@ extern "C" {
 #include "./strip.h"
 #include "./control.h"
 #include "./perf.h"
+#include "./artnet.h"
+#include "./random.h"
 
 extern "C" {
 __attribute__((used)) // required for -flto
@@ -45,7 +47,18 @@ void SysTick_Handler(void) {
 
 namespace lightkraken {
 
+Systick &Systick::instance() {
+    static Systick systick;
+    if (!systick.initialized) {
+        systick.initialized = true;
+        systick.init();
+    }
+    return systick;
+}
+
 #ifndef BOOTLOADER
+
+
 static uint64_t large_dwt_cyccnt() {
 
 	static const uint32_t TRCENA 	= 0x01000000;
@@ -68,7 +81,6 @@ static uint64_t large_dwt_cyccnt() {
 
     uint32_t CURRENT_DWT_CYCCNT = *DWT_CYCCNT;
 
-    // wrap around
     if (PREV_DWT_CYCCNT > CURRENT_DWT_CYCCNT) {
         LARGE_DWT_CYCCNT += 0x100000000UL;
     }
@@ -77,20 +89,20 @@ static uint64_t large_dwt_cyccnt() {
 
     return LARGE_DWT_CYCCNT + CURRENT_DWT_CYCCNT;
 }
-#endif  // #ifndef BOOTLOADER
 
-Systick &Systick::instance() {
-    static Systick systick;
-    if (!systick.initialized) {
-        systick.initialized = true;
-        systick.init();
-    }
-    return systick;
-}
-
-#ifndef BOOTLOADER
 uint64_t Systick::systemTick() {
     return large_dwt_cyccnt();
+}
+
+void Systick::schedulePollReply(const ip_addr_t *from, uint16_t universe) {
+    for (int32_t c = 0; c < 8; c++) {
+        if (pollReply[c].delay <= 0) {
+            pollReply[c].from.addr = from->addr;
+            pollReply[c].universe = universe;
+            pollReply[c].delay = PseudoRandom::instance().get(100, 900);
+            return;
+        }
+    }
 }
 #endif // #ifndef BOOTLOADER
 
@@ -100,6 +112,37 @@ void Systick::handler() {
     static uint32_t perf_print = 0;
     if ((perf_print++ & 0x1FFF) == 0x0) {
 		PerfMeasure::print();
+    }
+
+    // Handle wrap around if required
+	large_dwt_cyccnt();
+
+    for (int32_t c = 0; c < 8; c++) {
+        if (pollReply[c].delay > 0) {
+            pollReply[c].delay--;
+            if (pollReply[c].delay <= 0) {
+                ArtNetPacket::sendArtPollReply(&pollReply[c].from, pollReply[c].universe);
+                pollReply[c].from.addr = 0;
+                pollReply[c].universe = 0;
+            }
+        }
+    }
+
+    if (apply_scheduled) {
+        if (StatusLED::instance().enetUp()) {
+            StatusLED::PowerClass powerClass = StatusLED::instance().powerClass();
+            if ( powerClass == StatusLED::PSE_TYPE_1_2_CLASS_0_3 ||
+                 powerClass == StatusLED::PSE_TYPE_2_CLASS_4 ||
+                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_0_3 ||
+                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_0_3 ||
+                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_4 ||
+                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_5_6 ||
+                 powerClass == StatusLED::PSE_TYPE_4_CLASS_7_8 ) {
+
+                Model::instance().apply();
+                apply_scheduled = false;
+            }
+        }
     }
 #endif  // #ifndef BOOTLOADER
 
@@ -121,37 +164,17 @@ void Systick::handler() {
     }
     
 
-#ifndef BOOTLOADER
-    if (apply_scheduled) {
-        if (StatusLED::instance().enetUp()) {
-            StatusLED::PowerClass powerClass = StatusLED::instance().powerClass();
-            if ( powerClass == StatusLED::PSE_TYPE_1_2_CLASS_0_3 ||
-                 powerClass == StatusLED::PSE_TYPE_2_CLASS_4 ||
-                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_0_3 ||
-                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_0_3 ||
-                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_4 ||
-                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_5_6 ||
-                 powerClass == StatusLED::PSE_TYPE_4_CLASS_7_8 ) {
-
-                Model::instance().apply();
-                apply_scheduled = false;
-            }
-        }
-    }
-
-#endif  // #ifndef BOOTLOADER
-
-#ifndef BOOTLOADER
-	// Handle wrap around if required
-	large_dwt_cyccnt();
-#endif // #ifndef BOOTLOADER
-
     system_time++;
 }
 
 void Systick::init() {
     systick_clksource_set(SYSTICK_CLKSOURCE_HCLK);
     SysTick_Config(rcu_clock_freq_get(CK_AHB) / 1000);
+
+#ifndef BOOTLOADER
+    memset(pollReply, 0, sizeof(pollReply));
+#endif  // #ifndef BOOTLOADER
+    
     DEBUG_PRINTF(("SysTick up.\n"));
 }
 

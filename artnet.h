@@ -79,6 +79,7 @@ public:
     };
 
     static bool dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len);
+	static void sendArtPollReply(const ip_addr_t *from, uint16_t universe);
 
 protected:
 
@@ -90,7 +91,6 @@ protected:
     int version() const;
 
 private:
-	static void sendArtPollReply(const ip_addr_t *from, uint16_t universe);
     static Opcode maybeValid(const uint8_t *buf, size_t len);
     static bool verify(ArtNetPacket &Packet, const uint8_t *buf, size_t len);
 };
