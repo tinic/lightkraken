@@ -697,7 +697,7 @@ namespace lightkraken {
             *dst++ = 0x00;
         }
     }
-
+    
     __attribute__ ((hot, optimize("O3")))
     void Strip::tls3001_alike_convert(size_t &len) {
         uint8_t *dst = spi_buf;

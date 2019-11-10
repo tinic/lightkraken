@@ -117,7 +117,7 @@ void Model::defaults() {
     output_config = OUTPUT_CONFIG_DUAL_STRIP;
     output_mode = MODE_MAIN_LOOP;
 
-    burst_mode = false;
+    burst_mode = true;
 
     int32_t counter = 0;
     memset(strip_config, 0, sizeof(strip_config));
@@ -170,7 +170,7 @@ void Model::apply() {
         size_t len = 0;
         switch(cpp) {
             case 3: {
-                for (size_t d = 0; d < sizeof(buf); d += 3) {
+                for (size_t d = 0; d <= sizeof(buf)-3; d += 3) {
                     buf[d + 0] = (strip_config[c].color.r) & 0xFF;
                     buf[d + 1] = (strip_config[c].color.g) & 0xFF;
                     buf[d + 2] = (strip_config[c].color.b) & 0xFF;
@@ -178,7 +178,7 @@ void Model::apply() {
                 }
             } break;
             case 4: {
-                for (size_t d = 0; d < sizeof(buf); d += 4) {
+                for (size_t d = 0; d <= sizeof(buf)-4; d += 4) {
                     buf[d + 0] = (strip_config[c].color.r) & 0xFF;
                     buf[d + 1] = (strip_config[c].color.g) & 0xFF;
                     buf[d + 2] = (strip_config[c].color.b) & 0xFF;
