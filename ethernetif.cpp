@@ -176,8 +176,6 @@ err_t EthernetIf::low_level_output(struct netif *netif, struct pbuf *p) {
     
     while((uint32_t)RESET != (dma_current_txdesc->status & ENET_TDES0_DAV)) { }  
     
-    printf("low_level_output %d\n", p->len);
-    
     uint8_t *buffer = (uint8_t *)(enet_desc_information_get(dma_current_txdesc, TXDESC_BUFFER_1_ADDR));
     
     int32_t framelength = 0;
