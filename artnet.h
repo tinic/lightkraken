@@ -78,7 +78,7 @@ public:
         OpDirectoryReply 	= 0x9b00
     };
 
-    static bool dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len);
+    static bool dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast);
 	static void sendArtPollReply(const ip_addr_t *from, uint16_t universe);
 
 protected:

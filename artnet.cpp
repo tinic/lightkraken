@@ -268,25 +268,29 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 	NetConf::instance().sendUdpPacket(from, 6454, (const uint8_t *)&reply, sizeof(reply));
 }
 
-bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len) {
+bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast) {
 	PerfMeasure perf(PerfMeasure::SLOT_ARNET_DISPATCH);
     ArtNetPacket::Opcode opcode = ArtNetPacket::maybeValid(buf, len);
     if (opcode != OpInvalid) {
         switch(opcode) {
         	case	OpPoll: {
-        				Control::instance().interateAllActiveUniverses([from](uint16_t universe){ 
-        					sendArtPollReply(from, universe); 
+        				Control::instance().interateAllActiveUniverses([from](uint16_t universe) { 
+                            Systick::instance().schedulePollReply(from, universe);
         				});
         			} break;
             case	OpSync: {
-                        //printf("OpSync\n");
+                        if (!Model::instance().broadcastEnabled() && isBroadcast) {
+                            return false;
+                        }
             			Control::instance().setEnableSyncMode(true);
 						Control::instance().sync();
             			syncWatchDog.feed();
                     } break;
             case	OpNzs: {
+                        if (!Model::instance().broadcastEnabled() && isBroadcast) {
+                            return false;
+                        }
                         OutputNzsPacket outputPacket;
-                        //printf("OpNzs %04x\n", outputPacket.universe());
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
                             lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }
@@ -297,8 +301,10 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
                         return true;
                     } break;
             case	OpOutput: {
+                        if (!Model::instance().broadcastEnabled() && isBroadcast) {
+                            return false;
+                        }
                         OutputPacket outputPacket;
-                        //printf("OpOutput %04x\n", outputPacket.universe());
                         if (ArtNetPacket::verify(outputPacket, buf, len)) {
                             lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         }

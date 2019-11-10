@@ -67,7 +67,8 @@ static struct udp_pcb *upcb_in_artnet = 0;
 static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *from, u16_t) {
     struct pbuf *i = p;
     for( ; i != NULL ; i = i->next) {
-        lightkraken::ArtNetPacket::dispatch(from, reinterpret_cast<uint8_t *>(p->payload), p->len);
+        bool isBroadcast = ip4_addr_isbroadcast(from, NetConf::instance().netInterface());
+        lightkraken::ArtNetPacket::dispatch(from, reinterpret_cast<uint8_t *>(p->payload), p->len, isBroadcast);
     }
     pbuf_free(p);
 }
@@ -112,11 +113,7 @@ void NetConf::init() {
 
 #ifndef BOOTLOADER
     upcb_in_artnet = udp_new();
-    if (Model::instance().broadcastEnabled()) {
-		ip_set_option(upcb_in_artnet, SOF_BROADCAST);
-	} else {
-		ip_reset_option(upcb_in_artnet, SOF_BROADCAST);
-	}
+    ip_set_option(upcb_in_artnet, SOF_BROADCAST);
     if (udp_bind(upcb_in_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
         udp_recv(upcb_in_artnet, udp_receive_artnet_callback, NULL);
     } else {
@@ -173,11 +170,6 @@ void NetConf::update() {
 #ifndef BOOTLOADER
     if ((localtime - config_timer) >= 1000){ 
         config_timer =  localtime;
-		if (Model::instance().broadcastEnabled()) {
-			ip_set_option(upcb_in_artnet, SOF_BROADCAST);
-		} else {
-			ip_reset_option(upcb_in_artnet, SOF_BROADCAST);
-		}
     }
 #endif  // #ifndef BOOTLOADER
 
