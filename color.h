@@ -149,14 +149,6 @@ public:
         ww(0) {
     }
 
-    rgbww(const rgbww &from) :
-        r(from.r),
-        g(from.g),
-        b(from.b),
-        w(from.w),
-        ww(from.ww) {
-    }
-
     explicit rgbww(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _w = 0, uint8_t _ww = 0) :
         r(_r),
         g(_g),
@@ -187,13 +179,6 @@ public:
         g(0),
         b(0),
         x(0){
-    }
-
-    rgb8(const rgb8 &from) :
-        r(from.r),
-        g(from.g),
-        b(from.b),
-        x(from.x) {
     }
 
     explicit rgb8(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _x = 0) :
