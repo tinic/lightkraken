@@ -62,7 +62,7 @@ NetConf &NetConf::instance() {
 }
 
 #ifndef BOOTLOADER
-static struct udp_pcb *upcb_artnet = 0;
+static struct udp_pcb *upcb_in_artnet = 0;
 
 static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *from, u16_t) {
     struct pbuf *i = p;
@@ -111,17 +111,17 @@ void NetConf::init() {
     }
 
 #ifndef BOOTLOADER
-    upcb_artnet = udp_new();
+    upcb_in_artnet = udp_new();
     if (Model::instance().broadcastEnabled()) {
-		ip_set_option(upcb_artnet, SOF_BROADCAST);
+		ip_set_option(upcb_in_artnet, SOF_BROADCAST);
 	} else {
-		ip_reset_option(upcb_artnet, SOF_BROADCAST);
+		ip_reset_option(upcb_in_artnet, SOF_BROADCAST);
 	}
-    if (udp_bind(upcb_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
-        udp_recv(upcb_artnet, udp_receive_artnet_callback, NULL);
+    if (udp_bind(upcb_in_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
+        udp_recv(upcb_in_artnet, udp_receive_artnet_callback, NULL);
     } else {
-        udp_remove(upcb_artnet);
-        upcb_artnet = 0;
+        udp_remove(upcb_in_artnet);
+        upcb_in_artnet = 0;
     }
 #endif  // #ifndef BOOTLOADER
     
@@ -141,7 +141,11 @@ bool NetConf::sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint
 		return false;
 	}
 	
-	udp_sendto(upcb_artnet, p, to, port);
+	udp_connect(upcb_in_artnet, to, port);
+	udp_send(upcb_in_artnet, p);
+    udp_disconnect(upcb_in_artnet);
+    
+    pbuf_free(p);
 
 	return err == ERR_OK;
 }
@@ -170,9 +174,9 @@ void NetConf::update() {
     if ((localtime - config_timer) >= 1000){ 
         config_timer =  localtime;
 		if (Model::instance().broadcastEnabled()) {
-			ip_set_option(upcb_artnet, SOF_BROADCAST);
+			ip_set_option(upcb_in_artnet, SOF_BROADCAST);
 		} else {
-			ip_reset_option(upcb_artnet, SOF_BROADCAST);
+			ip_reset_option(upcb_in_artnet, SOF_BROADCAST);
 		}
     }
 #endif  // #ifndef BOOTLOADER

@@ -184,6 +184,7 @@ static constexpr uint32_t syncTimeout = 4;
 void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 
 	struct ArtPollReply {
+        uint8_t  artNet[8];
 		uint16_t opCode;
 		uint8_t  ipAddress[4];
 		uint16_t portNumber;
@@ -216,11 +217,11 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 		uint8_t  status2;
 		uint8_t  filler[26];
 	}  __attribute__((packed)) reply;
-	static uint32_t poll_counter = 0;
 
-	memset(&reply, 0, sizeof(reply));
+    memset(&reply, 0, sizeof(reply));
 	
 	reply.opCode = OpPollReply;
+    memcpy(reply.artNet, "Art-Net", 8);
 	reply.ipAddress[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
 	reply.ipAddress[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
 	reply.ipAddress[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
@@ -231,9 +232,29 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 	reply.subSwitch = (universe >> 0) & 0xFF;
 	reply.oem = 0x1ed5;
 	reply.estaManufactor = 0x1ed5;
-	strncpy((char *)reply.shortName, NetConf::instance().netInterface()->hostname, 17);
-	strncpy((char *)reply.longName, NetConf::instance().netInterface()->hostname, 63);
-	snprintf((char *)reply.longName, 63, "#%04x [#%04x] Lightkraken", (unsigned int)0, (unsigned int)(poll_counter++));
+
+    const char short_hostname_base[] = "lk-";
+    const char hex_table[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',};
+    char short_hostname[sizeof(short_hostname_base)+8];
+    memset(short_hostname, 0, sizeof(short_hostname));
+    strcpy(short_hostname, short_hostname_base);
+    uint32_t short_mac  = (NetConf::instance().netInterface()->hwaddr[2] << 24) | 
+                          (NetConf::instance().netInterface()->hwaddr[3] << 16) |
+                          (NetConf::instance().netInterface()->hwaddr[4] <<  8) |
+                          (NetConf::instance().netInterface()->hwaddr[5] <<  0);
+    for (size_t c=0; c<8; c++) {
+        short_hostname[c + sizeof(short_hostname_base) - 1] = hex_table[(short_mac>>(32-((c+1)*4)))&0xF];
+    }
+    
+    strncpy((char *)reply.shortName, short_hostname, 17);
+    if (strlen(Model::instance().tag())) {
+        snprintf((char *)reply.longName, 63, "%s - %s",
+            NetConf::instance().netInterface()->hostname,
+            Model::instance().tag());
+    } else {
+        snprintf((char *)reply.longName, 63, "%s",
+            NetConf::instance().netInterface()->hostname);
+    }
 	memcpy(reply.macAddress, NetConf::instance().netInterface()->hwaddr, 6);
 	reply.bindIp[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
 	reply.bindIp[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
@@ -244,9 +265,7 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 					 (Model::instance().dhcpEnabled() ? 0x04 : 0x00) |
 					 0x08;  // ArtNet3
 
-    printf(">>>>>>>>>>>>>>>>>>>>>\n");
 	NetConf::instance().sendUdpPacket(from, 6454, (const uint8_t *)&reply, sizeof(reply));
-    printf("<<<<<<<<<<<<<<<<<<<<<\n");
 }
 
 bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len) {
@@ -255,7 +274,6 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
     if (opcode != OpInvalid) {
         switch(opcode) {
         	case	OpPoll: {
-                        printf("OpPoll\n");
         				Control::instance().interateAllActiveUniverses([from](uint16_t universe){ 
         					sendArtPollReply(from, universe); 
         				});
