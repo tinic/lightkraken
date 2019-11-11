@@ -56,7 +56,7 @@ namespace lightkraken {
         static constexpr size_t compMaxLen = (dmxMaxLen*lightkraken::Model::universeN);
         static constexpr size_t compLatchLen = 64;
         static constexpr size_t spiMaxLen = (compMaxLen*sizeof(uint32_t)+compLatchLen*sizeof(uint32_t));
-        static constexpr size_t burstHeadLen = 64;
+        static constexpr size_t burstHeadLen = 128;
 
         static Strip &get(size_t index);
 

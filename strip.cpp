@@ -269,23 +269,23 @@ namespace lightkraken {
             case TM1804_RGB:
             case GS8208_RGB:
             case UCS1904_RGB: {
-                std::vector<int> order = { 1, 0, 2 };
+                const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
             } break;
             case TM1829_RGB: {
-                std::vector<int> order = { 2, 1, 0 };
+                const std::vector<int> order = { 2, 1, 0 };
                 transfer(order);
             } break;
             case TLS3001_RGB: {
-                std::vector<int> order = { 0, 1, 2 };
+                const std::vector<int> order = { 0, 1, 2 };
                 transfer(order);
             } break;
             case SK6812_RGBW: {
-                std::vector<int> order = { 0, 1, 2, 3 };
+                const std::vector<int> order = { 0, 1, 2, 3 };
                 transfer(order);
             } break;
             case LPD8806_RGB: {
-                std::vector<int> order = { 2, 0, 1 };
+                const std::vector<int> order = { 2, 0, 1 };
                 transfer(order);
             } break;
         }
@@ -381,23 +381,23 @@ namespace lightkraken {
             case TM1804_RGB:
             case GS8208_RGB:
             case UCS1904_RGB: {
-                std::vector<int> order = { 1, 0, 2 };
+                const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
             } break;
             case TM1829_RGB: {
-                std::vector<int> order = { 2, 1, 0 };
+                const std::vector<int> order = { 2, 1, 0 };
                 transfer(order);
             } break;
             case TLS3001_RGB: {
-                std::vector<int> order = { 0, 1, 2 };
+                const std::vector<int> order = { 0, 1, 2 };
                 transfer(order);
             } break;
             case SK6812_RGBW: {
-                std::vector<int> order = { 0, 1, 2, 3 };
+                const std::vector<int> order = { 0, 1, 2, 3 };
                 transfer(order);
             } break;
             case LPD8806_RGB: {
-                std::vector<int> order = { 2, 0, 1 };
+                const std::vector<int> order = { 2, 0, 1 };
                 transfer(order);
             } break;
         }
@@ -629,6 +629,11 @@ namespace lightkraken {
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
         }
+        auto conv_to_one_wire = [=] (uint32_t p) mutable {
+			*dst++ = 0x88888888UL |
+					(((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
+					(((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+        };
         if (use32Bit()) {
             uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
             if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
@@ -636,24 +641,16 @@ namespace lightkraken {
                     int32_t v = int32_t(comp_buf32[c-head_len] & 0xFFFF) + int32_t(int16_t(comp_buf32[c-head_len] >> 16));
                     int32_t p = v >> 8;
                     comp_buf32[c-head_len] = uint32_t(int32_t(comp_buf32[c-head_len] & 0xFFFF) | (int32_t((v - (p << 8))) << 16));
-                    *dst++ = 0x88888888UL |
-                            (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-                            (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+                    conv_to_one_wire(p);
                 }
             } else {
                 for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
-                    uint32_t p = ( uint32_t(comp_buf32[c-head_len]) >> 8 ) & 0xFF;
-                    *dst++ = 0x88888888UL |
-                            (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-                            (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+                    conv_to_one_wire(( uint32_t(comp_buf32[c-head_len]) >> 8 ) & 0xFF);
                 }
             }
         } else {
 			for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
-				uint32_t p = uint32_t(comp_buf[c-head_len]);
-				*dst++ = 0x88888888UL |
-						(((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-						(((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+				conv_to_one_wire(uint32_t(comp_buf[c-head_len]));
 			}
 		}
         for (size_t c = std::max(start, head_len + comp_len); c <= end; c++) {
