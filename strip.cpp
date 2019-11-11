@@ -566,15 +566,12 @@ namespace lightkraken {
         size_t head_len = 32;
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
-            *dst++ = 0x00;
-            *dst++ = 0x00;
-            *dst++ = 0x00;
         }
         int32_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
         if (use32Bit()) {
             uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
             if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
-                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, 1 + comp_len - 1); c += 3) {
+                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c += 3) {
                     *dst++ = illum;
                     for (size_t d = 0; d < 3; d++) {
                         int32_t v = int32_t(comp_buf32[c-head_len] & 0xFFFF) + int32_t(int16_t(comp_buf32[c-head_len] >> 16));
@@ -584,7 +581,7 @@ namespace lightkraken {
                     }
                 }
             } else {
-                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, 1 + comp_len - 1); c += 3) {
+                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c += 3) {
                     *dst++ = illum;
                     *dst++ = (comp_buf32[c-head_len+0] >> 8) & 0xFF;
                     *dst++ = (comp_buf32[c-head_len+1] >> 8) & 0xFF;
@@ -592,7 +589,7 @@ namespace lightkraken {
                 }
             }
         } else {
-            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, 1 + comp_len - 1); c += 3) {
+            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c += 3) {
                 *dst++ = illum;
                 *dst++ = comp_buf[c-head_len+0];
                 *dst++ = comp_buf[c-head_len+1];
@@ -601,10 +598,10 @@ namespace lightkraken {
         }
         // latch words
         for (size_t c = std::max(start, 1 + comp_len); c <= end; c++) {
-            *dst++ = 0xFF;
-            *dst++ = 0xFF;
-            *dst++ = 0xFF;
-            *dst++ = 0xFF;
+            *dst++ = 0x00;
+            *dst++ = 0x00;
+            *dst++ = 0x00;
+            *dst++ = 0x00;
         }
     }
 
