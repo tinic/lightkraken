@@ -448,9 +448,10 @@ namespace lightkraken {
             case P9813_RGB:
             case APA107_RGB:
             case APA102_RGB: {
-                size_t ext_len = 32*4 + ( ( comp_len / 2 ) + 7 ) / 8;
-                len = std::min(sizeof(spi_buf), (comp_len + ext_len));
-                apa102_rgb_alike_convert(0, std::min(comp_len + ext_len, size_t(burstHeadLen)));
+	            size_t out_len = comp_len + comp_len / 3;
+                size_t ext_len = 32 + ( ( comp_len / 2 ) + 7 ) / 8;
+                len = std::min(sizeof(spi_buf), (out_len + ext_len));
+                apa102_rgb_alike_convert(0, std::min(out_len + ext_len, size_t(burstHeadLen)));
                 return spi_buf;
             } break;
         }
@@ -478,8 +479,9 @@ namespace lightkraken {
             case P9813_RGB:
             case APA107_RGB:
             case APA102_RGB: {
-                size_t ext_len = 32*4 + ( ( comp_len / 2 ) + 7 ) / 8;
-                apa102_rgb_alike_convert(std::min(comp_len + ext_len, size_t(burstHeadLen)), (comp_len + ext_len) - 1);
+	            size_t out_len = comp_len + comp_len / 3;
+                size_t ext_len = 32 + ( ( comp_len / 2 ) + 7 ) / 8;
+                apa102_rgb_alike_convert(std::min(out_len + ext_len, size_t(burstHeadLen)), (out_len + ext_len) - 1);
             } break;
         }
     }
@@ -535,9 +537,10 @@ namespace lightkraken {
             case P9813_RGB:
             case APA107_RGB:
             case APA102_RGB: {
-                size_t ext_len = 32*4 + ( ( comp_len / 2 ) + 7 ) / 8;
-                len = std::min(sizeof(spi_buf), (comp_len + ext_len));
-                apa102_rgb_alike_convert(0, (comp_len + ext_len) - 1);
+	            size_t out_len = comp_len + comp_len / 3;
+                size_t ext_len = 32 + ( ( out_len / 2 ) + 7 ) / 8;
+                len = std::min(sizeof(spi_buf), (out_len + ext_len));
+                apa102_rgb_alike_convert(0, (out_len + ext_len) - 1);
                 return spi_buf;
             } break;
         }
@@ -561,43 +564,57 @@ namespace lightkraken {
 
     __attribute__ ((hot, optimize("O3")))
     void Strip::apa102_rgb_alike_convert(size_t start, size_t end) {
+
+		// Align to 4 bytes
+        start &= ~3;
+
         uint8_t *dst = spi_buf + start;
+        size_t out_len = comp_len + ( comp_len / 3 );
+
         // start frame
         size_t head_len = 32;
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
         }
-        int32_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
+
+        size_t offset = 0;
+		// adjust offset
+		for (size_t c = head_len; c < start; c += 4, offset += 3) { }
+		
+		size_t loop_start = std::max(start, size_t(head_len));
+		size_t loop_end = std::min(end, head_len + out_len - 1);
+		
+        uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
         if (use32Bit()) {
             uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
             if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
-                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c += 3) {
+                for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
                     *dst++ = illum;
                     for (size_t d = 0; d < 3; d++) {
-                        int32_t v = int32_t(comp_buf32[c-head_len] & 0xFFFF) + int32_t(int16_t(comp_buf32[c-head_len] >> 16));
+                        int32_t v = int32_t(comp_buf32[offset+d] & 0xFFFF) + int32_t(int16_t(comp_buf32[offset+d] >> 16));
                         int32_t p = v >> 8;
-                        comp_buf32[c-head_len] = uint32_t(int32_t(comp_buf32[c-head_len] & 0xFFFF) | (int32_t((v - (p << 8))) << 16));
+                        comp_buf32[offset+d] = uint32_t(int32_t(comp_buf32[offset+d] & 0xFFFF) | (int32_t((v - (p << 8))) << 16));
                         *dst++ = p & 0xFF;
                     }
                 }
             } else {
-                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c += 3) {
+                for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
                     *dst++ = illum;
-                    *dst++ = (comp_buf32[c-head_len+0] >> 8) & 0xFF;
-                    *dst++ = (comp_buf32[c-head_len+1] >> 8) & 0xFF;
-                    *dst++ = (comp_buf32[c-head_len+2] >> 8) & 0xFF;
+                    *dst++ = (comp_buf32[offset+0] >> 8) & 0xFF;
+                    *dst++ = (comp_buf32[offset+1] >> 8) & 0xFF;
+                    *dst++ = (comp_buf32[offset+2] >> 8) & 0xFF;
                 }
             }
         } else {
-            for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c += 3) {
+            for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
                 *dst++ = illum;
-                *dst++ = comp_buf[c-head_len+0];
-                *dst++ = comp_buf[c-head_len+1];
-                *dst++ = comp_buf[c-head_len+2];
+                *dst++ = comp_buf[offset+0];
+                *dst++ = comp_buf[offset+1];
+                *dst++ = comp_buf[offset+2];
             }
         }
         // latch words
-        for (size_t c = std::max(start, 1 + comp_len); c <= end; c++) {
+        for (size_t c = std::max(start, head_len + out_len); c <= end; c++) {
             *dst++ = 0x00;
             *dst++ = 0x00;
             *dst++ = 0x00;
