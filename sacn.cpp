@@ -66,6 +66,10 @@ private:
 
 sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
 
+	if (len > sizeof(packet)) {
+		return PacketInvalid;
+	}
+
 	if (len < 48) {
 		return PacketInvalid;
 	}

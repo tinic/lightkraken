@@ -37,6 +37,7 @@ private:
 class ArtNetPacket {
 public:
 
+	static constexpr int32_t port = 6454;
     static constexpr int32_t currentVersion = 14;
 
     enum Opcode {

@@ -27,6 +27,8 @@ namespace lightkraken {
 
 class sACNPacket {
 
+public:
+
 	enum {
 		VECTOR_ROOT_E131_DATA = 0x00000004,
 		VECTOR_ROOT_E131_EXTENDED = 0x00000008,

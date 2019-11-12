@@ -45,6 +45,7 @@ extern "C" {
 #include "./ethernetif.h"
 #include "./netconf.h"
 #include "./artnet.h"
+#include "./sacn.h"
 #include "./model.h"
 #include "./artnet.h"
 #include "./systick.h"
@@ -69,6 +70,17 @@ static void udp_receive_artnet_callback(void *, struct udp_pcb *, struct pbuf *p
     for( ; i != NULL ; i = i->next) {
         bool isBroadcast = ip4_addr_isbroadcast(from, NetConf::instance().netInterface());
         lightkraken::ArtNetPacket::dispatch(from, reinterpret_cast<uint8_t *>(p->payload), p->len, isBroadcast);
+    }
+    pbuf_free(p);
+}
+
+static struct udp_pcb *upcb_in_sacn = 0;
+
+static void udp_receive_sacn_callback(void *, struct udp_pcb *, struct pbuf *p, const ip_addr_t *from, u16_t) {
+    struct pbuf *i = p;
+    for( ; i != NULL ; i = i->next) {
+        bool isBroadcast = ip4_addr_isbroadcast(from, NetConf::instance().netInterface());
+        lightkraken::sACNPacket::dispatch(from, reinterpret_cast<uint8_t *>(p->payload), p->len, isBroadcast);
     }
     pbuf_free(p);
 }
@@ -114,11 +126,20 @@ void NetConf::init() {
 #ifndef BOOTLOADER
     upcb_in_artnet = udp_new();
     ip_set_option(upcb_in_artnet, SOF_BROADCAST);
-    if (udp_bind(upcb_in_artnet, IP4_ADDR_ANY, 6454) == ERR_OK) {
+    if (udp_bind(upcb_in_artnet, IP4_ADDR_ANY, ArtNetPacket::port) == ERR_OK) {
         udp_recv(upcb_in_artnet, udp_receive_artnet_callback, NULL);
     } else {
         udp_remove(upcb_in_artnet);
         upcb_in_artnet = 0;
+    }
+
+    upcb_in_sacn = udp_new();
+    ip_set_option(upcb_in_sacn, SOF_BROADCAST);
+    if (udp_bind(upcb_in_sacn, IP4_ADDR_ANY, sACNPacket::ACN_SDT_MULTICAST_PORT) == ERR_OK) {
+        udp_recv(upcb_in_sacn, udp_receive_sacn_callback, NULL);
+    } else {
+        udp_remove(upcb_in_sacn);
+        upcb_in_sacn = 0;
     }
 #endif  // #ifndef BOOTLOADER
     
