@@ -10,8 +10,8 @@ namespace lightkraken {
 
 static const char *slotNames[] = {
 	"ENET input      ",
-	"sACN dispatch ",
 	"ArtNet dispatch ",
+	"sACN dispatch   ",
 	"Strip copy      ",
 	"Strip transfer  ",
 	"SPI Interrupt   ",
