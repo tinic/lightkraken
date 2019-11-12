@@ -97,20 +97,20 @@ void StatusLED::update() {
         case PSE_TYPE_3_4_CLASS_0_3:
         case PSE_TYPE_1_2_CLASS_0_3:
             DEBUG_PRINTF(("POE Power Class 0-3 (0-12.5W)\n"));
-            setUserLED(0x1f, 0x0f, 0x00);
+            setUserLED(0x0f, 0x07, 0x00);
             break;
         case PSE_TYPE_3_4_CLASS_4:
         case PSE_TYPE_2_CLASS_4:
             DEBUG_PRINTF(("POE Power Class 4 (0-25W)\n"));
-            setUserLED(0x1f, 0x1f, 0x00);
+            setUserLED(0x0f, 0x0f, 0x00);
             break;
         case PSE_TYPE_3_4_CLASS_5_6:
             DEBUG_PRINTF(("POE Power Class 5-6 (0-50W)\n"));
-            setUserLED(0x0f, 0x1f, 0x00);
+            setUserLED(0x07, 0x0f, 0x00);
             break;
         case PSE_TYPE_4_CLASS_7_8:
             DEBUG_PRINTF(("POE Power Class 7-8 (0-70W)\n"));
-            setUserLED(0x00, 0x1f, 0x00);
+            setUserLED(0x00, 0x0f, 0x00);
             break;
         }
     }
