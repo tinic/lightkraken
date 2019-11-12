@@ -374,7 +374,6 @@ namespace lightkraken {
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
-            case APA107_RGB:
             case WS2812_RGB:
             case SK6812_RGB:
             case TM1804_RGB:
@@ -383,6 +382,7 @@ namespace lightkraken {
                 const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
             } break;
+            case APA107_RGB:
             case APA102_RGB:
             case TM1829_RGB: {
                 const std::vector<int> order = { 2, 1, 0 };
@@ -629,6 +629,14 @@ namespace lightkraken {
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
         }
+        
+        auto convert_to_one_wire = [] (uint32_t *ptr, uint32_t p) {
+            *ptr++ = 0x88888888UL |
+                    (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
+                    (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+            return ptr;
+        };
+        
         if (use32Bit()) {
             uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
             if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
@@ -636,24 +644,16 @@ namespace lightkraken {
                     int32_t v = int32_t(comp_buf32[c-head_len] & 0xFFFF) + int32_t(int16_t(comp_buf32[c-head_len] >> 16));
                     int32_t p = v >> 8;
                     comp_buf32[c-head_len] = uint32_t(int32_t(comp_buf32[c-head_len] & 0xFFFF) | (int32_t((v - (p << 8))) << 16));
-                    *dst++ = 0x88888888UL |
-                            (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-                            (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+                    dst = convert_to_one_wire(dst, p);
                 }
             } else {
                 for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
-                    uint32_t p = ( uint32_t(comp_buf32[c-head_len]) >> 8 ) & 0xFF;
-                    *dst++ = 0x88888888UL |
-                            (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-                            (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+                    dst = convert_to_one_wire(dst, (uint32_t(comp_buf32[c-head_len]) >> 8 ) & 0xFF);
                 }
             }
         } else {
 			for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
-				uint32_t p = uint32_t(comp_buf[c-head_len]);
-				*dst++ = 0x88888888UL |
-						(((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-						(((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
+				dst = convert_to_one_wire(dst, comp_buf[c-head_len]);
 			}
 		}
         for (size_t c = std::max(start, head_len + comp_len); c <= end; c++) {
