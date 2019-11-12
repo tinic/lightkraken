@@ -38,6 +38,32 @@ extern "C" {
 
 namespace lightkraken {
 
+class DataPacket : public sACNPacket {
+public:
+    DataPacket() { };
+
+    uint16_t universe() const { return (packet[113] << 8 ) | (packet[114] << 0 ); };
+    size_t len() const { return (packet[123] << 8 ) | (packet[124] << 0 ); };
+    const uint8_t *data() const { return &packet[126]; }
+
+private:
+    virtual bool verify() const override;
+};
+
+class SyncPacket : public sACNPacket {
+public:
+    SyncPacket() { };
+private:
+    virtual bool verify() const override;
+};
+
+class DiscoveryPacket : public sACNPacket {
+public:
+    DiscoveryPacket() { };
+private:
+    virtual bool verify() const override;
+};
+
 sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
 
 	if (len < 48) {
@@ -68,6 +94,7 @@ sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
 					uint32_t dmpType = buf[117];
 					switch (dmpType) {
 						case VECTOR_DMP_SET_PROPERTY: {
+							return PacketData;
 						} break;
 						default: {
 							return PacketInvalid;
@@ -83,6 +110,7 @@ sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
 			uint32_t frameType = (buf[40] << 24) | (buf[41] << 16) | (buf[42] <<  8) | (buf[43] <<  0);
 			switch (frameType) {
 				case VECTOR_E131_EXTENDED_SYNCHRONIZATION: {
+					return PacketSync;
 				} break;
 				case VECTOR_E131_EXTENDED_DISCOVERY: {
 					if (len < 119) {
@@ -91,6 +119,7 @@ sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
 					uint32_t discoveryType = (buf[114] << 24) | (buf[115] << 16) | (buf[116] <<  8) | (buf[117] <<  0);
 					switch (discoveryType) {
 						case VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST: {
+							return PacketDiscovery;
 						} break;
 						default: {
 							return PacketInvalid;
@@ -107,7 +136,29 @@ sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
 	return PacketInvalid;
 }
 
+bool sACNPacket::verify(sACNPacket &packet, const uint8_t *buf, size_t len) {
+    PacketType type = sACNPacket::maybeValid(buf, len);
+    if (type == PacketInvalid) {
+    	return false;
+    }
+    memcpy(packet.packet, buf, std::min(len, sizeof(packet.packet)));
+    switch (type) {
+		case	PacketData:
+		case	PacketSync:
+		case	PacketDiscovery: {
+                    return packet.verify();
+                } break;
+        default:
+		case	PacketInvalid: {
+			    	return false;
+				} break;
+    }
+    return false;
+}
+
 bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast) {
+	(void)from;
+	
 	PerfMeasure perf(PerfMeasure::SLOT_SACN_DISPATCH);
     PacketType type = sACNPacket::maybeValid(buf, len);
     if (type == PacketInvalid) {
@@ -115,12 +166,41 @@ bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len,
     }
 	switch(type) {
 		case	PacketData: {
+					if (!Model::instance().broadcastEnabled() && isBroadcast) {
+						return false;
+					}
+					DataPacket dataPacket;
+					if (sACNPacket::verify(dataPacket, buf, len)) {
+						lightkraken::Control::instance().setUniverseOutputData(dataPacket.universe(), dataPacket.data(), dataPacket.len());
+					}
 				} break;
 		case	PacketSync: {
+					SyncPacket syncPacket;
+					if (sACNPacket::verify(syncPacket, buf, len)) {
+					}
 				} break;
 		case	PacketDiscovery: {
+					DiscoveryPacket discoveryPacket;
+					if (sACNPacket::verify(discoveryPacket, buf, len)) {
+					}
+				} break;
+        default:
+		case	PacketInvalid: {
+			    	return false;
 				} break;
 	}
+	return false;
+}
+
+bool DataPacket::verify() const {
+	return false;
+}
+
+bool SyncPacket::verify() const {
+	return false;
+}
+
+bool DiscoveryPacket::verify() const {
 	return false;
 }
 

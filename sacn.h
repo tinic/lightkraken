@@ -51,12 +51,13 @@ class sACNPacket {
 protected:
 
     sACNPacket() { };
+    virtual bool verify() const { return false; }
+    uint8_t packet[1143];
 
 private:
 	static PacketType maybeValid(const uint8_t *buf, size_t len);
-    virtual bool verify() const { return false; }
-    uint8_t packet[1143];
-    PacketType type() const;
+    static bool verify(sACNPacket &Packet, const uint8_t *buf, size_t len);
+
 };
 
 }
