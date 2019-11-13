@@ -127,7 +127,11 @@ void EthernetIf::init() {
         }
     }
 
-    uint32_t enet_init_status = enet_init(ENET_AUTO_NEGOTIATION, ENET_AUTOCHECKSUM_DROP_FAILFRAMES, ENET_BROADCAST_FRAMES_PASS);
+	enet_initpara_config(FILTER_OPTION, ENET_MULTICAST_FILTER_NONE);
+    uint32_t enet_init_status = enet_init(
+    	ENET_AUTO_NEGOTIATION, 
+    	ENET_AUTOCHECKSUM_DROP_FAILFRAMES, 
+    	ENET_BROADCAST_FRAMES_PASS /* | ENET_PROMISCUOUS_MODE*/ );
     if (enet_init_status == 0){
         while(1) {
         }
@@ -155,7 +159,7 @@ void EthernetIf::low_level_init(struct netif *netif, uint32_t mac_addr) {
 
     netif->mtu = 1500;
 
-    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
+    netif->flags = NETIF_FLAG_IGMP | NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 
     enet_descriptors_chain_init(ENET_DMA_TX);
     enet_descriptors_chain_init(ENET_DMA_RX);

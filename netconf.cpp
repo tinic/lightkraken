@@ -36,6 +36,7 @@ extern "C" {
 #include "lwip/apps/httpd.h"
 #include "netif/etharp.h"
 #include "lwip/dhcp.h"
+#include "lwip/igmp.h"
 #include "lwip/timeouts.h"
 #include "lwip/priv/tcp_priv.h"
 #include "lwip/inet_chksum.h"
@@ -91,6 +92,7 @@ void NetConf::init() {
     ip_addr_t address;
     ip_addr_t netmask;
     ip_addr_t gateway;
+    ip_addr_t multicast;
 
 #ifndef BOOTLOADER
 #if LWIP_DHCP
@@ -98,18 +100,23 @@ void NetConf::init() {
     address.addr = 0;
     netmask.addr = 0;
     gateway.addr = 0;
+    multicast.addr = 0;
     } else 
 #endif  // #if LWIP_DHCP
     {
     address.addr = lightkraken::Model::instance().ip4Address()->addr;
     netmask.addr = lightkraken::Model::instance().ip4Netmask()->addr;
     gateway.addr = lightkraken::Model::instance().ip4Gateway()->addr;
+    multicast.addr = lightkraken::Model::instance().ip4Multicast()->addr;
     }
 #else  // #ifndef BOOTLOADER
     address.addr = 0;
     netmask.addr = 0;
     gateway.addr = 0;
+    multicast.addr = 0;
 #endif  // #ifndef BOOTLOADER
+
+	(void)multicast;
 
     netif_add(&netif, &address, &netmask, &gateway, NULL, &EthernetIf::ethernetif_init, &ethernet_input);
 
@@ -124,6 +131,8 @@ void NetConf::init() {
     }
 
 #ifndef BOOTLOADER
+	igmp_joingroup(&address, &multicast);
+
     upcb_in_artnet = udp_new();
     ip_set_option(upcb_in_artnet, SOF_BROADCAST);
     if (udp_bind(upcb_in_artnet, IP4_ADDR_ANY, ArtNetPacket::port) == ERR_OK) {
