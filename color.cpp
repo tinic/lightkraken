@@ -28,7 +28,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <algorithm>
 
 #include <math.h>
-#include <memory.h>
 #include <stdio.h>
 #include <string.h>
 

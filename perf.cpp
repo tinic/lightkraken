@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include <memory.h>
+#include <string.h>
 #include <algorithm>
 
 #include "./systick.h"

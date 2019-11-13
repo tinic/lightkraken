@@ -24,7 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define _COLOR_H_
 
 #include <stdint.h>
-#include <memory.h>
+#include <string.h>
 
 namespace lightkraken {
 
