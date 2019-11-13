@@ -108,6 +108,12 @@ public:
             sscanf(buf, "%d.%d.%d.%d", &ipbits[0], &ipbits[1], &ipbits[2], &ipbits[3]);
             IP4_ADDR(Model::instance().ip4Gateway(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
+
+        if (mjson_get_string(post_buf, post_len, "$.ipv4multicast", buf, sizeof(buf)) > 0) {
+            int ipbits[4];
+            sscanf(buf, "%d.%d.%d.%d", &ipbits[0], &ipbits[1], &ipbits[2], &ipbits[3]);
+            IP4_ADDR(Model::instance().ip4Multicast(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
+        }
         
         if (mjson_get_number(post_buf, post_len, "$.outputmode", &dval) > 0) {
             Model::instance().setOutputMode(Model::OutputMode(int(dval)));
@@ -531,6 +537,15 @@ public:
             ip4_addr3(Model::instance().ip4Gateway()),
             ip4_addr4(Model::instance().ip4Gateway()));
     }
+
+    void addIPv4Multicast() {
+        handleDelimiter();
+        addString("\"ipv4multicast\":\"%d.%d.%d.%d\"", 
+            ip4_addr1(Model::instance().ip4Multicast()),
+            ip4_addr2(Model::instance().ip4Multicast()),
+            ip4_addr3(Model::instance().ip4Multicast()),
+            ip4_addr4(Model::instance().ip4Multicast()));
+    }
     
     void addOutputConfig() {
         handleDelimiter();
@@ -888,6 +903,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             response.addIPv4Address();
             response.addIPv4Netmask();
             response.addIPv4Gateway();
+            response.addIPv4Multicast();
             response.addOutputMode();
             response.addOutputConfig();
             response.addPwmLimit();
