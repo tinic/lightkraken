@@ -57,10 +57,10 @@ private:
         if (packet[118] != 0xa1) {
             return false;
         }
-        if ( ((packet[119] << 8 ) | (packet[120] << 0 )) != 0x0000) {
+        if ( ((packet[119] << 8 ) | (packet[120] << 0)) != 0x0000) {
             return false;
         }
-        if ( ((packet[121] << 8 ) | (packet[122] << 0 )) != 0x0001) {
+        if ( ((packet[121] << 8 ) | (packet[122] << 0)) != 0x0001) {
             return false;
         }
         return true;
@@ -98,18 +98,17 @@ sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
 		return PacketInvalid;
 	}
 
-	if (((buf[0]) | (buf[1] << 8)) != 0x010) {
+	if (((buf[0] << 8) | (buf[1] << 0)) != 0x0010) {
 		return PacketInvalid;
 	}
 
-	if (((buf[2] << 8) | (buf[3] << 0)) != 0x010) {
+	if (((buf[2] << 8) | (buf[3] << 0)) != 0x0000) {
 		return PacketInvalid;
 	}
 
 	if (memcmp(&buf[4], "ASC-E1.17\0\0\0", 12) != 0){
 		return PacketInvalid;
 	}
-
 	uint32_t protocolType = (buf[18] << 24) | (buf[19] << 16) | (buf[20] <<  8) | (buf[21] <<  0);
 	switch (protocolType) {
 		case VECTOR_ROOT_E131_DATA: {
@@ -121,7 +120,7 @@ sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
 					}
 					uint32_t dmpType = buf[117];
 					switch (dmpType) {
-						case VECTOR_DMP_SET_PROPERTY: {
+						case VECTOR_DMP_SET_PROPERTY: {    
 							return PacketData;
 						} break;
 						default: {
@@ -202,30 +201,32 @@ void sACNPacket::sendDiscovery() {
         uint8_t last;
         uint16_t universes[Model::maxUniverses];
 	}  __attribute__((packed)) discovery;
+
+    size_t universeCount = 0;
+    std::array<uint16_t, Model::maxUniverses> universes;
+    Control::instance().collectAllActiveUniverses(universes, universeCount);
+    std::sort(universes.begin(), universes.begin()+universeCount);  
+    size_t replySize = offsetof(sACNDiscovery, universes)+universeCount*sizeof(uint16_t);
     
     auto hton16 = [] (uint16_t v) {
         return uint16_t((v>>8)|(v<< 8));
     };
     auto hton32 = [] (uint32_t v) {
-        return uint32_t(((v>>24)&0xFF)|((v>>8)&0xFF)|((v<<24)&0xFF)|((v<<8)&0xFF));
+        return uint32_t(((v>>24)&0x000000FF)|((v>>8)&0x0000FF00)|((v<<24)&0xFF000000)|((v<<8)&0x00FF0000));
     };
     memset(&discovery, 0, sizeof(discovery));
     discovery.preambleSize = hton16(0x0010);
     discovery.postPreambleSize = hton16(0x0000);
     memcpy(&discovery.packetIdentifier[0], "ASC-E1.17\0\0\0", 12);
-    discovery.flagsAndLengthRoot = hton16(0x7000+2+4+16);
+    discovery.flagsAndLengthRoot = hton16(0x7000 + replySize - offsetof(sACNDiscovery, flagsAndLengthRoot));
     discovery.vectorRoot = hton32(VECTOR_ROOT_E131_EXTENDED);
-    discovery.flagsAndLengthFraming = hton16(0x7000+2+4+64+4);
+    discovery.flagsAndLengthFraming = hton16(0x7000 + replySize - offsetof(sACNDiscovery, flagsAndLengthFraming));
     for (size_t c=0; c<16; c++) {
         discovery.cid[c] = NetConf::instance().netInterface()->hwaddr[c % 6];
     }
     discovery.vectorFraming = hton32(VECTOR_E131_EXTENDED_DISCOVERY);
     strcpy(reinterpret_cast<char *>(&discovery.sourceName[0]),NetConf::instance().netInterface()->hostname);
-    size_t universeCount = 0;
-    std::array<uint16_t, Model::maxUniverses> universes;
-    Control::instance().collectAllActiveUniverses(universes, universeCount);
-    std::sort(universes.begin(), universes.begin()+universeCount);  
-    discovery.flagsAndLengthDiscovery = hton16(0x7000+4+1+1+universeCount*sizeof(uint16_t));
+    discovery.flagsAndLengthDiscovery = hton16(0x7000 + replySize - offsetof(sACNDiscovery, flagsAndLengthDiscovery));
     discovery.vectorDiscovery = hton32(VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST);
     discovery.page = 0;
     discovery.last = 0;
@@ -238,7 +239,6 @@ void sACNPacket::sendDiscovery() {
                            NetConf::instance().netInterface()->netmask.addr) | 
                           ~NetConf::instance().netInterface()->netmask.addr;    
 
-    size_t replySize = offsetof(sACNDiscovery, universes)+universeCount*sizeof(uint16_t);
 	NetConf::instance().sendsACNUdpPacket(&broadcastAddr, ACN_SDT_MULTICAST_PORT, (const uint8_t *)&discovery, replySize);
 }
 
