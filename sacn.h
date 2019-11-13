@@ -49,12 +49,14 @@ public:
     };
 
     static bool dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast);
+    static void sendDiscovery();
 
 protected:
 
     sACNPacket() { };
     virtual bool verify() const { return false; }
     uint8_t packet[1143];
+    static uint16_t syncuniverse;
 
 private:
 	static PacketType maybeValid(const uint8_t *buf, size_t len);

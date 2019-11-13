@@ -239,14 +239,14 @@ namespace lightkraken {
             case UCS1904_RGB: {
                 constexpr size_t pixsize = 3;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
-                if (uniN * padlen < (comp_len * pixsize )) {
+                if (uniN * padlen < comp_len) {
                 	return true;
                 }
             } break;
             case SK6812_RGBW: {
                 constexpr size_t pixsize = 4;
                 constexpr size_t padlen = size_t(dmxMaxLen / pixsize) * pixsize;
-                if (uniN * padlen < (comp_len * pixsize )) {
+                if (uniN * padlen < comp_len) {
                 	return true;
                 }
             } break;

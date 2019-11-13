@@ -37,6 +37,7 @@ extern "C" {
 #include "./perf.h"
 #include "./artnet.h"
 #include "./random.h"
+#include "./sacn.h"
 
 extern "C" {
 __attribute__((used)) // required for -flto
@@ -109,11 +110,16 @@ void Systick::schedulePollReply(const ip_addr_t *from, uint16_t universe) {
 void Systick::handler() {
     
 #ifndef BOOTLOADER
-    static uint32_t perf_print = 0;
+    static uint32_t perf_print = 1;
     if ((perf_print++ & 0x1FFF) == 0x0) {
 		PerfMeasure::print();
     }
 
+    static uint32_t sacn_discovery = 1;
+    if ((sacn_discovery++ & 0x3FFF) == 0x0) {
+		sACNPacket::sendDiscovery();
+    }
+    
     // Handle wrap around if required
 	large_dwt_cyccnt();
 

@@ -118,16 +118,18 @@ void Control::sync() {
 	}
 }
 
-void Control::interateAllActiveUniverses(std::function<void (uint16_t universe)> callback) {
-	static constexpr size_t maxUniverses = Model::stripN * Model::universeN + Model::analogN * Model::analogCompN;
-	class UniqueCollector {
+void Control::collectAllActiveUniverses(std::array<uint16_t, Model::maxUniverses> &universes, size_t &universeCount) {
+    universeCount = 0;
+    class UniqueCollector {
 	public:
-		UniqueCollector() {
+		UniqueCollector(std::array<uint16_t, Model::maxUniverses> &universes_, size_t &universeCount_):
+            universes(universes_), 
+            universeCount(universeCount_) {
 			memset(&collected_universes[0], 0xFF, sizeof(collected_universes));
 		}
 	
 		void maybeAcquire(uint16_t universe) {
-			for (size_t c = 0; c < maxUniverses; c++) {
+			for (size_t c = 0; c < Model::maxUniverses; c++) {
 				if (collected_universes[c] == universe) {
 					return;
 				}
@@ -138,23 +140,26 @@ void Control::interateAllActiveUniverses(std::function<void (uint16_t universe)>
 			}
 		}
 
-		void showcase(std::function<void (uint16_t universe)> callback) {
-			for (size_t c = 0; c < maxUniverses; c++) {
-				callback(collected_universes[c]);
+		void fillArray() {
+			for (size_t c = 0; c < Model::maxUniverses; c++) {
 				if (collected_universes[c] == 0xFFFF) {
 					return;
 				}
+				universes[universeCount++] = collected_universes[c];
 			}
 		}
 	private:
-		uint16_t collected_universes[maxUniverses];
-	} uniqueCollector;
+		uint16_t collected_universes[Model::maxUniverses];
+        std::array<uint16_t, Model::maxUniverses> &universes;
+        size_t &universeCount;
+	} uniqueCollector(universes, universeCount);
 
 	switch(Model::instance().outputConfig()) {
 	case Model::OUTPUT_CONFIG_DUAL_STRIP: {
 		for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
 			for (size_t d = 0; d < Model::universeN; d++) {
 				if (Strip::get(c).isUniverseActive(d)) {
+                    printf("%d %d %d\n", c, d, Model::instance().universeStrip(c,d));
 					uniqueCollector.maybeAcquire(Model::instance().universeStrip(c,d));
 				}
 			}
@@ -205,8 +210,17 @@ void Control::interateAllActiveUniverses(std::function<void (uint16_t universe)>
 		}
 	} break;
 	}
-	
-	uniqueCollector.showcase(callback);
+	uniqueCollector.fillArray();
+}
+
+void Control::interateAllActiveUniverses(std::function<void (uint16_t universe)> callback) {
+    size_t universeCount = 0;
+    std::array<uint16_t, Model::maxUniverses> universes;
+    collectAllActiveUniverses(universes, universeCount);
+
+    for (size_t c = 0; c < universeCount; c++) {
+        callback(universes[c]);
+    }
 }
 
 void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {

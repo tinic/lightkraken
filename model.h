@@ -43,6 +43,7 @@ public:
     static constexpr size_t analogN = 2;
     static constexpr size_t universeN = 6;
     static constexpr size_t analogCompN = 5;
+	static constexpr size_t maxUniverses = stripN * universeN + analogN * analogCompN;
 
     struct AnalogConfig {
         uint32_t type;

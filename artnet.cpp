@@ -279,6 +279,7 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
 					Control::instance().interateAllActiveUniverses([from](uint16_t universe) { 
 						Systick::instance().schedulePollReply(from, universe);
 					});
+                    return true;
 				} break;
 		case	OpSync: {
 					if (!Model::instance().broadcastEnabled() && isBroadcast) {
@@ -287,6 +288,7 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
 					Control::instance().setEnableSyncMode(true);
 					Control::instance().sync();
 					syncWatchDog.feed();
+                    return true;
 				} break;
 		case	OpNzs: {
 					if (!Model::instance().broadcastEnabled() && isBroadcast) {
@@ -295,12 +297,12 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
 					OutputNzsPacket outputPacket;
 					if (ArtNetPacket::verify(outputPacket, buf, len)) {
 						lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
+                        if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
+                            Control::instance().sync();
+                            Control::instance().setEnableSyncMode(false);
+                        }
+                        return true;
 					}
-					if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
-						Control::instance().sync();
-						Control::instance().setEnableSyncMode(false);
-					}
-					return true;
 				} break;
 		case	OpOutput: {
 					if (!Model::instance().broadcastEnabled() && isBroadcast) {
@@ -309,12 +311,12 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
 					OutputPacket outputPacket;
 					if (ArtNetPacket::verify(outputPacket, buf, len)) {
 						lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
+                        if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
+                            Control::instance().sync();
+                            Control::instance().setEnableSyncMode(false);
+                        }
+                        return true;
 					}
-					if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
-						Control::instance().sync();
-						Control::instance().setEnableSyncMode(false);
-					}
-					return true;
 				} break;
 		default: {
 					return false;

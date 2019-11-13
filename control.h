@@ -26,6 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <functional>
 
 #include "./spi.h"
+#include "./model.h"
 
 namespace lightkraken {
 
@@ -42,6 +43,7 @@ public:
     void setEnableSyncMode(bool state) { syncMode = state; }
     bool syncModeEnabled() const { return syncMode; }
 	void interateAllActiveUniverses(std::function<void (uint16_t universe)> callback);
+    void collectAllActiveUniverses(std::array<uint16_t, Model::maxUniverses> &universes, size_t &universeCount);
 
 private:
 

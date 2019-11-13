@@ -42,26 +42,50 @@ class DataPacket : public sACNPacket {
 public:
     DataPacket() { };
 
+    uint16_t syncuniverse() const { return (packet[109] << 8 ) | (packet[110] << 0 ); };
     uint16_t universe() const { return (packet[113] << 8 ) | (packet[114] << 0 ); };
-    size_t len() const { return (packet[123] << 8 ) | (packet[124] << 0 ); };
-    const uint8_t *data() const { return &packet[126]; }
+    size_t datalen() const { return (packet[123] << 8 ) | (packet[124] << 0 ); };
+    const uint8_t *data() const { return &packet[125]; }
 
 private:
-    virtual bool verify() const override;
+    
+    virtual bool verify() const override {
+        if (datalen() > 513 ||
+            datalen() <   1 ) {
+            return false;
+        }
+        if (packet[118] != 0xa1) {
+            return false;
+        }
+        if ( ((packet[119] << 8 ) | (packet[120] << 0 )) != 0x0000) {
+            return false;
+        }
+        if ( ((packet[121] << 8 ) | (packet[122] << 0 )) != 0x0001) {
+            return false;
+        }
+        return true;
+    }
 };
 
 class SyncPacket : public sACNPacket {
 public:
     SyncPacket() { };
+
+    uint16_t syncuniverse() const { return (packet[45] << 8 ) | (packet[46] << 0 ); };
+    
 private:
-    virtual bool verify() const override;
+    virtual bool verify() const override {
+        return true;
+    }
 };
 
 class DiscoveryPacket : public sACNPacket {
 public:
     DiscoveryPacket() { };
 private:
-    virtual bool verify() const override;
+    virtual bool verify() const override {
+        return true;
+    }
 };
 
 sACNPacket::PacketType sACNPacket::maybeValid(const uint8_t *buf, size_t len) {
@@ -160,6 +184,66 @@ bool sACNPacket::verify(sACNPacket &packet, const uint8_t *buf, size_t len) {
     return false;
 }
 
+void sACNPacket::sendDiscovery() {
+    struct sACNDiscovery {
+        uint16_t preambleSize;
+        uint16_t postPreambleSize;
+        uint8_t packetIdentifier[12];
+        uint16_t flagsAndLengthRoot;
+        uint32_t vectorRoot;
+        uint8_t cid[16];
+        uint16_t flagsAndLengthFraming;
+        uint32_t vectorFraming;
+        uint8_t sourceName[64];
+        uint32_t reserved;
+        uint16_t flagsAndLengthDiscovery;
+        uint32_t vectorDiscovery;
+        uint8_t page;
+        uint8_t last;
+        uint8_t universes[Model::maxUniverses];
+	}  __attribute__((packed)) discovery;
+    
+    auto hton16 = [] (uint16_t v) {
+        return uint16_t((v>>8)|(v<< 8));
+    };
+    auto hton32 = [] (uint32_t v) {
+        return uint32_t(((v>>24)&0xFF)|((v>>8)&0xFF)|((v<<24)&0xFF)|((v<<8)&0xFF));
+    };
+    memset(&discovery, 0, sizeof(discovery));
+    discovery.preambleSize = hton16(0x0010);
+    discovery.postPreambleSize = hton16(0x0000);
+    memcpy(&discovery.packetIdentifier[0], "ASC-E1.17\0\0\0", 12);
+    discovery.flagsAndLengthRoot = hton16(0x7000+2+4+16);
+    discovery.vectorRoot = hton32(VECTOR_ROOT_E131_EXTENDED);
+    discovery.flagsAndLengthFraming = hton16(0x7000+2+4+64+4);
+    for (size_t c=0; c<16; c++) {
+        discovery.cid[c] = NetConf::instance().netInterface()->hwaddr[c % 6];
+    }
+    discovery.vectorFraming = hton32(VECTOR_E131_EXTENDED_DISCOVERY);
+    strcpy(reinterpret_cast<char *>(&discovery.sourceName[0]),NetConf::instance().netInterface()->hostname);
+    size_t universeCount = 0;
+    std::array<uint16_t, Model::maxUniverses> universes;
+    Control::instance().collectAllActiveUniverses(universes, universeCount);
+    std::sort(universes.begin(), universes.end());  
+    discovery.flagsAndLengthDiscovery = hton16(0x7000+4+1+1+universeCount*sizeof(uint16_t));
+    discovery.vectorDiscovery = hton32(VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST);
+    discovery.page = 0;
+    discovery.last = 0;
+    for (size_t c = 0; c < universeCount; c++) {
+        discovery.universes[c] = hton16(universes[c]);
+    }
+
+    struct ip4_addr broadcastAddr;
+    broadcastAddr.addr =  (NetConf::instance().netInterface()->ip_addr.addr &
+                           NetConf::instance().netInterface()->netmask.addr) | 
+                          ~NetConf::instance().netInterface()->netmask.addr;    
+    
+    printf("%d %d %08x\n", int(universeCount), Model::maxUniverses, broadcastAddr.addr);
+                          
+    size_t replySize = offsetof(sACNDiscovery, universes)+universeCount*sizeof(uint16_t);
+	NetConf::instance().sendUdpPacket(&broadcastAddr, ACN_SDT_MULTICAST_PORT, (const uint8_t *)&discovery, replySize);
+}
+
 bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast) {
 	(void)from;
 	
@@ -175,17 +259,32 @@ bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len,
 					}
 					DataPacket dataPacket;
 					if (sACNPacket::verify(dataPacket, buf, len)) {
-						lightkraken::Control::instance().setUniverseOutputData(dataPacket.universe(), dataPacket.data(), dataPacket.len());
+						lightkraken::Control::instance().setUniverseOutputData(dataPacket.universe(), dataPacket.data() + 1, dataPacket.datalen() - 1);
+                        syncuniverse = dataPacket.syncuniverse();
+                        if (dataPacket.syncuniverse() == 0) {
+                            Control::instance().sync();
+                            Control::instance().setEnableSyncMode(false);
+                        }
+                        return true;
 					}
 				} break;
 		case	PacketSync: {
+					if (!Model::instance().broadcastEnabled() && isBroadcast) {
+						return false;
+					}
 					SyncPacket syncPacket;
 					if (sACNPacket::verify(syncPacket, buf, len)) {
+                        if (syncPacket.syncuniverse() == syncuniverse) {
+                            Control::instance().sync();
+                            Control::instance().setEnableSyncMode(false);
+                        }
+                        return true;
 					}
 				} break;
 		case	PacketDiscovery: {
 					DiscoveryPacket discoveryPacket;
 					if (sACNPacket::verify(discoveryPacket, buf, len)) {
+                        return true;
 					}
 				} break;
         default:
@@ -196,17 +295,7 @@ bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len,
 	return false;
 }
 
-bool DataPacket::verify() const {
-	return false;
-}
-
-bool SyncPacket::verify() const {
-	return false;
-}
-
-bool DiscoveryPacket::verify() const {
-	return false;
-}
+uint16_t sACNPacket::syncuniverse = 0;
 
 }
 
