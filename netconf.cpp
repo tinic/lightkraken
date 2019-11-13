@@ -147,7 +147,7 @@ void NetConf::init() {
 }
 
 #ifndef BOOTLOADER
-bool NetConf::sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len) {
+bool NetConf::sendArtNetUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len) {
     
 	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
 	if (p == NULL) {
@@ -162,6 +162,27 @@ bool NetConf::sendUdpPacket(const ip_addr_t *to, const uint16_t port, const uint
 	udp_connect(upcb_in_artnet, to, port);
 	udp_send(upcb_in_artnet, p);
     udp_disconnect(upcb_in_artnet);
+    
+    pbuf_free(p);
+
+	return err == ERR_OK;
+}
+
+bool NetConf::sendsACNUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len) {
+    
+	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
+	if (p == NULL) {
+		return false;
+	}
+	
+	err_t err = pbuf_take(p, data, len);
+	if (err != ERR_OK) {
+		return false;
+	}
+	
+	udp_connect(upcb_in_sacn, to, port);
+	udp_send(upcb_in_sacn, p);
+    udp_disconnect(upcb_in_sacn);
     
     pbuf_free(p);
 

@@ -200,7 +200,7 @@ void sACNPacket::sendDiscovery() {
         uint32_t vectorDiscovery;
         uint8_t page;
         uint8_t last;
-        uint8_t universes[Model::maxUniverses];
+        uint16_t universes[Model::maxUniverses];
 	}  __attribute__((packed)) discovery;
     
     auto hton16 = [] (uint16_t v) {
@@ -224,7 +224,7 @@ void sACNPacket::sendDiscovery() {
     size_t universeCount = 0;
     std::array<uint16_t, Model::maxUniverses> universes;
     Control::instance().collectAllActiveUniverses(universes, universeCount);
-    std::sort(universes.begin(), universes.end());  
+    std::sort(universes.begin(), universes.begin()+universeCount);  
     discovery.flagsAndLengthDiscovery = hton16(0x7000+4+1+1+universeCount*sizeof(uint16_t));
     discovery.vectorDiscovery = hton32(VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST);
     discovery.page = 0;
@@ -237,11 +237,9 @@ void sACNPacket::sendDiscovery() {
     broadcastAddr.addr =  (NetConf::instance().netInterface()->ip_addr.addr &
                            NetConf::instance().netInterface()->netmask.addr) | 
                           ~NetConf::instance().netInterface()->netmask.addr;    
-    
-    printf("%d %d %08x\n", int(universeCount), Model::maxUniverses, broadcastAddr.addr);
-                          
+
     size_t replySize = offsetof(sACNDiscovery, universes)+universeCount*sizeof(uint16_t);
-	NetConf::instance().sendUdpPacket(&broadcastAddr, ACN_SDT_MULTICAST_PORT, (const uint8_t *)&discovery, replySize);
+	NetConf::instance().sendsACNUdpPacket(&broadcastAddr, ACN_SDT_MULTICAST_PORT, (const uint8_t *)&discovery, replySize);
 }
 
 bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast) {

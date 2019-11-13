@@ -265,7 +265,7 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 					 (Model::instance().dhcpEnabled() ? 0x04 : 0x00) |
 					 0x08;  // ArtNet3
 
-	NetConf::instance().sendUdpPacket(from, 6454, (const uint8_t *)&reply, sizeof(reply));
+	NetConf::instance().sendArtNetUdpPacket(from, 6454, (const uint8_t *)&reply, sizeof(reply));
 }
 
 bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast) {

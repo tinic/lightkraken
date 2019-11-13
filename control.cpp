@@ -122,9 +122,7 @@ void Control::collectAllActiveUniverses(std::array<uint16_t, Model::maxUniverses
     universeCount = 0;
     class UniqueCollector {
 	public:
-		UniqueCollector(std::array<uint16_t, Model::maxUniverses> &universes_, size_t &universeCount_):
-            universes(universes_), 
-            universeCount(universeCount_) {
+		UniqueCollector() {
 			memset(&collected_universes[0], 0xFF, sizeof(collected_universes));
 		}
 	
@@ -140,7 +138,7 @@ void Control::collectAllActiveUniverses(std::array<uint16_t, Model::maxUniverses
 			}
 		}
 
-		void fillArray() {
+		void fillArray(std::array<uint16_t, Model::maxUniverses> &universes, size_t &universeCount) {
 			for (size_t c = 0; c < Model::maxUniverses; c++) {
 				if (collected_universes[c] == 0xFFFF) {
 					return;
@@ -150,16 +148,13 @@ void Control::collectAllActiveUniverses(std::array<uint16_t, Model::maxUniverses
 		}
 	private:
 		uint16_t collected_universes[Model::maxUniverses];
-        std::array<uint16_t, Model::maxUniverses> &universes;
-        size_t &universeCount;
-	} uniqueCollector(universes, universeCount);
+	} uniqueCollector;
 
 	switch(Model::instance().outputConfig()) {
 	case Model::OUTPUT_CONFIG_DUAL_STRIP: {
 		for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
 			for (size_t d = 0; d < Model::universeN; d++) {
 				if (Strip::get(c).isUniverseActive(d)) {
-                    printf("%d %d %d\n", c, d, Model::instance().universeStrip(c,d));
 					uniqueCollector.maybeAcquire(Model::instance().universeStrip(c,d));
 				}
 			}
@@ -210,7 +205,7 @@ void Control::collectAllActiveUniverses(std::array<uint16_t, Model::maxUniverses
 		}
 	} break;
 	}
-	uniqueCollector.fillArray();
+	uniqueCollector.fillArray(universes, universeCount);
 }
 
 void Control::interateAllActiveUniverses(std::function<void (uint16_t universe)> callback) {
