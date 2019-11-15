@@ -18,51 +18,34 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 cmake_minimum_required(VERSION 3.10)
 
-set(PRJ_NAME lightkraken)
-
+# Boot loader
 if(BOOTLOADER)
-set(PRJ_NAME bootloader)
+	set(PRJ_NAME bootloader)
+	set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADER.ld)
+	set(BASE_ADDRESS 0x08000000)
+elseif(BOOTLOADED)
+	set(PRJ_NAME lightkraken_bootloaded)
+	set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADED.ld)
+	set(BASE_ADDRESS 0x08008000)
+else(BOOTLOADER)
+	set(PRJ_NAME lightkraken)
+	set(CMSISLINKLD GD32F107RC_FLASH.ld)
+	set(BASE_ADDRESS 0x08000000)
 endif(BOOTLOADER)
-
-if(BOOTLOADED)
-set(PRJ_NAME lightkraken_bootloaded)
-endif(BOOTLOADED)
 
 project(${PRJ_NAME} C CXX ASM)
 
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM_VERSION 1)
-
 set(ARM_ARCH cortex-m3)
-
-set(CMSISDEVINC GD32F10x)
-set(CMSISSTARTUPS startup_gd32f10x_cl.S)
-set(CMSISSYSTEMC system_gd32f10x.c)
-
-set(CMSISLINKLD GD32F107RC_FLASH.ld)
-
-# Boot loader stuff
-
-# normal start address
-set(BASE_ADDRESS 0x08000000)
-
-if(BOOTLOADER)
-set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADER.ld)
-set(BASE_ADDRESS 0x08000000)
-endif(BOOTLOADER)
-
-if(BOOTLOADED)
-set(CMSISLINKLD GD32F107RC_FLASH_BOOTLOADED.ld)
-set(BASE_ADDRESS 0x08008000)
-endif(BOOTLOADED)
-
 set(GD32ARCH GD32F10X_CL)
 set(GD32MCU GD32F107RC)
 
 # CMSIS
+set(CMSISDEVINC GD32F10x)
+set(CMSISSTARTUPS startup_gd32f10x_cl.S)
+set(CMSISSYSTEMC system_gd32f10x.c)
+
 include_directories(.)
 include_directories(CMSIS/Include)
 include_directories(CMSIS/GD/GD32F10x/Include)
@@ -78,29 +61,34 @@ file(GLOB_RECURSE HAL_SRC GD32F10x_standard_peripheral/Source/*.c)
 # LwIP
 include_directories(GD32F10x_lwip)
 
-set(COMMON_FLAGS "-DGD32 -DNVIC_BASE_ADDRESS=${BASE_ADDRESS} -D${GD32ARCH} -D${GD32MCU} -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mtune=${ARM_ARCH} -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=soft")
+set(COMMON_FLAGS "-DGD32 -DNVIC_BASE_ADDRESS=${BASE_ADDRESS} -D${GD32ARCH} -D${GD32MCU} \
+				  -Wall -Wextra -Wno-error=format -Wno-strict-aliasing -mtune=${ARM_ARCH} \
+				  -mcpu=${ARM_ARCH} -ffunction-sections -ffast-math -mthumb -mfloat-abi=soft")
 
 if(BOOTLOADER)
-set(COMMON_FLAGS "${COMMON_FLAGS} -DBOOTLOADER=1")
+	set(COMMON_FLAGS "${COMMON_FLAGS} -DBOOTLOADER=1")
+elseif(BOOTLOADED)
+	set(COMMON_FLAGS "${COMMON_FLAGS} -DBOOTLOADED=1")
 endif(BOOTLOADER)
 
-if(BOOTLOADED)
-set(COMMON_FLAGS "${COMMON_FLAGS} -DBOOTLOADED=1")
-endif(BOOTLOADED)
-
 set(CMAKE_ASM_FLAGS "-mcpu=${ARM_ARCH}")
-set(CMAKE_ASM_FLAGS_RELEASE "")
-set(CMAKE_ASM_FLAGS_DEBUG "")
 
 set(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
 set(CMAKE_C_FLAGS_RELEASE "-flto -Wl,-flto -Os")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g3")
 
-set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Wall -Wextra -Wno-strict-aliasing -Wdouble-promotion -Wshadow -Wfloat-conversion -Wnull-dereference -Wformat=2 -std=c++17 -fno-rtti -fno-exceptions")
+set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Wall -Wextra \
+	-Wno-strict-aliasing -Wdouble-promotion \
+	-Wshadow -Wfloat-conversion -Wnull-dereference \
+	-Wformat=2 -std=c++17 -fno-rtti -fno-exceptions")
 set(CMAKE_CXX_FLAGS_RELEASE "-flto -Wl,-flto -Os")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 
-set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--no-wchar-size-warning -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T\"${CMAKE_SOURCE_DIR}/${LINKLDPATH}\"")
+set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs \
+	--specs=nano.specs -Wl,--warn-unresolved-symbols \
+	-Wl,--no-wchar-size-warning -Wl,--start-group -lm \
+	-Wl,--end-group -Wl,-gc-sections \
+	-T\"${CMAKE_SOURCE_DIR}/${LINKLDPATH}\"")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
 
 set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip-ajax)
@@ -108,12 +96,48 @@ set(LWIP_INCLUDE_DIRS "${LWIP_DIR}/src/include")
 include(${LWIP_DIR}/src/Filelists.cmake)
 
 if(BOOTLOADER)
-set(main_SRCS main.cpp glue.cpp ethernetif.cpp netconf.cpp systick.cpp status.cpp bootloader.cpp multipartparser.cpp)
+	set(main_SRCS 
+		main.cpp 
+		glue.cpp 
+		ethernetif.cpp 
+		netconf.cpp 
+		systick.cpp 
+		status.cpp 
+		bootloader.cpp 
+		multipartparser.cpp)
 else(BOOTLOADER)
-set(main_SRCS main.cpp sacn.cpp random.cpp color.cpp control.cpp uart.cpp pwmtimer.cpp spi.cpp glue.cpp rest.cpp ethernetif.cpp netconf.cpp systick.cpp artnet.cpp driver.cpp model.cpp strip.cpp status.cpp ftoa.cpp perf.cpp)
+	set(main_SRCS
+		main.cpp 
+		sacn.cpp 
+		random.cpp 
+		color.cpp 
+		control.cpp 
+		uart.cpp 
+		pwmtimer.cpp 
+		spi.cpp
+		glue.cpp 
+		rest.cpp 
+		ethernetif.cpp 
+		netconf.cpp 
+		systick.cpp 
+		artnet.cpp 
+		driver.cpp 
+		model.cpp
+		strip.cpp
+		status.cpp 
+		ftoa.cpp 
+		perf.cpp)
 endif(BOOTLOADER)
 
-set(SOURCE_FILES ${DEVICESTARTUPPATH} ${SYSTEMCPATH} ${HAL_SRC} ${lwipcore_SRCS} ${lwipcore4_SRCS} ${lwipnetif_SRCS} ${lwiphttp_SRCS} ${main_SRCS})
+set(SOURCE_FILES 
+		${DEVICESTARTUPPATH}
+		${SYSTEMCPATH} 
+		${HAL_SRC} 
+		${lwipcore_SRCS} 
+		${lwipcore4_SRCS} 
+		${lwipnetif_SRCS} 
+		${lwiphttp_SRCS} 
+		${main_SRCS})
 
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
 
