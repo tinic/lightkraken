@@ -46,7 +46,7 @@ set(CMAKE_SIZE arm-none-eabi-size)
 set(ARM_ARCH cortex-m3)
 
 set(CMSISDEVINC GD32F10x)
-set(CMSISSTARTUPS startup_gd32f10x_cl.s)
+set(CMSISSTARTUPS startup_gd32f10x_cl.S)
 set(CMSISSYSTEMC system_gd32f10x.c)
 
 set(CMSISLINKLD GD32F107RC_FLASH.ld)
@@ -77,7 +77,6 @@ include_directories(CMSIS/GD/GD32F10x/Include)
 set(LINKLDPATH CMSIS/GD/GD32F10x/Source/GCC/linker/${CMSISLINKLD})
 set(DEVICESTARTUPPATH CMSIS/GD/GD32F10x/Source/GCC/${CMSISSTARTUPS})
 set(SYSTEMCPATH CMSIS/GD/GD32F10x/Source/${CMSISSYSTEMC})
-
 
 # HAL
 include_directories(GD32F10x_standard_peripheral/Include)
@@ -111,12 +110,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--no-wchar-size-warning -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T\"${CMAKE_SOURCE_DIR}/${LINKLDPATH}\"")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "")
 set(CMAKE_SYSROOT "")
-set(CMAKE_OSX_SYSROOT "")
-set(CMAKE_C_LINK_FLAGS "")
-set(CMAKE_CXX_LINK_FLAGS "")
-set(CMAKE_LINKER_FLAGS "")
 
 set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip-ajax)
 set(LWIP_INCLUDE_DIRS "${LWIP_DIR}/src/include")
