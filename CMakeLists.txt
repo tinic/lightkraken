@@ -36,13 +36,6 @@ project(${PRJ_NAME} C CXX ASM)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
 
-set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
-set(CMAKE_C_COMPILER arm-none-eabi-gcc)
-set(CMAKE_ASM_COMPILER arm-none-eabi-as)
-set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
-set(CMAKE_RANLIB arm-none-eabi-ranlib)
-set(CMAKE_SIZE arm-none-eabi-size)
-
 set(ARM_ARCH cortex-m3)
 
 set(CMSISDEVINC GD32F10x)
