@@ -367,10 +367,39 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     }
 }
 
+void Control::setColor() {
+    uint8_t buf[Strip::compMaxLen];
+    for (size_t c = 0; c < Model::stripN; c++) {
+        size_t cpp = lightkraken::Strip::get(c).getComponentsPerPixel();
+        size_t len = 0;
+        switch(cpp) {
+            case 3: {
+                for (size_t d = 0; d <= sizeof(buf)-3; d += 3) {
+                    buf[d + 0] = (Model::instance().stripConfig(c).color.r) & 0xFF;
+                    buf[d + 1] = (Model::instance().stripConfig(c).color.g) & 0xFF;
+                    buf[d + 2] = (Model::instance().stripConfig(c).color.b) & 0xFF;
+                    len += 3;
+                }
+            } break;
+            case 4: {
+                for (size_t d = 0; d <= sizeof(buf)-4; d += 4) {
+                    buf[d + 0] = (Model::instance().stripConfig(c).color.r) & 0xFF;
+                    buf[d + 1] = (Model::instance().stripConfig(c).color.g) & 0xFF;
+                    buf[d + 2] = (Model::instance().stripConfig(c).color.b) & 0xFF;
+                    buf[d + 3] = (Model::instance().stripConfig(c).color.x) & 0xFF;
+                    len += 4;
+                }
+            } break;
+        }
+        lightkraken::Strip::get(c).setData(buf, len);
+    }
+}
+
+
 void Control::update() {
     if (color_scheduled) {
         color_scheduled = false;
-        Model::instance().setColor();
+        setColor();
         for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
             lightkraken::Strip::get(c).transfer();
         }

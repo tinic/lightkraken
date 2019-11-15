@@ -149,34 +149,6 @@ void Model::defaults() {
     }
 }
 
-void Model::setColor() {
-    uint8_t buf[Strip::compMaxLen];
-    for (size_t c = 0; c < stripN; c++) {
-        size_t cpp = lightkraken::Strip::get(c).getComponentsPerPixel();
-        size_t len = 0;
-        switch(cpp) {
-            case 3: {
-                for (size_t d = 0; d <= sizeof(buf)-3; d += 3) {
-                    buf[d + 0] = (strip_config[c].color.r) & 0xFF;
-                    buf[d + 1] = (strip_config[c].color.g) & 0xFF;
-                    buf[d + 2] = (strip_config[c].color.b) & 0xFF;
-                    len += 3;
-                }
-            } break;
-            case 4: {
-                for (size_t d = 0; d <= sizeof(buf)-4; d += 4) {
-                    buf[d + 0] = (strip_config[c].color.r) & 0xFF;
-                    buf[d + 1] = (strip_config[c].color.g) & 0xFF;
-                    buf[d + 2] = (strip_config[c].color.b) & 0xFF;
-                    buf[d + 3] = (strip_config[c].color.x) & 0xFF;
-                    len += 4;
-                }
-            } break;
-        }
-        lightkraken::Strip::get(c).setData(buf, len);
-    }
-}
-
 void Model::apply() {
     
     for (size_t c = 0; c < stripN; c++) {
@@ -198,7 +170,7 @@ void Model::apply() {
 		Driver::instance().setRGBColorSpace(c, analog_config[c].rgbSpace);
     }
 
-    setColor();
+    Control::instance().setColor();
 
     if (output_mode == MODE_INTERRUPT) {
         lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_0::instance());

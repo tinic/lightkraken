@@ -48,6 +48,7 @@ public:
     void setDataReceived() { data_received = true; }
     bool dataReceived() const { return data_received; }
     void scheduleColor() { color_scheduled = true; }
+    void setColor();
     
 private:
 
