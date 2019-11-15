@@ -103,8 +103,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs --specs=nano.specs -Wl,--warn-unresolved-symbols -Wl,--no-wchar-size-warning -Wl,--start-group -lm -Wl,--end-group -Wl,-gc-sections -T\"${CMAKE_SOURCE_DIR}/${LINKLDPATH}\"")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
 
-set(CMAKE_SYSROOT "")
-
 set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip-ajax)
 set(LWIP_INCLUDE_DIRS "${LWIP_DIR}/src/include")
 include(${LWIP_DIR}/src/Filelists.cmake)
