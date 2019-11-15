@@ -126,6 +126,8 @@ public:
         return strip_config[strip].universe[dmx512Index]; 
     }
     
+    void setColor();
+    
 
 private:
     Model() {};

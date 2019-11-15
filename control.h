@@ -45,8 +45,14 @@ public:
 	void interateAllActiveUniverses(std::function<void (uint16_t universe)> callback);
     void collectAllActiveUniverses(std::array<uint16_t, Model::maxUniverses> &universes, size_t &universeCount);
 
+    void setDataReceived() { data_received = true; }
+    bool dataReceived() const { return data_received; }
+    void scheduleColor() { color_scheduled = true; }
+    
 private:
 
+    bool color_scheduled = false;
+    bool data_received = false;
 	bool syncMode = false;
     void setUniverseOutputDataForDriver(size_t channels, size_t components, uint16_t uni, const uint8_t *data, size_t len);
     bool initialized = false;

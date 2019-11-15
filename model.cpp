@@ -149,27 +149,7 @@ void Model::defaults() {
     }
 }
 
-void Model::apply() {
-    
-    for (size_t c = 0; c < stripN; c++) {
-        lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
-        lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
-        lightkraken::Strip::get(c).setUseRGBColorSpace(strip_config[c].useRgbSpace);
-        lightkraken::Strip::get(c).setDither(strip_config[c].dither);
-		lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
-    }
-
-    for (size_t c = 0; c < analogN; c++) {
-        rgbww col;
-        col.r = analog_config[c].components[0].value;
-        col.g = analog_config[c].components[1].value;
-        col.b = analog_config[c].components[2].value;
-        col.w = analog_config[c].components[3].value;
-        col.ww = analog_config[c].components[4].value;
-        Driver::instance().setsRGBWWCIE(c, col);
-		Driver::instance().setRGBColorSpace(c, analog_config[c].rgbSpace);
-    }
-
+void Model::setColor() {
     uint8_t buf[Strip::compMaxLen];
     for (size_t c = 0; c < stripN; c++) {
         size_t cpp = lightkraken::Strip::get(c).getComponentsPerPixel();
@@ -195,6 +175,30 @@ void Model::apply() {
         }
         lightkraken::Strip::get(c).setData(buf, len);
     }
+}
+
+void Model::apply() {
+    
+    for (size_t c = 0; c < stripN; c++) {
+        lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
+        lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
+        lightkraken::Strip::get(c).setUseRGBColorSpace(strip_config[c].useRgbSpace);
+        lightkraken::Strip::get(c).setDither(strip_config[c].dither);
+		lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
+    }
+
+    for (size_t c = 0; c < analogN; c++) {
+        rgbww col;
+        col.r = analog_config[c].components[0].value;
+        col.g = analog_config[c].components[1].value;
+        col.b = analog_config[c].components[2].value;
+        col.w = analog_config[c].components[3].value;
+        col.ww = analog_config[c].components[4].value;
+        Driver::instance().setsRGBWWCIE(c, col);
+		Driver::instance().setRGBColorSpace(c, analog_config[c].rgbSpace);
+    }
+
+    setColor();
 
     if (output_mode == MODE_INTERRUPT) {
         lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_0::instance());

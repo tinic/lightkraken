@@ -110,6 +110,11 @@ void Systick::schedulePollReply(const ip_addr_t *from, uint16_t universe) {
 void Systick::handler() {
     
 #ifndef BOOTLOADER
+    static uint32_t set_color = 1;
+    if ((set_color++ & 0x00FF) == 0x0 && !Control::instance().dataReceived()) {
+        Control::instance().scheduleColor();
+    }
+
     static uint32_t perf_print = 1;
     if ((perf_print++ & 0x1FFF) == 0x0) {
 		PerfMeasure::print();

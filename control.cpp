@@ -29,6 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./strip.h"
 #include "./spi.h"
 #include "./perf.h"
+#include "./systick.h"
 
 namespace lightkraken {
 
@@ -290,6 +291,9 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
+            if (set) {
+                setDataReceived();
+            }
             if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
                 lightkraken::Strip::get(c).transfer();
             }
@@ -306,6 +310,9 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     lightkraken::Strip::get(c).setUniverseData(d, data, len);
                     set = true;
                 }
+            }
+            if (set) {
+                setDataReceived();
             }
             if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
                 lightkraken::Strip::get(c).transfer();
@@ -324,6 +331,9 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
+            if (set) {
+                setDataReceived();
+            }
             if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
                 lightkraken::Strip::get(c).transfer();
             }
@@ -341,6 +351,9 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
                     set = true;
                 }
             }
+            if (set) {
+                setDataReceived();
+            }
             if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
                 lightkraken::Strip::get(c).transfer();
             }
@@ -355,6 +368,14 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
 }
 
 void Control::update() {
+    if (color_scheduled) {
+        color_scheduled = false;
+        Model::instance().setColor();
+        for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
+            lightkraken::Strip::get(c).transfer();
+        }
+    }
+
     lightkraken::SPI_0::instance().setFast(lightkraken::Strip::get(0).needsClock() == false);
     lightkraken::SPI_2::instance().setFast(lightkraken::Strip::get(1).needsClock() == false);
     
