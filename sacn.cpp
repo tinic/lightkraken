@@ -239,10 +239,6 @@ void sACNPacket::sendDiscovery() {
                            NetConf::instance().netInterface()->netmask.addr) | 
                           ~NetConf::instance().netInterface()->netmask.addr;    
 	NetConf::instance().sendsACNUdpPacket(&broadcastAddr, ACN_SDT_MULTICAST_PORT, (const uint8_t *)&discovery, replySize);
-
-    struct ip4_addr multicastAddr;
-    multicastAddr.addr =  Model::instance().ip4Multicast()->addr;    
-	NetConf::instance().sendsACNUdpPacket(&multicastAddr, ACN_SDT_MULTICAST_PORT, (const uint8_t *)&discovery, replySize);
 }
 
 bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast) {

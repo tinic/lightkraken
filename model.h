@@ -111,7 +111,6 @@ public:
     ip_addr_t *ip4Address() { return &ip4_address; }
     ip_addr_t *ip4Netmask() { return &ip4_netmask; }
     ip_addr_t *ip4Gateway() { return &ip4_gateway; }
-    ip_addr_t *ip4Multicast() { return &ip4_multicast; }
 
     StripConfig &stripConfig(size_t index) { return strip_config[index]; }
     AnalogConfig &analogConfig(size_t index) { return analog_config[index]; }
@@ -149,7 +148,6 @@ private:
     ip_addr_t ip4_address;
     ip_addr_t ip4_netmask;
     ip_addr_t ip4_gateway;
-    ip_addr_t ip4_multicast;
     
     OutputConfig output_config;
 	OutputMode output_mode;

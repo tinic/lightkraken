@@ -102,15 +102,9 @@ void Model::defaults() {
     const uint8_t IP_GATEWAY2 =	   0;
     const uint8_t IP_GATEWAY3 =	   1;
 
-    const uint8_t IP_MULTICAST0 =  239;
-    const uint8_t IP_MULTICAST1 =  255;
-    const uint8_t IP_MULTICAST2 =	 0;
-    const uint8_t IP_MULTICAST3 =	 1;
-
     IP4_ADDR(&ip4_address, IP_ADDRESS0, IP_ADDRESS1, IP_ADDRESS2, IP_ADDRESS3);
     IP4_ADDR(&ip4_netmask, IP_NETMASK0, IP_NETMASK1, IP_NETMASK2, IP_NETMASK3);
     IP4_ADDR(&ip4_gateway, IP_GATEWAY0, IP_GATEWAY1, IP_GATEWAY2, IP_GATEWAY3);
-    IP4_ADDR(&ip4_multicast, IP_MULTICAST0, IP_MULTICAST1, IP_MULTICAST2, IP_MULTICAST3);
 
     dhcp = true;
     
