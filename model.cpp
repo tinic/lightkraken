@@ -137,8 +137,8 @@ void Model::defaults() {
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         for (size_t d = 0; d < universeN; d++) {
 	        strip_config[c].artnet[d] = artnetcounter++;
-	        strip_config[c].artnet[d] = e131counter++;
-	}
+	        strip_config[c].e131[d] = e131counter++;
+		}
     }
 
 	int32_t counter = 0;
@@ -147,6 +147,7 @@ void Model::defaults() {
 	    analog_config[c].rgbSpace.setLED();
         for (size_t d = 0; d < analogCompN; d++) {
             analog_config[c].components[d].offset = counter++;
+	        analog_config[c].components[d].e131 = 1;
         }
     }
 }
