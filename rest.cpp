@@ -217,14 +217,22 @@ public:
 
             for (int d=0; d<int(Model::analogCompN); d++) {
 
-                sprintf(ss, "$.rgbconfig[%d].components[%d].universe", c, d);
+                sprintf(ss, "$.rgbconfig[%d].components[%d].artnet", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                    config.components[d].universe = int(dval);
+	                config.components[d].artnet = int(dval);
                 } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                    config.components[d].universe = int(atof(buf));
+	                config.components[d].artnet = int(atof(buf));
                 }
                 
-                sprintf(ss, "$.rgbconfig[%d].components[%d].offset", c, d);
+	            sprintf(ss, "$.rgbconfig[%d].components[%d].e131", c, d);
+	            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+		            config.components[d].e131 = int(dval);
+	            }
+	            else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+		            config.components[d].e131 = int(atof(buf));
+	            }
+
+	            sprintf(ss, "$.rgbconfig[%d].components[%d].offset", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                     config.components[d].offset = int(dval);
                 } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
@@ -349,15 +357,26 @@ public:
                  config.rgbSpace.yb = float(atof(buf));
             }
 
-            for (int d=0; d<int(Model::universeN); d++) {
-                sprintf(ss, "$.stripconfig[%d].universes[%d].universe", c, d);
-                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                    config.universe[d] = int(dval);
-                } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                    config.universe[d] = int(atof(buf));
-                }
-            }
-        }
+	        for (int d = 0; d < int(Model::universeN); d++) {
+		        sprintf(ss, "$.stripconfig[%d].universes[%d].artnet", c, d);
+		        if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+			        config.artnet[d] = int(dval);
+		        }
+		        else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+			        config.artnet[d] = int(atof(buf));
+		        }
+	        }
+	        
+	        for (int d = 0; d < int(Model::universeN); d++) {
+		        sprintf(ss, "$.stripconfig[%d].universes[%d].e131", c, d);
+		        if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+			        config.e131[d] = int(dval);
+		        }
+		        else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+			        config.e131[d] = int(atof(buf));
+		        }
+	        }
+	}
 
     	Model::instance().save();
         Systick::instance().scheduleApply();
@@ -600,8 +619,9 @@ public:
             addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
                 addString("{");
-                addString("\"universe\":%d,",int(a.components[d].universe)); 
-                addString("\"offset\":%d,",int(a.components[d].offset)); 
+                addString("\"artnet\":%d,",int(a.components[d].artnet)); 
+	            addString("\"e131\":%d,", int(a.components[d].e131)); 
+	            addString("\"offset\":%d,",int(a.components[d].offset)); 
                 addString("\"value\":%d",int(a.components[d].value)); 
                 addString("}%c", (d==Model::analogCompN-1)?' ':','); 
             }
@@ -640,8 +660,9 @@ public:
             addString("\"universes\" : [");
             for (size_t d=0; d<Model::universeN; d++) {
                 addString("{");
-                addString("\"universe\":%d",int(s.universe[d])); 
-                addString("}%c", (d==Model::universeN-1)?' ':','); 
+                addString("\"artnet\":%d,",int(s.artnet[d])); 
+	            addString("\"e131\":%d", int(s.e131[d])); 
+	            addString("}%c", (d==Model::universeN-1)?' ':','); 
             }
             addString("]");
             addString("}%c", (c==Model::stripN-1)?' ':',');

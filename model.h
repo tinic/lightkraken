@@ -50,7 +50,8 @@ public:
 	    RGBColorSpace rgbSpace;
         uint8_t useRgbSpace;
         struct Component {
-            uint16_t universe;
+            uint16_t artnet;
+	        uint16_t e131;
             uint16_t offset;
             uint16_t value;
         } components[analogCompN];
@@ -63,8 +64,9 @@ public:
         uint8_t useRgbSpace;
         uint8_t dither;
         uint16_t len;
-        uint16_t universe[universeN];
-    };
+        uint16_t artnet[universeN];
+	    uint16_t e131[universeN];
+	};
 
 	enum OutputMode {
 		MODE_MAIN_LOOP,
@@ -120,12 +122,18 @@ public:
     OutputMode outputMode() const { return output_mode; }
     void setOutputMode(OutputMode outputMode);
     
-    uint16_t universeStrip(int32_t strip, int32_t dmx512Index) const { 
+    uint16_t artnetStrip(int32_t strip, int32_t dmx512Index) const { 
         strip %= stripN;
         dmx512Index %= universeN;
-        return strip_config[strip].universe[dmx512Index]; 
+        return strip_config[strip].artnet[dmx512Index]; 
     }
-    
+
+	uint16_t e131Strip(int32_t strip, int32_t dmx512Index) const { 
+		strip %= stripN;
+		dmx512Index %= universeN;
+		return strip_config[strip].e131[dmx512Index]; 
+	}
+
 private:
     Model() {};
 

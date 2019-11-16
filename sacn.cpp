@@ -204,7 +204,7 @@ void sACNPacket::sendDiscovery() {
 
     size_t universeCount = 0;
     std::array<uint16_t, Model::maxUniverses> universes;
-    Control::instance().collectAllActiveUniverses(universes, universeCount);
+    Control::instance().collectAllActiveE131Universes(universes, universeCount);
     std::sort(universes.begin(), universes.begin()+universeCount);  
     size_t replySize = offsetof(sACNDiscovery, universes)+universeCount*sizeof(uint16_t);
     

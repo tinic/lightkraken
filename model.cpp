@@ -125,8 +125,9 @@ void Model::defaults() {
 
     burst_mode = true;
 
-    int32_t counter = 0;
-    memset(strip_config, 0, sizeof(strip_config));
+    int32_t artnetcounter = 0;
+	int32_t e131counter = 0;
+	memset(strip_config, 0, sizeof(strip_config));
     for (size_t c = 0; c < stripN; c++) {
         strip_config[c].type = Strip::GS8208_RGB;
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
@@ -135,11 +136,12 @@ void Model::defaults() {
         strip_config[c].rgbSpace.setLED();
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         for (size_t d = 0; d < universeN; d++) {
-            strip_config[c].universe[d] = counter++;
-        }
+	        strip_config[c].artnet[d] = artnetcounter++;
+	        strip_config[c].artnet[d] = e131counter++;
+	}
     }
 
-    counter = 0;
+	int32_t counter = 0;
     memset(analog_config, 0, sizeof(analog_config));
     for (size_t c = 0; c < analogN; c++) {
 	    analog_config[c].rgbSpace.setLED();

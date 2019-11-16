@@ -276,7 +276,7 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
     }
 	switch(opcode) {
 		case	OpPoll: {
-					Control::instance().interateAllActiveUniverses([from](uint16_t universe) { 
+					Control::instance().interateAllActiveArtnetUniverses([from](uint16_t universe) { 
 						Systick::instance().schedulePollReply(from, universe);
 					});
                     return true;
