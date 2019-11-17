@@ -240,7 +240,9 @@ void NetConf::update() {
                     DEBUG_PRINTF(("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address)));
                     dhcp_state = DHCP_ADDRESS_ASSIGNED;
                     
+#ifndef BOOTLOADER
                     sACNPacket::joinNetworks();
+#endif  // #ifndef BOOTLOADER
                 } else {
                     if (dhcp_client->tries > MAX_DHCP_TRIES){
                         dhcp_state = DHCP_TIMEOUT;
@@ -251,14 +253,39 @@ void NetConf::update() {
                         ip_addr_t gateway;
 
 #ifndef BOOTLOADER
+                        
                         address.addr = lightkraken::Model::instance().ip4Address()->addr;
                         netmask.addr = lightkraken::Model::instance().ip4Netmask()->addr;
                         gateway.addr = lightkraken::Model::instance().ip4Gateway()->addr;
+                        
+#else  // #ifndef BOOTLOADER
+                        
+                        const uint8_t IP_ADDRESS0 =  169;
+                        const uint8_t IP_ADDRESS1 =  254;
+                        const uint8_t IP_ADDRESS2 = 0x1e;
+                        const uint8_t IP_ADDRESS3 = 0xd5;
+
+                        const uint8_t IP_NETMASK0 =  255;
+                        const uint8_t IP_NETMASK1 =  255;
+                        const uint8_t IP_NETMASK2 =	   0;
+                        const uint8_t IP_NETMASK3 =	   0;
+
+                        const uint8_t IP_GATEWAY0 =  169;
+                        const uint8_t IP_GATEWAY1 =  254;
+                        const uint8_t IP_GATEWAY2 =	   0;
+                        const uint8_t IP_GATEWAY3 =	   1;
+
+                        IP4_ADDR(&address, IP_ADDRESS0, IP_ADDRESS1, IP_ADDRESS2, IP_ADDRESS3);
+                        IP4_ADDR(&netmask, IP_NETMASK0, IP_NETMASK1, IP_NETMASK2, IP_NETMASK3);
+                        IP4_ADDR(&gateway, IP_GATEWAY0, IP_GATEWAY1, IP_GATEWAY2, IP_GATEWAY3);
+                        
 #endif  // #ifndef BOOTLOADER
 
                         netif_set_addr(&netif, &address , &netmask, &gateway);
                         
+#ifndef BOOTLOADER
                         sACNPacket::joinNetworks();
+#endif  // #ifndef BOOTLOADER
                     }
                 }
                 break;
