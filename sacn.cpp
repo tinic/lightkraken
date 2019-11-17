@@ -293,7 +293,7 @@ bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len,
 	return false;
 }
 
-void sACNPacket::maybeLeaveNetworks() {
+void sACNPacket::leaveNetworks() {
 	size_t universeCount = 0;
 	std::array<uint16_t, Model::maxUniverses> universes;
 	Control::instance().collectAllActiveE131Universes(universes, universeCount);
@@ -306,7 +306,7 @@ void sACNPacket::maybeLeaveNetworks() {
 	}
 }
 
-void sACNPacket::maybeJoinNetworks() {
+void sACNPacket::joinNetworks() {
 	size_t universeCount = 0;
 	std::array<uint16_t, Model::maxUniverses> universes;
 	Control::instance().collectAllActiveE131Universes(universes, universeCount);

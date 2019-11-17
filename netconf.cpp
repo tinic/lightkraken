@@ -144,7 +144,7 @@ void NetConf::init() {
     }
 
 	if (!lightkraken::Model::instance().dhcpEnabled()) {
-		sACNPacket::maybeJoinNetworks();
+		sACNPacket::joinNetworks();
 	}
 #endif  // #ifndef BOOTLOADER
     
@@ -240,7 +240,7 @@ void NetConf::update() {
                 if (ip_address.addr != 0){ 
                     DEBUG_PRINTF(("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address)));
                     dhcp_state = DHCP_ADDRESS_ASSIGNED;
-	                sACNPacket::maybeJoinNetworks();
+	                sACNPacket::joinNetworks();
                 } else {
                     if (dhcp_client->tries > MAX_DHCP_TRIES){
                         dhcp_state = DHCP_TIMEOUT;

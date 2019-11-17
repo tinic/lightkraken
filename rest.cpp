@@ -80,7 +80,7 @@ public:
         double dval = 0;
         size_t post_len = strlen(post_buf);
 
-	    sACNPacket::maybeLeaveNetworks();
+	    sACNPacket::leaveNetworks();
 	    
         if (mjson_get_bool(post_buf, post_len, "$.dhcp", &ival) > 0) {
             Model::instance().setDhcpEnabled(ival ? true : false);
@@ -377,7 +377,7 @@ public:
 
     	Model::instance().save();
         Systick::instance().scheduleApply();
-	    sACNPacket::maybeJoinNetworks();
+	    sACNPacket::joinNetworks();
 	}
     
 private:
