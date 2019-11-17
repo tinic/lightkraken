@@ -94,13 +94,13 @@ void Model::defaults() {
 
     const uint8_t IP_NETMASK0 =  255;
     const uint8_t IP_NETMASK1 =  255;
-    const uint8_t IP_NETMASK2 =	   0;
-    const uint8_t IP_NETMASK3 =	   0;
+    const uint8_t IP_NETMASK2 =    0;
+    const uint8_t IP_NETMASK3 =    0;
 
     const uint8_t IP_GATEWAY0 =  169;
     const uint8_t IP_GATEWAY1 =  254;
-    const uint8_t IP_GATEWAY2 =	   0;
-    const uint8_t IP_GATEWAY3 =	   1;
+    const uint8_t IP_GATEWAY2 =    0;
+    const uint8_t IP_GATEWAY3 =    1;
 
     IP4_ADDR(&ip4_address, IP_ADDRESS0, IP_ADDRESS1, IP_ADDRESS2, IP_ADDRESS3);
     IP4_ADDR(&ip4_netmask, IP_NETMASK0, IP_NETMASK1, IP_NETMASK2, IP_NETMASK3);
