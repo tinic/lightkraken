@@ -73,7 +73,7 @@ void PwmTimer0::init() {
     timer_breakpara.protectmode     = TIMER_CCHP_PROT_OFF;
     timer_breakpara.breakstate      = TIMER_BREAK_DISABLE;
     timer_break_config(TIMER0, &timer_breakpara);
-   
+
     timer_channel_output_fast_config(TIMER0, TIMER_CH_2, TIMER_OC_FAST_ENABLE);
 
     timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, 0);
@@ -82,7 +82,7 @@ void PwmTimer0::init() {
     timer_master_slave_mode_config(TIMER0, TIMER_MASTER_SLAVE_MODE_DISABLE);
 
     timer_primary_output_config(TIMER0, ENABLE);
-   
+
     timer_auto_reload_shadow_disable(TIMER0);
     timer_disable(TIMER0);
 }

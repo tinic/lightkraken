@@ -39,9 +39,9 @@ public:
     const rgbww &srgbwwCIE(size_t terminal) const { terminal %= terminalN; return _srgbww[terminal]; }
     void setsRGBWWCIE(size_t terminal, const rgbww &rgb);
 
-	void sync(size_t terminal);
-	
-	void setRGBColorSpace(size_t terminal, const RGBColorSpace &rgbSpace) { colorConverter[terminal].setRGBColorSpace(rgbSpace); }
+    void sync(size_t terminal);
+    
+    void setRGBColorSpace(size_t terminal, const RGBColorSpace &rgbSpace) { colorConverter[terminal].setRGBColorSpace(rgbSpace); }
 
 private:
     void setPulse(size_t idx, uint16_t pulse);

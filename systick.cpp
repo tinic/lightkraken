@@ -62,8 +62,8 @@ Systick &Systick::instance() {
 
 static uint64_t large_dwt_cyccnt() {
 
-	static const uint32_t TRCENA 	= 0x01000000;
-	static const uint32_t CYCCNTENA = 0x00000001;
+    static const uint32_t TRCENA 	= 0x01000000;
+    static const uint32_t CYCCNTENA = 0x00000001;
 
     volatile uint32_t *DWT_CYCCNT  = reinterpret_cast<volatile uint32_t *>(0xE0001004);
     volatile uint32_t *DWT_CONTROL = reinterpret_cast<volatile uint32_t *>(0xE0001000);
@@ -117,16 +117,16 @@ void Systick::handler() {
 
     static uint32_t perf_print = 1;
     if ((perf_print++ & 0x1FFF) == 0x0) {
-		PerfMeasure::print();
+        PerfMeasure::print();
     }
 
     static uint32_t sacn_discovery = 1;
     if ((sacn_discovery++ & 0x3FFF) == 0x0) {
-		sACNPacket::sendDiscovery();
+        sACNPacket::sendDiscovery();
     }
     
     // Handle wrap around if required
-	large_dwt_cyccnt();
+    large_dwt_cyccnt();
 
     for (int32_t c = 0; c < 8; c++) {
         if (pollReply[c].delay > 0) {
@@ -143,12 +143,12 @@ void Systick::handler() {
         if (StatusLED::instance().enetUp()) {
             StatusLED::PowerClass powerClass = StatusLED::instance().powerClass();
             if ( powerClass == StatusLED::PSE_TYPE_1_2_CLASS_0_3 ||
-                 powerClass == StatusLED::PSE_TYPE_2_CLASS_4 ||
-                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_0_3 ||
-                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_0_3 ||
-                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_4 ||
-                 powerClass == StatusLED::PSE_TYPE_3_4_CLASS_5_6 ||
-                 powerClass == StatusLED::PSE_TYPE_4_CLASS_7_8 ) {
+                powerClass == StatusLED::PSE_TYPE_2_CLASS_4 ||
+                powerClass == StatusLED::PSE_TYPE_3_4_CLASS_0_3 ||
+                powerClass == StatusLED::PSE_TYPE_3_4_CLASS_0_3 ||
+                powerClass == StatusLED::PSE_TYPE_3_4_CLASS_4 ||
+                powerClass == StatusLED::PSE_TYPE_3_4_CLASS_5_6 ||
+                powerClass == StatusLED::PSE_TYPE_4_CLASS_7_8 ) {
 
                 Model::instance().apply();
                 apply_scheduled = false;

@@ -34,7 +34,7 @@ namespace lightkraken {
 
 struct Model {
 private:
-	uint32_t model_version;
+    uint32_t model_version;
 
 public:
     static constexpr uint32_t currentModelVersion = 0x1ed50003;
@@ -43,15 +43,15 @@ public:
     static constexpr size_t analogN = 2;
     static constexpr size_t universeN = 6;
     static constexpr size_t analogCompN = 5;
-	static constexpr size_t maxUniverses = stripN * universeN + analogN * analogCompN;
+    static constexpr size_t maxUniverses = stripN * universeN + analogN * analogCompN;
 
     struct AnalogConfig {
         uint32_t type;
-	    RGBColorSpace rgbSpace;
+        RGBColorSpace rgbSpace;
         uint8_t useRgbSpace;
         struct Component {
             uint16_t artnet;
-	        uint16_t e131;
+            uint16_t e131;
             uint16_t offset;
             uint16_t value;
         } components[analogCompN];
@@ -60,18 +60,18 @@ public:
     struct StripConfig {
         uint32_t type;
         rgb8 color;
-	    RGBColorSpace rgbSpace;
+        RGBColorSpace rgbSpace;
         uint8_t useRgbSpace;
         uint8_t dither;
         uint16_t len;
         uint16_t artnet[universeN];
-	    uint16_t e131[universeN];
-	};
+        uint16_t e131[universeN];
+    };
 
-	enum OutputMode {
-		MODE_MAIN_LOOP,
-		MODE_INTERRUPT	
-	};
+    enum OutputMode {
+        MODE_MAIN_LOOP,
+        MODE_INTERRUPT	
+    };
 
     enum OutputConfig {
         OUTPUT_CONFIG_DUAL_STRIP, 	    // channel0: strip      channel1: strip
@@ -83,7 +83,7 @@ public:
 
     static Model &instance();
 
-	void load();
+    void load();
     void save();
     void reset();
     void apply();
@@ -127,16 +127,16 @@ public:
         return strip_config[strip].artnet[dmx512Index]; 
     }
 
-	uint16_t e131Strip(int32_t strip, int32_t dmx512Index) const { 
-		strip %= stripN;
-		dmx512Index %= universeN;
-		return strip_config[strip].e131[dmx512Index]; 
-	}
+    uint16_t e131Strip(int32_t strip, int32_t dmx512Index) const { 
+        strip %= stripN;
+        dmx512Index %= universeN;
+        return strip_config[strip].e131[dmx512Index]; 
+    }
 
 private:
     Model() {};
 
-	void defaults();
+    void defaults();
     void readFlash();
     void writeFlash();
 
@@ -150,7 +150,7 @@ private:
     ip_addr_t ip4_gateway;
     
     OutputConfig output_config;
-	OutputMode output_mode;
+    OutputMode output_mode;
 
     bool burst_mode;
 

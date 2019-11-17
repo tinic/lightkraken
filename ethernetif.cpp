@@ -127,11 +127,11 @@ void EthernetIf::init() {
         }
     }
 
-	enet_initpara_config(FILTER_OPTION, ENET_MULTICAST_FILTER_NONE);
+    enet_initpara_config(FILTER_OPTION, ENET_MULTICAST_FILTER_NONE);
     uint32_t enet_init_status = enet_init(
-    	ENET_AUTO_NEGOTIATION, 
-    	ENET_AUTOCHECKSUM_DROP_FAILFRAMES, 
-    	ENET_BROADCAST_FRAMES_PASS /* | ENET_PROMISCUOUS_MODE*/ );
+        ENET_AUTO_NEGOTIATION, 
+        ENET_AUTOCHECKSUM_DROP_FAILFRAMES, 
+        ENET_BROADCAST_FRAMES_PASS /* | ENET_PROMISCUOUS_MODE*/ );
     if (enet_init_status == 0){
         while(1) {
         }

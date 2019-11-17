@@ -36,56 +36,56 @@ namespace lightkraken {
 constexpr static size_t settings_page_mem = 0x08000000 + 255 * 1024;
 
 void Model::readFlash() {
-	uint32_t *src = reinterpret_cast<uint32_t *>(settings_page_mem);
-	uint32_t *dst = reinterpret_cast<uint32_t *>(this);
-	if (*src != currentModelVersion) {
-		return;
-	}
-	for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
-		*dst++ = *src++;
-	}
+    uint32_t *src = reinterpret_cast<uint32_t *>(settings_page_mem);
+    uint32_t *dst = reinterpret_cast<uint32_t *>(this);
+    if (*src != currentModelVersion) {
+        return;
+    }
+    for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
+        *dst++ = *src++;
+    }
 }
 
 void Model::writeFlash() {
-	fmc_unlock();
+    fmc_unlock();
 
-	fmc_flag_clear(FMC_FLAG_BANK0_END);
-	fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
-	fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
+    fmc_flag_clear(FMC_FLAG_BANK0_END);
+    fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+    fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
 
-	fmc_page_erase(settings_page_mem);
+    fmc_page_erase(settings_page_mem);
 
-	fmc_flag_clear(FMC_FLAG_BANK0_END);
-	fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
-	fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
+    fmc_flag_clear(FMC_FLAG_BANK0_END);
+    fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+    fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
 
-	uint32_t *src = reinterpret_cast<uint32_t *>(this);
-	for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
-		fmc_word_program(settings_page_mem + c, *src++);
+    uint32_t *src = reinterpret_cast<uint32_t *>(this);
+    for (size_t c = 0; c < sizeof(Model); c += sizeof(uint32_t)) {
+        fmc_word_program(settings_page_mem + c, *src++);
 
         fmc_flag_clear(FMC_FLAG_BANK0_END);
         fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
         fmc_flag_clear(FMC_FLAG_BANK0_PGERR); 
-	}
+    }
 
-	fmc_lock();
+    fmc_lock();
 }
 
 void Model::save() {
-	writeFlash();
+    writeFlash();
 }
 
 void Model::load() {
-	readFlash();
+    readFlash();
 }
 
 void Model::reset() {
-	defaults();
-	save();
+    defaults();
+    save();
 }
 
 void Model::defaults() {
-	model_version = currentModelVersion;
+    model_version = currentModelVersion;
 
     const uint8_t IP_ADDRESS0 =  169;
     const uint8_t IP_ADDRESS1 =  254;
@@ -120,8 +120,8 @@ void Model::defaults() {
     burst_mode = true;
 
     int32_t artnetcounter = 0;
-	int32_t e131counter = 1;
-	memset(strip_config, 0, sizeof(strip_config));
+    int32_t e131counter = 1;
+    memset(strip_config, 0, sizeof(strip_config));
     for (size_t c = 0; c < stripN; c++) {
         strip_config[c].type = Strip::GS8208_RGB;
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
@@ -130,18 +130,18 @@ void Model::defaults() {
         strip_config[c].rgbSpace.setLED();
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         for (size_t d = 0; d < universeN; d++) {
-	        strip_config[c].artnet[d] = artnetcounter++;
-	        strip_config[c].e131[d] = e131counter++;
-		}
+            strip_config[c].artnet[d] = artnetcounter++;
+            strip_config[c].e131[d] = e131counter++;
+        }
     }
 
-	int32_t counter = 0;
+    int32_t counter = 0;
     memset(analog_config, 0, sizeof(analog_config));
     for (size_t c = 0; c < analogN; c++) {
-	    analog_config[c].rgbSpace.setLED();
+        analog_config[c].rgbSpace.setLED();
         for (size_t d = 0; d < analogCompN; d++) {
             analog_config[c].components[d].offset = counter++;
-	        analog_config[c].components[d].e131 = 1;
+            analog_config[c].components[d].e131 = 1;
         }
     }
 }
@@ -153,7 +153,7 @@ void Model::apply() {
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         lightkraken::Strip::get(c).setUseRGBColorSpace(strip_config[c].useRgbSpace);
         lightkraken::Strip::get(c).setDither(strip_config[c].dither);
-		lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
+        lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
     }
 
     for (size_t c = 0; c < analogN; c++) {
@@ -164,7 +164,7 @@ void Model::apply() {
         col.w = analog_config[c].components[3].value;
         col.ww = analog_config[c].components[4].value;
         Driver::instance().setsRGBWWCIE(c, col);
-		Driver::instance().setRGBColorSpace(c, analog_config[c].rgbSpace);
+        Driver::instance().setRGBColorSpace(c, analog_config[c].rgbSpace);
     }
 
     Control::instance().setColor();
@@ -178,12 +178,12 @@ void Model::apply() {
 }
 
 void Model::setTag(const char *str) { 
-	strncpy(tag_str, str, sizeof(tag_str) - 1); 
-	tag_str[sizeof(tag_str)-1] = 0; 
+    strncpy(tag_str, str, sizeof(tag_str) - 1); 
+    tag_str[sizeof(tag_str)-1] = 0; 
 }
 
 void Model::init() {
-	defaults();
+    defaults();
     readFlash();
     
     Systick::instance().scheduleApply();

@@ -32,29 +32,29 @@ namespace lightkraken {
 
 struct RGBColorSpace {
 
-	void setsRGB() {
+    void setsRGB() {
         xw = 0.31271f; yw = 0.32902f; // D65 white point
         xr = 0.64000f; yr = 0.33000f;
         xg = 0.30000f; yg = 0.60000f;
         xb = 0.15000f; yb = 0.06000f;
-	}
+    }
 
-	void setLED() {
+    void setLED() {
         xw = 0.34567f; yw = 0.35850f; // D50 white point
         xr = 0.67630f; yr = 0.32370f; // from http://ww1.microchip.com/downloads/en/AppNotes/00001562B.pdf
         xg = 0.20880f; yg = 0.74070f;
         xb = 0.14050f; yb = 0.03910f;
-	}
+    }
 
-	float xw; float yw;
-	float xr; float yr;
-	float xg; float yg;
-	float xb; float yb;
+    float xw; float yw;
+    float xr; float yr;
+    float xg; float yg;
+    float xb; float yb;
 };
 
 class CIETransferfromsRGBTransferLookup {
 public:
-	void init();
+    void init();
     uint16_t lookup[256];
 };
 

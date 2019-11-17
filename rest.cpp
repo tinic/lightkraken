@@ -80,8 +80,8 @@ public:
         double dval = 0;
         size_t post_len = strlen(post_buf);
 
-	    sACNPacket::leaveNetworks();
-	    
+        sACNPacket::leaveNetworks();
+        
         if (mjson_get_bool(post_buf, post_len, "$.dhcp", &ival) > 0) {
             Model::instance().setDhcpEnabled(ival ? true : false);
         }
@@ -91,7 +91,7 @@ public:
         }
 
         if (mjson_get_string(post_buf, post_len, "$.tag", buf, sizeof(buf)) > 0) {
-        	Model::instance().setTag(buf);
+            Model::instance().setTag(buf);
         }
         
         if (mjson_get_string(post_buf, post_len, "$.ipv4address", buf, sizeof(buf)) > 0) {
@@ -216,20 +216,20 @@ public:
 
                 sprintf(ss, "$.rgbconfig[%d].components[%d].artnet", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-	                config.components[d].artnet = int(dval);
+                    config.components[d].artnet = int(dval);
                 } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-	                config.components[d].artnet = int(atof(buf));
+                    config.components[d].artnet = int(atof(buf));
                 }
                 
-	            sprintf(ss, "$.rgbconfig[%d].components[%d].e131", c, d);
-	            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-		            config.components[d].e131 = int(dval);
-	            }
-	            else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-		            config.components[d].e131 = int(atof(buf));
-	            }
+                sprintf(ss, "$.rgbconfig[%d].components[%d].e131", c, d);
+                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                    config.components[d].e131 = int(dval);
+                }
+                else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.components[d].e131 = int(atof(buf));
+                }
 
-	            sprintf(ss, "$.rgbconfig[%d].components[%d].offset", c, d);
+                sprintf(ss, "$.rgbconfig[%d].components[%d].offset", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                     config.components[d].offset = int(dval);
                 } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
@@ -300,9 +300,9 @@ public:
             
             sprintf(ss, "$.stripconfig[%d].rgbspace.xw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.xw = float(dval);
+                config.rgbSpace.xw = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.xw = float(atof(buf));
+                config.rgbSpace.xw = float(atof(buf));
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yw", c);
@@ -349,36 +349,36 @@ public:
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                 config.rgbSpace.yb = float(dval);
+                config.rgbSpace.yb = float(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                 config.rgbSpace.yb = float(atof(buf));
+                config.rgbSpace.yb = float(atof(buf));
             }
 
-	        for (int d = 0; d < int(Model::universeN); d++) {
-		        sprintf(ss, "$.stripconfig[%d].universes[%d].artnet", c, d);
-		        if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-			        config.artnet[d] = int(dval);
-		        }
-		        else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-			        config.artnet[d] = int(atof(buf));
-		        }
-	        }
-	        
-	        for (int d = 0; d < int(Model::universeN); d++) {
-		        sprintf(ss, "$.stripconfig[%d].universes[%d].e131", c, d);
-		        if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-			        config.e131[d] = int(dval);
-		        }
-		        else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-			        config.e131[d] = int(atof(buf));
-		        }
-	        }
-		}
+            for (int d = 0; d < int(Model::universeN); d++) {
+                sprintf(ss, "$.stripconfig[%d].universes[%d].artnet", c, d);
+                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                    config.artnet[d] = int(dval);
+                }
+                else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.artnet[d] = int(atof(buf));
+                }
+            }
+            
+            for (int d = 0; d < int(Model::universeN); d++) {
+                sprintf(ss, "$.stripconfig[%d].universes[%d].e131", c, d);
+                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                    config.e131[d] = int(dval);
+                }
+                else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.e131[d] = int(atof(buf));
+                }
+            }
+        }
 
-    	Model::instance().save();
+        Model::instance().save();
         Systick::instance().scheduleApply();
-	    sACNPacket::joinNetworks();
-	}
+        sACNPacket::joinNetworks();
+    }
     
 private:
     bool initialized = false;
@@ -407,21 +407,21 @@ public:
     void beginOKResponse() {
         buf_ptr = response_buf;
         addString("HTTP/1.0 200 OK" CRLF
-                  "Access-Control-Allow-Origin: *" CRLF);
+                "Access-Control-Allow-Origin: *" CRLF);
         responseType = OKResponse;
     }
 
     void beginJSONResponse() {
         buf_ptr = response_buf;
         addString("HTTP/1.0 200 OK" CRLF 
-				  "Access-Control-Allow-Origin: *" CRLF);
+                "Access-Control-Allow-Origin: *" CRLF);
 
         addString("Content-Type: application/json; charset=utf-8" CRLF 
-				  "X-Content-Type-Options: nosniff" CRLF
-				  "Vary: Origin, Accept-Encoding" CRLF
-				  "Content-Length: @@@@@@@@@@@" CRLF
-				  "Cache-Control: no-cache" CRLF
-				  CRLF);
+                "X-Content-Type-Options: nosniff" CRLF
+                "Vary: Origin, Accept-Encoding" CRLF
+                "Content-Length: @@@@@@@@@@@" CRLF
+                "Cache-Control: no-cache" CRLF
+                CRLF);
         
         content_start = buf_ptr;
         addString("{");
@@ -588,7 +588,7 @@ public:
 
     void addAnalogConfig() {
         handleDelimiter();
-		char str[32];
+        char str[32];
         addString("\"rgbconfig\":["); 
         for (size_t c=0; c<Model::analogN; c++) {
             const Model::AnalogConfig &a = Model::instance().analogConfig(c);
@@ -596,21 +596,21 @@ public:
             addString("\"type\":%d,",int(a.type)); 
             addString("\"usergbspace\":%s,",a.useRgbSpace?"true":"false"); 
             addString("\"rgbspace\" : {");
-			ftoa(str, a.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
-			ftoa(str, a.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
-			ftoa(str, a.rgbSpace.xr, NULL); addString("\"xr\":%s,",str); 
-			ftoa(str, a.rgbSpace.yr, NULL); addString("\"yr\":%s,",str); 
-			ftoa(str, a.rgbSpace.xg, NULL); addString("\"xg\":%s,",str); 
-			ftoa(str, a.rgbSpace.yg, NULL); addString("\"yg\":%s,",str); 
-			ftoa(str, a.rgbSpace.xb, NULL); addString("\"xb\":%s,",str); 
-			ftoa(str, a.rgbSpace.yb, NULL); addString("\"yb\":%s",str); 
+            ftoa(str, a.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
+            ftoa(str, a.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
+            ftoa(str, a.rgbSpace.xr, NULL); addString("\"xr\":%s,",str); 
+            ftoa(str, a.rgbSpace.yr, NULL); addString("\"yr\":%s,",str); 
+            ftoa(str, a.rgbSpace.xg, NULL); addString("\"xg\":%s,",str); 
+            ftoa(str, a.rgbSpace.yg, NULL); addString("\"yg\":%s,",str); 
+            ftoa(str, a.rgbSpace.xb, NULL); addString("\"xb\":%s,",str); 
+            ftoa(str, a.rgbSpace.yb, NULL); addString("\"yb\":%s",str); 
             addString("},");
             addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
                 addString("{");
                 addString("\"artnet\":%d,",int(a.components[d].artnet)); 
-	            addString("\"e131\":%d,", int(a.components[d].e131)); 
-	            addString("\"offset\":%d,",int(a.components[d].offset)); 
+                addString("\"e131\":%d,", int(a.components[d].e131)); 
+                addString("\"offset\":%d,",int(a.components[d].offset)); 
                 addString("\"value\":%d",int(a.components[d].value)); 
                 addString("}%c", (d==Model::analogCompN-1)?' ':','); 
             }
@@ -622,7 +622,7 @@ public:
 
     void addStripConfig() {
         handleDelimiter();
-		char str[32];
+        char str[32];
         addString("\"stripconfig\":["); 
         for (size_t c=0; c<Model::stripN; c++) {
             const Model::StripConfig &s = Model::instance().stripConfig(c);
@@ -632,14 +632,14 @@ public:
             addString("\"usergbspace\":%s,",s.useRgbSpace?"true":"false"); 
             addString("\"dither\":%s,",s.dither?"true":"false"); 
             addString("\"rgbspace\" : {");
-			ftoa(str, s.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
-			ftoa(str, s.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
-			ftoa(str, s.rgbSpace.xr, NULL); addString("\"xr\":%s,",str); 
-			ftoa(str, s.rgbSpace.yr, NULL); addString("\"yr\":%s,",str); 
-			ftoa(str, s.rgbSpace.xg, NULL); addString("\"xg\":%s,",str); 
-			ftoa(str, s.rgbSpace.yg, NULL); addString("\"yg\":%s,",str); 
-			ftoa(str, s.rgbSpace.xb, NULL); addString("\"xb\":%s,",str); 
-			ftoa(str, s.rgbSpace.yb, NULL); addString("\"yb\":%s",str); 
+            ftoa(str, s.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
+            ftoa(str, s.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
+            ftoa(str, s.rgbSpace.xr, NULL); addString("\"xr\":%s,",str); 
+            ftoa(str, s.rgbSpace.yr, NULL); addString("\"yr\":%s,",str); 
+            ftoa(str, s.rgbSpace.xg, NULL); addString("\"xg\":%s,",str); 
+            ftoa(str, s.rgbSpace.yg, NULL); addString("\"yg\":%s,",str); 
+            ftoa(str, s.rgbSpace.xb, NULL); addString("\"xb\":%s,",str); 
+            ftoa(str, s.rgbSpace.yb, NULL); addString("\"yb\":%s",str); 
             addString("},");
             addString("\"color\":{\"r\":%d,\"g\":%d,\"b\":%d,\"a\":%d},",
                             (int)s.color.r,
@@ -650,8 +650,8 @@ public:
             for (size_t d=0; d<Model::universeN; d++) {
                 addString("{");
                 addString("\"artnet\":%d,",int(s.artnet[d])); 
-	            addString("\"e131\":%d", int(s.e131[d])); 
-	            addString("}%c", (d==Model::universeN-1)?' ':','); 
+                addString("\"e131\":%d", int(s.e131[d])); 
+                addString("}%c", (d==Model::universeN-1)?' ':','); 
             }
             addString("]");
             addString("}%c", (c==Model::stripN-1)?' ':',');
@@ -668,7 +668,7 @@ private:
         }
     }
 
-	template<typename... Args> void addString(const char *fmt, Args... args) {
+    template<typename... Args> void addString(const char *fmt, Args... args) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-security"
         buf_ptr += sprintf(buf_ptr, fmt, args...); 
@@ -703,67 +703,67 @@ void HTTPResponseBuilder::init() {
 
 class ConnectionManager {
 public:
-	enum RestMethod {
-		MethodNone,
-		MethodGetStatus,
-		MethodGetSettings,
-		MethodGetOneSetting,
-		MethodPostSettings,
-		MethodPostBootLoader,
-	};
+    enum RestMethod {
+        MethodNone,
+        MethodGetStatus,
+        MethodGetSettings,
+        MethodGetOneSetting,
+        MethodPostSettings,
+        MethodPostBootLoader,
+    };
 
-	constexpr static size_t maxConnections = MEMP_NUM_TCP_PCB;
-	constexpr static uint32_t connectionTimeout = 10000;
+    constexpr static size_t maxConnections = MEMP_NUM_TCP_PCB;
+    constexpr static uint32_t connectionTimeout = 10000;
 
     static ConnectionManager &instance();
 
-	void init() {
-		memset(connections, 0, sizeof(connections));
-	}
+    void init() {
+        memset(connections, 0, sizeof(connections));
+    }
 
-	struct ConnectionInfo {
-		public:
-			void *handle;
-			RestMethod method;
-			uint32_t time_stamp;
-			char property[16];
-	};
-	
-	ConnectionInfo *begin(void *handle) {
-		uint32_t now = Systick::instance().systemTime();
-		for (size_t c = 0; c < maxConnections; c++) {
-			if ((connections[c].handle == NULL) || 
-			    (connections[c].time_stamp && ((connections[c].time_stamp - now) > connectionTimeout)) ) {
-				memset(&connections[c], 0, sizeof(ConnectionInfo));
-				connections[c].handle = handle;
-				connections[c].time_stamp = now;
-				return &connections[c];
-			}
-		}
-		return NULL;
-	}
-	
-	ConnectionInfo *get(void *handle) {
-		for (size_t c = 0; c < maxConnections; c++) {
-			if (connections[c].handle == handle) {
-				return &connections[c];
-			}
-		}
-		return NULL;
-	}
-	
-	void end(void *handle) {
-		for (size_t c = 0; c < maxConnections; c++) {
-			if (connections[c].handle == handle) {
-				connections[c].handle = NULL;
-				break;
-			}
-		}
-	}
+    struct ConnectionInfo {
+        public:
+            void *handle;
+            RestMethod method;
+            uint32_t time_stamp;
+            char property[16];
+    };
+    
+    ConnectionInfo *begin(void *handle) {
+        uint32_t now = Systick::instance().systemTime();
+        for (size_t c = 0; c < maxConnections; c++) {
+            if ((connections[c].handle == NULL) || 
+                (connections[c].time_stamp && ((connections[c].time_stamp - now) > connectionTimeout)) ) {
+                memset(&connections[c], 0, sizeof(ConnectionInfo));
+                connections[c].handle = handle;
+                connections[c].time_stamp = now;
+                return &connections[c];
+            }
+        }
+        return NULL;
+    }
+    
+    ConnectionInfo *get(void *handle) {
+        for (size_t c = 0; c < maxConnections; c++) {
+            if (connections[c].handle == handle) {
+                return &connections[c];
+            }
+        }
+        return NULL;
+    }
+    
+    void end(void *handle) {
+        for (size_t c = 0; c < maxConnections; c++) {
+            if (connections[c].handle == handle) {
+                connections[c].handle = NULL;
+                break;
+            }
+        }
+    }
 
 private:
     bool initialized = false;
-	ConnectionInfo connections[maxConnections];
+    ConnectionInfo connections[maxConnections];
 };
 
 ConnectionManager &ConnectionManager::instance() {
@@ -780,10 +780,10 @@ ConnectionManager &ConnectionManager::instance() {
 using namespace lightkraken;
 
 err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, const char *, u16_t, int, u8_t *) {
-	ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().begin(handle);
-	if (!info) {
-		return ERR_ARG;
-	}
+    ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().begin(handle);
+    if (!info) {
+        return ERR_ARG;
+    }
     switch(method) {
         case REST_METHOD_OPTIONS: {
         } break;
@@ -820,37 +820,37 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
         case REST_METHOD_NONE: {
         } break;
     }
-	ConnectionManager::instance().end(handle);
+    ConnectionManager::instance().end(handle);
     return ERR_ARG;
 }
 
 err_t httpd_rest_receive_data(void *handle, struct pbuf *p) {
-	ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().get(handle);
-	if (!info) {
-		return ERR_ARG;
-	}
+    ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().get(handle);
+    if (!info) {
+        return ERR_ARG;
+    }
     switch(info->method) {
-		case ConnectionManager::MethodPostSettings: {
+        case ConnectionManager::MethodPostSettings: {
             HTTPPostParser::instance().pushData(p->payload, p->len);
             pbuf_free(p);
-		} break;
-		default:
+        } break;
+        default:
         case ConnectionManager::MethodNone:
         case ConnectionManager::MethodPostBootLoader:
         case ConnectionManager::MethodGetSettings:
         case ConnectionManager::MethodGetStatus: {
-           // drop buffers to the floor
-		   pbuf_free(p);
+        // drop buffers to the floor
+        pbuf_free(p);
         } break;
     }
     return ERR_OK;
 }
 
 err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
-	ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().get(handle);
-	if (!info) {
-		return ERR_ARG;
-	}
+    ConnectionManager::ConnectionInfo *info = ConnectionManager::instance().get(handle);
+    if (!info) {
+        return ERR_ARG;
+    }
     switch(info->method) {
         case ConnectionManager::MethodGetStatus: {
             
@@ -871,32 +871,32 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
         case ConnectionManager::MethodGetOneSetting: {
 
             HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
-			response.beginJSONResponse();
-        	if (strcmp(info->property, "dhcp")) {
-	            response.addDHCP();
-        	} else if (strcmp(info->property, "tag")) {
-	            response.addTag();
-        	} else if (strcmp(info->property, "broadcast")) {
-	            response.addBroadcast();
-        	} else if (strcmp(info->property, "ipv4address")) {
-	            response.addIPv4Address();
-        	} else if (strcmp(info->property, "ipv4netmask")) {
-	            response.addIPv4Netmask();
-        	} else if (strcmp(info->property, "ipv4gateway")) {
-	            response.addIPv4Gateway();
-        	} else if (strcmp(info->property, "outputmode")) {
-	            response.addOutputMode();
-        	} else if (strcmp(info->property, "globpwmlimit")) {
-	            response.addPwmLimit();
-        	} else if (strcmp(info->property, "globcomplimit")) {
-	            response.addCompLimit();
-        	} else if (strcmp(info->property, "globillum")) {
-	            response.addIllum();
-        	} else if (strcmp(info->property, "rgbconfig")) {
-	            response.addAnalogConfig();
-        	} else if (strcmp(info->property, "stripconfig")) {
-	            response.addStripConfig();
-        	}
+            response.beginJSONResponse();
+            if (strcmp(info->property, "dhcp")) {
+                response.addDHCP();
+            } else if (strcmp(info->property, "tag")) {
+                response.addTag();
+            } else if (strcmp(info->property, "broadcast")) {
+                response.addBroadcast();
+            } else if (strcmp(info->property, "ipv4address")) {
+                response.addIPv4Address();
+            } else if (strcmp(info->property, "ipv4netmask")) {
+                response.addIPv4Netmask();
+            } else if (strcmp(info->property, "ipv4gateway")) {
+                response.addIPv4Gateway();
+            } else if (strcmp(info->property, "outputmode")) {
+                response.addOutputMode();
+            } else if (strcmp(info->property, "globpwmlimit")) {
+                response.addPwmLimit();
+            } else if (strcmp(info->property, "globcomplimit")) {
+                response.addCompLimit();
+            } else if (strcmp(info->property, "globillum")) {
+                response.addIllum();
+            } else if (strcmp(info->property, "rgbconfig")) {
+                response.addAnalogConfig();
+            } else if (strcmp(info->property, "stripconfig")) {
+                response.addStripConfig();
+            }
             *data = response.finish(*dataLen);
             
             ConnectionManager::instance().end(handle);
@@ -939,7 +939,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
         case ConnectionManager::MethodPostSettings: {
             PerfMeasure perf(PerfMeasure::SLOT_REST_POST);
             
-   	     	HTTPPostParser::instance().end();
+            HTTPPostParser::instance().end();
             
             HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
             response.beginOKResponse();
@@ -955,7 +955,7 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
         } break;
     }
     
-	ConnectionManager::instance().end(handle);
+    ConnectionManager::instance().end(handle);
     return ERR_ARG;
 }
 

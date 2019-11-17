@@ -29,29 +29,29 @@ class sACNPacket {
 
 public:
 
-	enum {
-		VECTOR_ROOT_E131_DATA = 0x00000004,
-		VECTOR_ROOT_E131_EXTENDED = 0x00000008,
-		VECTOR_E131_DATA_PACKET = 0x00000002,
-		VECTOR_DMP_SET_PROPERTY = 0x02,
-		VECTOR_E131_EXTENDED_SYNCHRONIZATION = 0x00000001,
-		VECTOR_E131_EXTENDED_DISCOVERY = 0x00000002,
-		VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST = 0x00000001,
-		E131_DISCOVERY_UNIVERSE = 64214,
-		ACN_SDT_MULTICAST_PORT = 5568
-	};
+    enum {
+        VECTOR_ROOT_E131_DATA = 0x00000004,
+        VECTOR_ROOT_E131_EXTENDED = 0x00000008,
+        VECTOR_E131_DATA_PACKET = 0x00000002,
+        VECTOR_DMP_SET_PROPERTY = 0x02,
+        VECTOR_E131_EXTENDED_SYNCHRONIZATION = 0x00000001,
+        VECTOR_E131_EXTENDED_DISCOVERY = 0x00000002,
+        VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST = 0x00000001,
+        E131_DISCOVERY_UNIVERSE = 64214,
+        ACN_SDT_MULTICAST_PORT = 5568
+    };
 
     enum PacketType {
-    	PacketInvalid			= -1,
-    	PacketData				=  0,
-    	PacketSync				=  1,
-    	PacketDiscovery			=  2
+        PacketInvalid			= -1,
+        PacketData				=  0,
+        PacketSync				=  1,
+        PacketDiscovery			=  2
     };
 
     static bool dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast);
     static void sendDiscovery();
-	static void joinNetworks();
-	static void leaveNetworks();
+    static void joinNetworks();
+    static void leaveNetworks();
 
 protected:
 
@@ -61,7 +61,7 @@ protected:
     static uint16_t syncuniverse;
 
 private:
-	static PacketType maybeValid(const uint8_t *buf, size_t len);
+    static PacketType maybeValid(const uint8_t *buf, size_t len);
     static bool verify(sACNPacket &Packet, const uint8_t *buf, size_t len);
 
 };

@@ -27,17 +27,17 @@ namespace lightkraken {
 
 class ArtSyncWatchDog {
 public:
-	bool starved();
-	void feed();
+    bool starved();
+    void feed();
 private:
-	constexpr static uint32_t ArtSyncTimeout = 4000;
-	uint32_t fedtime = 0;
+    constexpr static uint32_t ArtSyncTimeout = 4000;
+    uint32_t fedtime = 0;
 };
 
 class ArtNetPacket {
 public:
 
-	static constexpr int32_t port = 6454;
+    static constexpr int32_t port = 6454;
     static constexpr int32_t currentVersion = 14;
 
     enum Opcode {
@@ -80,7 +80,7 @@ public:
     };
 
     static bool dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast);
-	static void sendArtPollReply(const ip_addr_t *from, uint16_t universe);
+    static void sendArtPollReply(const ip_addr_t *from, uint16_t universe);
 
 protected:
 

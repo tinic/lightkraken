@@ -44,16 +44,16 @@ static const int32_t build_number =
 static ArtSyncWatchDog syncWatchDog;
 
 void ArtSyncWatchDog::feed() {
-	fedtime = Systick::instance().systemTime();
+    fedtime = Systick::instance().systemTime();
 }
 
 bool ArtSyncWatchDog::starved() {
-	uint32_t now = Systick::instance().systemTime();
-	if (fedtime == 0 || ((now - fedtime) > ArtSyncTimeout )) {
-		fedtime = 0;
-		return true;
-	}
-	return false;
+    uint32_t now = Systick::instance().systemTime();
+    if (fedtime == 0 || ((now - fedtime) > ArtSyncTimeout )) {
+        fedtime = 0;
+        return true;
+    }
+    return false;
 }
 
 class OutputPacket : public ArtNetPacket {
@@ -166,7 +166,7 @@ bool ArtNetPacket::verify(ArtNetPacket &packet, const uint8_t *buf, size_t len) 
     }
     memcpy(packet.packet, buf, std::min(len, sizeof(packet.packet)));
     switch (opcode) {
-      	case	OpPoll:
+        case	OpPoll:
         case 	OpSync:
         case	OpNzs:
         case	OpOutput: {
@@ -183,55 +183,55 @@ static constexpr uint32_t syncTimeout = 4;
 
 void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
 
-	struct ArtPollReply {
+    struct ArtPollReply {
         uint8_t  artNet[8];
-		uint16_t opCode;
-		uint8_t  ipAddress[4];
-		uint16_t portNumber;
-		uint16_t versionInfo;
-		uint8_t  netSwitch;
-		uint8_t  subSwitch;
-		uint16_t oem;
-		uint8_t  uebaVersion;
-		uint8_t  status1;
-		uint16_t estaManufactor;
-		uint8_t  shortName[18];
-		uint8_t  longName[64];
-		uint8_t  nodeReport[64];
-		uint16_t numPorts;
-		uint8_t  portTypes[4];
-		uint8_t  goodInput[4];
-		uint8_t  goodOutput[4];
-		uint8_t  swIn[4];
-		uint8_t  swOut[4];
-		uint8_t  swVideo;
-		uint8_t  swMacro;
-		uint8_t  swRemote;
-		uint8_t  spare1;
-		uint8_t  spare2;
-		uint8_t  spare3;
-		uint8_t  style;
-		uint8_t  macAddress[6];
-		uint8_t  bindIp[4];
-		uint8_t  bindIndex;
-		uint8_t  status2;
-		uint8_t  filler[26];
-	}  __attribute__((packed)) reply;
+        uint16_t opCode;
+        uint8_t  ipAddress[4];
+        uint16_t portNumber;
+        uint16_t versionInfo;
+        uint8_t  netSwitch;
+        uint8_t  subSwitch;
+        uint16_t oem;
+        uint8_t  uebaVersion;
+        uint8_t  status1;
+        uint16_t estaManufactor;
+        uint8_t  shortName[18];
+        uint8_t  longName[64];
+        uint8_t  nodeReport[64];
+        uint16_t numPorts;
+        uint8_t  portTypes[4];
+        uint8_t  goodInput[4];
+        uint8_t  goodOutput[4];
+        uint8_t  swIn[4];
+        uint8_t  swOut[4];
+        uint8_t  swVideo;
+        uint8_t  swMacro;
+        uint8_t  swRemote;
+        uint8_t  spare1;
+        uint8_t  spare2;
+        uint8_t  spare3;
+        uint8_t  style;
+        uint8_t  macAddress[6];
+        uint8_t  bindIp[4];
+        uint8_t  bindIndex;
+        uint8_t  status2;
+        uint8_t  filler[26];
+    }  __attribute__((packed)) reply;
 
     memset(&reply, 0, sizeof(reply));
-	
-	reply.opCode = OpPollReply;
+    
+    reply.opCode = OpPollReply;
     memcpy(reply.artNet, "Art-Net", 8);
-	reply.ipAddress[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
-	reply.ipAddress[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
-	reply.ipAddress[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
-	reply.ipAddress[3] = ip4_addr4(&NetConf::instance().netInterface()->ip_addr);
-	reply.portNumber = 6454;
-	reply.versionInfo = build_number;
-	reply.netSwitch = (universe >> 8) & 0xFF;
-	reply.subSwitch = (universe >> 0) & 0xFF;
-	reply.oem = 0x1ed5;
-	reply.estaManufactor = 0x1ed5;
+    reply.ipAddress[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
+    reply.ipAddress[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
+    reply.ipAddress[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
+    reply.ipAddress[3] = ip4_addr4(&NetConf::instance().netInterface()->ip_addr);
+    reply.portNumber = 6454;
+    reply.versionInfo = build_number;
+    reply.netSwitch = (universe >> 8) & 0xFF;
+    reply.subSwitch = (universe >> 0) & 0xFF;
+    reply.oem = 0x1ed5;
+    reply.estaManufactor = 0x1ed5;
 
     const char short_hostname_base[] = "lk-";
     const char hex_table[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',};
@@ -239,9 +239,9 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
     memset(short_hostname, 0, sizeof(short_hostname));
     strcpy(short_hostname, short_hostname_base);
     uint32_t short_mac  = (NetConf::instance().netInterface()->hwaddr[2] << 24) | 
-                          (NetConf::instance().netInterface()->hwaddr[3] << 16) |
-                          (NetConf::instance().netInterface()->hwaddr[4] <<  8) |
-                          (NetConf::instance().netInterface()->hwaddr[5] <<  0);
+                        (NetConf::instance().netInterface()->hwaddr[3] << 16) |
+                        (NetConf::instance().netInterface()->hwaddr[4] <<  8) |
+                        (NetConf::instance().netInterface()->hwaddr[5] <<  0);
     for (size_t c=0; c<8; c++) {
         short_hostname[c + sizeof(short_hostname_base) - 1] = hex_table[(short_mac>>(32-((c+1)*4)))&0xF];
     }
@@ -255,73 +255,73 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
         snprintf((char *)reply.longName, 63, "%s",
             NetConf::instance().netInterface()->hostname);
     }
-	memcpy(reply.macAddress, NetConf::instance().netInterface()->hwaddr, 6);
-	reply.bindIp[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
-	reply.bindIp[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
-	reply.bindIp[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
-	reply.bindIp[3] = ip4_addr4(&NetConf::instance().netInterface()->ip_addr);
-	reply.status2 =  0x01 | // support web browser config
-					 0x02 | // supports dhcp
-					 (Model::instance().dhcpEnabled() ? 0x04 : 0x00) |
-					 0x08;  // ArtNet3
+    memcpy(reply.macAddress, NetConf::instance().netInterface()->hwaddr, 6);
+    reply.bindIp[0] = ip4_addr1(&NetConf::instance().netInterface()->ip_addr);
+    reply.bindIp[1] = ip4_addr2(&NetConf::instance().netInterface()->ip_addr);
+    reply.bindIp[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
+    reply.bindIp[3] = ip4_addr4(&NetConf::instance().netInterface()->ip_addr);
+    reply.status2 =  0x01 | // support web browser config
+                    0x02 | // supports dhcp
+                    (Model::instance().dhcpEnabled() ? 0x04 : 0x00) |
+                    0x08;  // ArtNet3
 
-	NetConf::instance().sendArtNetUdpPacket(from, 6454, (const uint8_t *)&reply, sizeof(reply));
+    NetConf::instance().sendArtNetUdpPacket(from, 6454, (const uint8_t *)&reply, sizeof(reply));
 }
 
 bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast) {
-	PerfMeasure perf(PerfMeasure::SLOT_ARNET_DISPATCH);
+    PerfMeasure perf(PerfMeasure::SLOT_ARNET_DISPATCH);
     Opcode opcode = ArtNetPacket::maybeValid(buf, len);
     if (opcode == OpInvalid) {
-    	return false;
+        return false;
     }
-	switch(opcode) {
-		case	OpPoll: {
-					Control::instance().interateAllActiveArtnetUniverses([from](uint16_t universe) { 
-						Systick::instance().schedulePollReply(from, universe);
-					});
+    switch(opcode) {
+        case	OpPoll: {
+                    Control::instance().interateAllActiveArtnetUniverses([from](uint16_t universe) { 
+                        Systick::instance().schedulePollReply(from, universe);
+                    });
                     return true;
-				} break;
-		case	OpSync: {
-					if (!Model::instance().broadcastEnabled() && isBroadcast) {
-						return false;
-					}
-					Control::instance().setEnableSyncMode(true);
-					Control::instance().sync();
-					syncWatchDog.feed();
+                } break;
+        case	OpSync: {
+                    if (!Model::instance().broadcastEnabled() && isBroadcast) {
+                        return false;
+                    }
+                    Control::instance().setEnableSyncMode(true);
+                    Control::instance().sync();
+                    syncWatchDog.feed();
                     return true;
-				} break;
-		case	OpNzs: {
-					if (!Model::instance().broadcastEnabled() && isBroadcast) {
-						return false;
-					}
-					OutputNzsPacket outputPacket;
-					if (ArtNetPacket::verify(outputPacket, buf, len)) {
-						lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
+                } break;
+        case	OpNzs: {
+                    if (!Model::instance().broadcastEnabled() && isBroadcast) {
+                        return false;
+                    }
+                    OutputNzsPacket outputPacket;
+                    if (ArtNetPacket::verify(outputPacket, buf, len)) {
+                        lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
                             Control::instance().sync();
                             Control::instance().setEnableSyncMode(false);
                         }
                         return true;
-					}
-				} break;
-		case	OpOutput: {
-					if (!Model::instance().broadcastEnabled() && isBroadcast) {
-						return false;
-					}
-					OutputPacket outputPacket;
-					if (ArtNetPacket::verify(outputPacket, buf, len)) {
-						lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
+                    }
+                } break;
+        case	OpOutput: {
+                    if (!Model::instance().broadcastEnabled() && isBroadcast) {
+                        return false;
+                    }
+                    OutputPacket outputPacket;
+                    if (ArtNetPacket::verify(outputPacket, buf, len)) {
+                        lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
                             Control::instance().sync();
                             Control::instance().setEnableSyncMode(false);
                         }
                         return true;
-					}
-				} break;
-		default: {
-					return false;
-				} break;
-	}
+                    }
+                } break;
+        default: {
+                    return false;
+                } break;
+    }
     return false;
 }
 

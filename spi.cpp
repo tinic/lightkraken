@@ -73,11 +73,11 @@ SPI_0 &SPI_0::instance() {
 }
 
 bool SPI_0::busy() const {
-	if(!dma_flag_get(DMA0, DMA_CH2, DMA_FLAG_FTF) ||
-		dma_transfer_number_get(DMA0, DMA_CH2)) {
-		return true;
-	}
-	return false;
+    if(!dma_flag_get(DMA0, DMA_CH2, DMA_FLAG_FTF) ||
+        dma_transfer_number_get(DMA0, DMA_CH2)) {
+        return true;
+    }
+    return false;
 }
 
 void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
@@ -85,13 +85,13 @@ void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
     gpio_bit_set(GPIOA, GPIO_PIN_10);
 
     if (active) {
-		if (busy()) {
-			scheduled = true;
-			return;
-		}
-	}
+        if (busy()) {
+            scheduled = true;
+            return;
+        }
+    }
 
-	dma_channel_disable(DMA0, DMA_CH2);
+    dma_channel_disable(DMA0, DMA_CH2);
     active = false;
 
     if (changed || cbuf != buf || clen != len || wantsSCLK != sclk) {
@@ -107,10 +107,10 @@ void SPI_0::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 }
 
 void SPI_0::update() {
-	if (scheduled) {
-		scheduled = false;
-		transfer(cbuf, clen, sclk);
-	}
+    if (scheduled) {
+        scheduled = false;
+        transfer(cbuf, clen, sclk);
+    }
 }
 
 void SPI_0::dma_setup() {
@@ -181,23 +181,23 @@ SPI_2 &SPI_2::instance() {
 }
 
 bool SPI_2::busy() const {
-	if(!dma_flag_get(DMA1, DMA_CH1, DMA_FLAG_FTF) ||
-		dma_transfer_number_get(DMA1, DMA_CH1)) {
-		return true;
-	}
-	return false;
+    if(!dma_flag_get(DMA1, DMA_CH1, DMA_FLAG_FTF) ||
+        dma_transfer_number_get(DMA1, DMA_CH1)) {
+        return true;
+    }
+    return false;
 }
 
 void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
     gpio_bit_set(GPIOB, GPIO_PIN_9);
     
-	if (active) {
-		if(busy()) {
-			scheduled = true;
-			return;
-		}
-	}
+    if (active) {
+        if(busy()) {
+            scheduled = true;
+            return;
+        }
+    }
     
     dma_channel_disable(DMA1, DMA_CH1);
     active = false;
@@ -216,10 +216,10 @@ void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
 }
 
 void SPI_2::update() {
-	if (scheduled) {
-		scheduled = false;
-		transfer(cbuf, clen, sclk);
-	}
+    if (scheduled) {
+        scheduled = false;
+        transfer(cbuf, clen, sclk);
+    }
 }
 
 void SPI_2::dma_setup() {

@@ -142,9 +142,9 @@ void NetConf::init() {
         upcb_in_sacn = 0;
     }
 
-	if (!lightkraken::Model::instance().dhcpEnabled()) {
-		sACNPacket::joinNetworks();
-	}
+    if (!lightkraken::Model::instance().dhcpEnabled()) {
+        sACNPacket::joinNetworks();
+    }
 #endif  // #ifndef BOOTLOADER
     
     httpd_init();	
@@ -153,44 +153,44 @@ void NetConf::init() {
 #ifndef BOOTLOADER
 bool NetConf::sendArtNetUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len) {
     
-	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
-	if (p == NULL) {
-		return false;
-	}
-	
-	err_t err = pbuf_take(p, data, len);
-	if (err != ERR_OK) {
-		return false;
-	}
-	
-	udp_connect(upcb_in_artnet, to, port);
-	udp_send(upcb_in_artnet, p);
+    struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
+    if (p == NULL) {
+        return false;
+    }
+    
+    err_t err = pbuf_take(p, data, len);
+    if (err != ERR_OK) {
+        return false;
+    }
+    
+    udp_connect(upcb_in_artnet, to, port);
+    udp_send(upcb_in_artnet, p);
     udp_disconnect(upcb_in_artnet);
     
     pbuf_free(p);
 
-	return err == ERR_OK;
+    return err == ERR_OK;
 }
 
 bool NetConf::sendsACNUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len) {
     
-	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
-	if (p == NULL) {
-		return false;
-	}
-	
-	err_t err = pbuf_take(p, data, len);
-	if (err != ERR_OK) {
-		return false;
-	}
-	
-	udp_connect(upcb_in_sacn, to, port);
-	udp_send(upcb_in_sacn, p);
+    struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_POOL);
+    if (p == NULL) {
+        return false;
+    }
+    
+    err_t err = pbuf_take(p, data, len);
+    if (err != ERR_OK) {
+        return false;
+    }
+    
+    udp_connect(upcb_in_sacn, to, port);
+    udp_send(upcb_in_sacn, p);
     udp_disconnect(upcb_in_sacn);
     
     pbuf_free(p);
 
-	return err == ERR_OK;
+    return err == ERR_OK;
 }
 #endif  // #ifndef BOOTLOADER
 
@@ -199,7 +199,7 @@ void NetConf::update() {
     uint32_t localtime = lightkraken::Systick::instance().systemTime();
 
     if (enet_rxframe_size_get()){
-		PerfMeasure perf(PerfMeasure::SLOT_ENET_INPUT);
+        PerfMeasure perf(PerfMeasure::SLOT_ENET_INPUT);
         EthernetIf::ethernetif_input(&netif);
     }
 
@@ -239,7 +239,8 @@ void NetConf::update() {
                 if (ip_address.addr != 0){ 
                     DEBUG_PRINTF(("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address)));
                     dhcp_state = DHCP_ADDRESS_ASSIGNED;
-	                sACNPacket::joinNetworks();
+                    
+                    sACNPacket::joinNetworks();
                 } else {
                     if (dhcp_client->tries > MAX_DHCP_TRIES){
                         dhcp_state = DHCP_TIMEOUT;
@@ -256,6 +257,8 @@ void NetConf::update() {
 #endif  // #ifndef BOOTLOADER
 
                         netif_set_addr(&netif, &address , &netmask, &gateway);
+                        
+                        sACNPacket::joinNetworks();
                     }
                 }
                 break;
