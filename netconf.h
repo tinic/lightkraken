@@ -48,7 +48,7 @@ public:
 	bool sendsACNUdpPacket(const ip_addr_t *to, const uint16_t port, const uint8_t *data, uint16_t len);
 #endif  // #ifndef BOOTLOADER
 
-    const struct netif *netInterface() const { return &netif; };
+    struct netif *netInterface() { return &netif; };
 
 private:
 

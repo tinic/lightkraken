@@ -42,6 +42,7 @@ extern "C" {
 #include "./systick.h"
 #include "./status.h"
 #include "./perf.h"
+#include "./sacn.h"
 
 const int32_t build_number = 
 #include "./build_number.h"
@@ -78,7 +79,9 @@ public:
         int ival = 0;
         double dval = 0;
         size_t post_len = strlen(post_buf);
-        
+
+	    sACNPacket::maybeLeaveNetworks();
+	    
         if (mjson_get_bool(post_buf, post_len, "$.dhcp", &ival) > 0) {
             Model::instance().setDhcpEnabled(ival ? true : false);
         }
@@ -370,11 +373,12 @@ public:
 			        config.e131[d] = int(atof(buf));
 		        }
 	        }
-	}
+		}
 
     	Model::instance().save();
         Systick::instance().scheduleApply();
-    }
+	    sACNPacket::maybeJoinNetworks();
+	}
     
 private:
     bool initialized = false;

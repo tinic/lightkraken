@@ -36,7 +36,6 @@ extern "C" {
 #include "lwip/apps/httpd.h"
 #include "netif/etharp.h"
 #include "lwip/dhcp.h"
-#include "lwip/igmp.h"
 #include "lwip/timeouts.h"
 #include "lwip/priv/tcp_priv.h"
 #include "lwip/inet_chksum.h"
@@ -143,9 +142,13 @@ void NetConf::init() {
         udp_remove(upcb_in_sacn);
         upcb_in_sacn = 0;
     }
+
+	if (!lightkraken::Model::instance().dhcpEnabled()) {
+		sACNPacket::maybeJoinNetworks();
+	}
 #endif  // #ifndef BOOTLOADER
     
-    httpd_init();
+    httpd_init();	
 }
 
 #ifndef BOOTLOADER
@@ -237,6 +240,7 @@ void NetConf::update() {
                 if (ip_address.addr != 0){ 
                     DEBUG_PRINTF(("DHCP address: %d.%d.%d.%d\n", ip4_addr1(&ip_address), ip4_addr2(&ip_address), ip4_addr3(&ip_address),ip4_addr4(&ip_address)));
                     dhcp_state = DHCP_ADDRESS_ASSIGNED;
+	                sACNPacket::maybeJoinNetworks();
                 } else {
                     if (dhcp_client->tries > MAX_DHCP_TRIES){
                         dhcp_state = DHCP_TIMEOUT;

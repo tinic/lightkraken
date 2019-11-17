@@ -26,6 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 #include "lwip/udp.h"
+#include "lwip/igmp.h"
 }; //extern "C" {
 
 #include "./sacn.h"
@@ -66,7 +67,7 @@ private:
         return true;
     }
 };
-
+	
 class SyncPacket : public sACNPacket {
 public:
     SyncPacket() { };
@@ -290,6 +291,32 @@ bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len,
 				} break;
 	}
 	return false;
+}
+
+void sACNPacket::maybeLeaveNetworks() {
+	size_t universeCount = 0;
+	std::array<uint16_t, Model::maxUniverses> universes;
+	Control::instance().collectAllActiveE131Universes(universes, universeCount);
+	for (size_t c = 0; c < universeCount; c++) {
+		ip4_addr multicast_addr;
+		IP4_ADDR(&multicast_addr, 239, 255, (universes[c] >> 8) & 0xFF, (universes[c] >> 0) & 0xFF);
+		if (igmp_lookfor_group(NetConf::instance().netInterface(), &multicast_addr) == 0) {
+			igmp_leavegroup_netif(NetConf::instance().netInterface(), &multicast_addr);
+		}
+	}
+}
+
+void sACNPacket::maybeJoinNetworks() {
+	size_t universeCount = 0;
+	std::array<uint16_t, Model::maxUniverses> universes;
+	Control::instance().collectAllActiveE131Universes(universes, universeCount);
+	for (size_t c = 0; c < universeCount; c++) {
+		ip4_addr multicast_addr;
+		IP4_ADDR(&multicast_addr, 239, 255, (universes[c] >> 8) & 0xFF, (universes[c] >> 0) & 0xFF);
+		if (igmp_lookfor_group(NetConf::instance().netInterface(), &multicast_addr) == 0) {
+			igmp_joingroup_netif(NetConf::instance().netInterface(), &multicast_addr);
+		}
+	}
 }
 
 uint16_t sACNPacket::syncuniverse = 0;

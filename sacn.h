@@ -50,6 +50,8 @@ public:
 
     static bool dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len, bool isBroadcast);
     static void sendDiscovery();
+	static void maybeJoinNetworks();
+	static void maybeLeaveNetworks();
 
 protected:
 
