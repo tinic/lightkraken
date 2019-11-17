@@ -6,7 +6,7 @@ Ethernet powered and controlled LED strip driver and more
 To bootstrap (on any recent Debian/Ubuntu/LinuxMint distro):
 
 ```
-sudo apt install build-essential arm-none-eabi* git cmake
+sudo apt install build-essential arm-none-eabi* git cmake ninja-build
 git clone https://github.com/tinic/lightkraken.git
 cd lightkraken
 git submodule init
