@@ -120,7 +120,7 @@ void Model::defaults() {
     burst_mode = true;
 
     int32_t artnetcounter = 0;
-	int32_t e131counter = 0;
+	int32_t e131counter = 1;
 	memset(strip_config, 0, sizeof(strip_config));
     for (size_t c = 0; c < stripN; c++) {
         strip_config[c].type = Strip::GS8208_RGB;
