@@ -109,7 +109,6 @@ void NetConf::init() {
     address.addr = 0;
     netmask.addr = 0;
     gateway.addr = 0;
-    multicast.addr = 0;
 #endif  // #ifndef BOOTLOADER
 
     netif_add(&netif, &address, &netmask, &gateway, NULL, &EthernetIf::ethernetif_init, &ethernet_input);

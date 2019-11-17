@@ -5,4 +5,4 @@ makefsdata -defl -svr:"LG/1.0" -f:fsdata_bootloader.c fs_bootloader/
 cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=../arm-gcc-toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=../arm-gcc-toolchain.cmake -DCMAKE_BUILD_TYPE=Release -DBOOTLOADED=1 ..
 cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=../arm-gcc-toolchain.cmake -DCMAKE_BUILD_TYPE=Release -DBOOTLOADER=1 ..
-make -j ; sudo make install
+ninja ; sudo ninja install
