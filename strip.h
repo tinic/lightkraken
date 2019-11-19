@@ -104,7 +104,7 @@ namespace lightkraken {
 
         void setComponentLen(size_t len);
         size_t getMaxComponentsLen() const;
-	    size_t inputSizeForType(InputType input_type) const;
+	    size_t getComponentsPerInputPixel(InputType input_type) const;
 
         const uint8_t *prepareHead(size_t &len);
         void prepareTail();

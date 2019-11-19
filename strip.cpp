@@ -103,6 +103,30 @@ namespace lightkraken {
         converter.setRGBColorSpace(colorSpace);
     }
     
+    size_t Strip::getComponentsPerPixel() const {
+        switch(output_type) {
+            case SK6812_RGBW: {
+				return 4;
+			} break;
+            default:
+            case WS2812_RGB:
+            case SK6812_RGB:
+            case GS8208_RGB:
+            case TM1804_RGB:
+            case UCS1904_RGB:
+            case TLS3001_RGB:
+            case LPD8806_RGB:
+            case SK9822_RGB:
+            case HDS107S_RGB:
+            case P9813_RGB:
+            case TM1829_RGB:
+            case APA102_RGB: {
+                return 3;
+            } break;
+        }
+        return 0;
+    }
+
     Strip::NativeType Strip::nativeType() const {
         switch(output_type) {
             case SK6812_RGBW: {
@@ -127,133 +151,26 @@ namespace lightkraken {
     }
 
     size_t Strip::getPixelLen() const {
-        switch(output_type) {
-            case SK6812_RGBW: {
-				constexpr size_t pixsize = 4;
-				return comp_len / pixsize;
-			} break;
-            default:
-            case WS2812_RGB:
-            case SK6812_RGB:
-            case GS8208_RGB:
-            case TM1804_RGB:
-            case TM1829_RGB:
-            case UCS1904_RGB:
-            case LPD8806_RGB:
-            case SK9822_RGB:
-            case HDS107S_RGB:
-            case P9813_RGB:
-            case APA102_RGB: {
-                constexpr size_t pixsize = 3;
-				return comp_len / pixsize;
-            } break;
-        }
-        return 0;
+		const size_t pixsize = getComponentsPerPixel();
+		return comp_len / pixsize;
     }
 
     size_t Strip::getMaxPixelLen() const {
-        switch(output_type) {
-            case SK6812_RGBW: {
-				constexpr size_t pixsize = 4;
-				constexpr size_t pixpad = size_t(dmxMaxLen / pixsize);
-				return pixpad * Model::universeN;
-			} break;
-            default:
-            case WS2812_RGB:
-            case SK6812_RGB:
-            case GS8208_RGB:
-            case TM1804_RGB:
-            case TM1829_RGB:
-            case UCS1904_RGB:
-            case LPD8806_RGB:
-            case SK9822_RGB:
-            case HDS107S_RGB:
-            case P9813_RGB:
-            case APA102_RGB: {
-                constexpr size_t pixsize = 3;
-                constexpr size_t pixpad = size_t(dmxMaxLen / pixsize);
-                return pixpad * Model::universeN;
-            } break;
-        }
-        return 0;
+		const size_t pixsize = getComponentsPerPixel();
+		const size_t pixpad = size_t(dmxMaxLen / pixsize);
+		return pixpad * Model::universeN;
     }
     
-    size_t Strip::getComponentsPerPixel() const {
-        switch(output_type) {
-            case SK6812_RGBW: {
-				return 4;
-			} break;
-            default:
-            case WS2812_RGB:
-            case SK6812_RGB:
-            case GS8208_RGB:
-            case TM1804_RGB:
-            case UCS1904_RGB:
-            case TLS3001_RGB:
-            case LPD8806_RGB:
-            case SK9822_RGB:
-            case HDS107S_RGB:
-            case P9813_RGB:
-            case TM1829_RGB:
-            case APA102_RGB: {
-                return 3;
-            } break;
-        }
-    }
-
     void Strip::setPixelLen(size_t len) {
-        switch(output_type) {
-            case SK6812_RGBW: {
-				constexpr size_t pixsize = 4;
-				size_t c_len = len * pixsize;
-				setComponentLen(c_len);
-			} break;
-            default:
-            case WS2812_RGB:
-            case SK6812_RGB:
-            case GS8208_RGB:
-            case TM1804_RGB:
-            case UCS1904_RGB:
-            case TLS3001_RGB:
-            case LPD8806_RGB:
-            case SK9822_RGB:
-            case HDS107S_RGB:
-            case P9813_RGB:
-            case TM1829_RGB:
-            case APA102_RGB: {
-                constexpr size_t pixsize = 3;
-                size_t c_len = len * pixsize;
-                setComponentLen(c_len);
-            } break;
-        }
+		const size_t pixsize = getComponentsPerPixel();
+		const size_t c_len = len * pixsize;
+		setComponentLen(c_len);
     }
 
     size_t Strip::getMaxComponentsLen() const {
-        switch(output_type) {
-            case SK6812_RGBW: {
-				constexpr size_t pixsize = 4;
-				constexpr size_t pixpad = size_t(dmxMaxLen / pixsize) * pixsize;
-				return pixpad * Model::universeN;
-			} break;
-            default:
-            case TLS3001_RGB:
-            case LPD8806_RGB:
-            case SK9822_RGB:
-            case HDS107S_RGB:
-            case P9813_RGB:
-            case APA102_RGB:
-            case WS2812_RGB:
-            case SK6812_RGB:
-            case GS8208_RGB:
-            case TM1804_RGB:
-            case TM1829_RGB:
-            case UCS1904_RGB: {
-                constexpr size_t pixsize = 3;
-                constexpr size_t pixpad = size_t(dmxMaxLen / pixsize) * pixsize;
-                return pixpad * Model::universeN;
-            } break;
-        }
-        return 0;
+		const size_t pixsize = getComponentsPerPixel();
+		const size_t pixpad = size_t(dmxMaxLen / pixsize) * pixsize;
+		return pixpad * Model::universeN;
     }
 
     void Strip::setComponentLen(size_t len) {
@@ -262,29 +179,15 @@ namespace lightkraken {
     }
     
     bool Strip::isUniverseActive(size_t uniN, InputType input_type) const {
-		switch (input_type) {
-			default:
-			case INPUT_sRGB8:
-			case INPUT_dRGB8: {
-				constexpr size_t pixsize = 3;
-				constexpr size_t pixpad = size_t(dmxMaxLen / pixsize);
-                if (uniN * pixpad < getPixelLen()) {
-                    return true;
-                }
-			} break;
-			case INPUT_sRGBW8:
-			case INPUT_dRGBW8: {
-				constexpr size_t pixsize = 4;
-				constexpr size_t pixpad = size_t(dmxMaxLen / pixsize);
-                if (uniN * pixpad < getPixelLen()) {
-                    return true;
-                }
-			} break;
+		const size_t pixsize = getComponentsPerInputPixel(input_type);
+		const size_t pixpad = size_t(dmxMaxLen / pixsize);
+		if (uniN * pixpad < getPixelLen()) {
+			return true;
 		}
         return false;
     }
     
-    size_t Strip::inputSizeForType(InputType input_type) const {
+    size_t Strip::getComponentsPerInputPixel(InputType input_type) const {
 		switch (input_type) {
 			default:
 			case INPUT_sRGB8: 
@@ -303,7 +206,7 @@ namespace lightkraken {
         PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
         
         auto transfer = [=] (const std::vector<int> &order) {
-			const size_t input_size = inputSizeForType(input_type);
+			const size_t input_size = getComponentsPerInputPixel(input_type);
 			const size_t pixel_pad = std::min(input_size, order.size());
 			const size_t input_pad = Model::universeN * (size_t(dmxMaxLen / input_size) * order.size());
             switch (input_type) {
@@ -430,7 +333,7 @@ namespace lightkraken {
         }
         
         auto transfer = [=] (const std::vector<int> &order) {
-			const size_t input_size = inputSizeForType(input_type);
+			const size_t input_size = getComponentsPerInputPixel(input_type);
 			const size_t pixel_pad = std::min(input_size, order.size());
 			const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size();
             switch (input_type) {
