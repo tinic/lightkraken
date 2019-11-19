@@ -31,6 +31,29 @@ extern "C" {
 #include "./spi.h"
 #include "./systick.h"
 
+extern "C" {
+
+__attribute__((used))
+void EXTI1_IRQHandler(void) {
+	static uint32_t start_time = ~uint32_t(0);
+	uint32_t now = lightkraken::Systick::instance().systemTime();
+	if (gpio_input_bit_get(GPIOB, GPIO_PIN_1) == RESET) {
+		start_time = now;
+	} else {
+		if (start_time !=  ~uint32_t(0)) {
+			if ((now - start_time) > 10000 &&
+			    (now - start_time) < 20000) {
+			    lightkraken::Model::instance().reset();
+				NVIC_SystemReset();
+			}
+			start_time = ~uint32_t(0);
+		}
+	}
+	exti_interrupt_flag_clear(EXTI_1);
+}
+
+}
+
 namespace lightkraken {
 
 constexpr static size_t settings_page_mem = 0x08000000 + 255 * 1024;
@@ -147,7 +170,7 @@ void Model::defaults() {
 }
 
 void Model::apply() {
-    
+
     for (size_t c = 0; c < stripN; c++) {
         lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
@@ -179,10 +202,18 @@ void Model::apply() {
 
 void Model::setTag(const char *str) { 
     strncpy(tag_str, str, sizeof(tag_str) - 1); 
-    tag_str[sizeof(tag_str)-1] = 0; 
+    tag_str[sizeof(tag_str)-1] = 0;
 }
 
 void Model::init() {
+    rcu_periph_clock_enable(RCU_GPIOB);
+    gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
+
+	nvic_irq_enable(EXTI1_IRQn, 2U, 1U);
+	gpio_exti_source_select(GPIO_EVENT_PORT_GPIOB, GPIO_EVENT_PIN_1);
+	exti_init(EXTI_1, EXTI_INTERRUPT, EXTI_TRIG_BOTH);
+    exti_interrupt_flag_clear(EXTI_1);
+
     defaults();
     readFlash();
     
