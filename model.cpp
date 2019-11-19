@@ -146,8 +146,9 @@ void Model::defaults() {
     int32_t e131counter = 1;
     memset(strip_config, 0, sizeof(strip_config));
     for (size_t c = 0; c < stripN; c++) {
-        strip_config[c].type = Strip::GS8208_RGB;
-        lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
+        strip_config[c].output_type = Strip::GS8208_RGB;
+        strip_config[c].input_type = Strip::INPUT_dRGB8;
+        lightkraken::Strip::get(c).setStripType(Strip::OutputType(strip_config[c].output_type));
         strip_config[c].len = 256;
         strip_config[c].color = rgb8();
         strip_config[c].rgbSpace.setLED();
@@ -172,10 +173,8 @@ void Model::defaults() {
 void Model::apply() {
 
     for (size_t c = 0; c < stripN; c++) {
-        lightkraken::Strip::get(c).setStripType(Strip::Type(strip_config[c].type));
+        lightkraken::Strip::get(c).setStripType(Strip::OutputType(strip_config[c].output_type));
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
-        lightkraken::Strip::get(c).setUseRGBColorSpace(strip_config[c].useRgbSpace);
-        lightkraken::Strip::get(c).setDither(strip_config[c].dither);
         lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
     }
 

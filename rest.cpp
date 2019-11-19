@@ -145,17 +145,20 @@ public:
         for (int c=0; c<int(Model::analogN); c++) {
             Model::AnalogConfig &config = Model::instance().analogConfig(c);
 
-            sprintf(ss, "$.rgbconfig[%d].type", c);
+            sprintf(ss, "$.rgbconfig[%d].outputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.type = int(dval);
+                config.output_type = int(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.type = int(atof(buf));
+                config.output_type = int(atof(buf));
             }
 
-            if (mjson_get_bool(post_buf, post_len, "$.rgbconfig[%d].usergbspace", &ival) > 0) {
-                config.useRgbSpace = ival ? true : false;
+            sprintf(ss, "$.rgbconfig[%d].inputtype", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.input_type = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.input_type = int(atof(buf));
             }
-            
+
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.rgbSpace.xw = float(dval);
@@ -248,11 +251,18 @@ public:
         for (int c=0; c<int(Model::stripN); c++) {
             Model::StripConfig &config = Model::instance().stripConfig(c);
 
-            sprintf(ss, "$.stripconfig[%d].type", c);
+            sprintf(ss, "$.stripconfig[%d].outputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.type = int(dval);
+                config.output_type = int(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.type = int(atof(buf));
+                config.output_type = int(atof(buf));
+            }
+
+            sprintf(ss, "$.stripconfig[%d].inputtype", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.input_type = int(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.input_type = int(atof(buf));
             }
             
             sprintf(ss, "$.stripconfig[%d].length", c);
@@ -290,14 +300,6 @@ public:
                 config.color.x = strtol(buf, NULL, 10);
             }
 
-            if (mjson_get_bool(post_buf, post_len, "$.stripconfig[%d].usergbspace", &ival) > 0) {
-                config.useRgbSpace = ival ? true : false;
-            }
-
-            if (mjson_get_bool(post_buf, post_len, "$.stripconfig[%d].dither", &ival) > 0) {
-                config.dither = ival ? true : false;
-            }
-            
             sprintf(ss, "$.stripconfig[%d].rgbspace.xw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.rgbSpace.xw = float(dval);
@@ -593,8 +595,8 @@ public:
         for (size_t c=0; c<Model::analogN; c++) {
             const Model::AnalogConfig &a = Model::instance().analogConfig(c);
             addString("{");
-            addString("\"type\":%d,",int(a.type)); 
-            addString("\"usergbspace\":%s,",a.useRgbSpace?"true":"false"); 
+            addString("\"outputtype\":%d,",int(a.output_type)); 
+            addString("\"inputtype\":%d,",int(a.input_type)); 
             addString("\"rgbspace\" : {");
             ftoa(str, a.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
             ftoa(str, a.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
@@ -627,10 +629,9 @@ public:
         for (size_t c=0; c<Model::stripN; c++) {
             const Model::StripConfig &s = Model::instance().stripConfig(c);
             addString("{");
-            addString("\"type\":%d,",int(s.type)); 
+            addString("\"outputtype\":%d,",int(s.output_type)); 
+            addString("\"inputtype\":%d,",int(s.input_type)); 
             addString("\"length\":%d,",int(s.len)); 
-            addString("\"usergbspace\":%s,",s.useRgbSpace?"true":"false"); 
-            addString("\"dither\":%s,",s.dither?"true":"false"); 
             addString("\"rgbspace\" : {");
             ftoa(str, s.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
             ftoa(str, s.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 

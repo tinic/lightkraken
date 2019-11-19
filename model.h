@@ -46,9 +46,9 @@ public:
     static constexpr size_t maxUniverses = stripN * universeN + analogN * analogCompN;
 
     struct AnalogConfig {
-        uint32_t type;
+        uint32_t output_type;
+        uint32_t input_type;
         RGBColorSpace rgbSpace;
-        uint8_t useRgbSpace;
         struct Component {
             uint16_t artnet;
             uint16_t e131;
@@ -58,11 +58,10 @@ public:
     };
     
     struct StripConfig {
-        uint32_t type;
+        uint32_t output_type;
+        uint32_t input_type;
         rgb8 color;
         RGBColorSpace rgbSpace;
-        uint8_t useRgbSpace;
-        uint8_t dither;
         uint16_t len;
         uint16_t artnet[universeN];
         uint16_t e131[universeN];

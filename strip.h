@@ -34,8 +34,20 @@ namespace lightkraken {
     
     class Strip {
     public:
+    
+    	enum InputType {
+    		INPUT_dRGB8,
+    		INPUT_dRGBW8,
+    		INPUT_sRGB8,
+    		INPUT_sRGBW8
+    	};
 
-        enum Type {
+    	enum NativeType {
+    		NATIVE_RGB8,
+    		NATIVE_RGBW8
+    	};
+
+        enum OutputType {
             WS2812_RGB,
             SK6812_RGB,
             TM1804_RGB,
@@ -50,7 +62,7 @@ namespace lightkraken {
             LPD8806_RGB,
             TLS3001_RGB, // TODO
             TM1829_RGB,
-            TYPE_COUNT
+            OUTPUT_TYPE_COUNT
         };
 
         static constexpr size_t dmxMaxLen = 512;
@@ -63,20 +75,19 @@ namespace lightkraken {
 
         bool needsClock() const;
 
-        size_t getComponentsPerPixel() const;
-        
-        void setStripType(Type type) { strip_type = type; }
-        
-        void setUseRGBColorSpace(bool state) { convertsrgb = state; }
-        void setDither(bool state) { dither = state; }
+        void setStripType(OutputType type) { output_type = type; }
         void setRGBColorSpace(const RGBColorSpace &colorSpace);
 
         void setPixelLen(size_t len);
+        size_t getPixelLen() const;
         size_t getMaxPixelLen() const;
+        size_t getComponentsPerPixel() const;
 
-        void setUniverseData(size_t N, const uint8_t *data, size_t len);
-        void setData(const uint8_t *data, size_t len);
-        bool isUniverseActive(size_t uniN) const;
+	    NativeType nativeType() const;
+
+        void setUniverseData(size_t N, const uint8_t *data, size_t len, InputType input_type);
+        void setData(const uint8_t *data, size_t len, InputType input_type);
+        bool isUniverseActive(size_t uniN, InputType input_type) const;
 
         void transfer();
 
@@ -91,8 +102,9 @@ namespace lightkraken {
         
         void init();
 
-        void setLen(size_t len);
-        size_t getMaxLen() const;
+        void setComponentLen(size_t len);
+        size_t getMaxComponentsLen() const;
+	    size_t inputSizeForType(InputType input_type) const;
 
         const uint8_t *prepareHead(size_t &len);
         void prepareTail();
@@ -103,11 +115,9 @@ namespace lightkraken {
         void ws2812_alike_convert(size_t start, size_t end);
         void tls3001_alike_convert(size_t &len);
 
-        bool dither = false;
-        bool convertsrgb = false;
         bool transfer_flag;
         bool strip_reset = false;
-        Type strip_type = WS2812_RGB;
+        OutputType output_type = WS2812_RGB;
         size_t comp_len = 0;
         std::array<uint8_t, compMaxLen> comp_buf;
         std::array<uint8_t, spiMaxLen> spi_buf;

@@ -77,7 +77,7 @@ public:
             uint8_t off_r,
             uint8_t off_g,
             uint8_t off_b,
-            size_t channels);
+            size_t in_channels);
 
     void sRGB8TransfertoLED8Transfer(
             size_t len,
