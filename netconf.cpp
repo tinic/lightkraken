@@ -222,8 +222,11 @@ void NetConf::update() {
 #if LWIP_DHCP
     const int32_t MAX_DHCP_TRIES = 4;
 
-    if ((localtime - dhcp_fine_timer >= DHCP_FINE_TIMER_MSECS) && 
-         lightkraken::Model::instance().dhcpEnabled()){
+    if ((localtime - dhcp_fine_timer >= DHCP_FINE_TIMER_MSECS) 
+#ifndef BOOTLOADER
+         && lightkraken::Model::instance().dhcpEnabled()
+#endif  // #ifndef BOOTLOADER
+        ){
         dhcp_fine_timer =  localtime;
         dhcp_fine_tmr();
         if ((dhcp_state != DHCP_ADDRESS_ASSIGNED) && (dhcp_state != DHCP_TIMEOUT)){ 
