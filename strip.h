@@ -26,6 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdint.h>
 #include <string.h>
 #include <functional>
+#include <array>
 
 #include "./model.h"
 
@@ -108,8 +109,8 @@ namespace lightkraken {
         bool strip_reset = false;
         Type strip_type = WS2812_RGB;
         size_t comp_len = 0;
-        uint8_t comp_buf[compMaxLen];
-        uint8_t spi_buf[spiMaxLen];
+        std::array<uint8_t, compMaxLen> comp_buf;
+        std::array<uint8_t, spiMaxLen> spi_buf;
     };
 
 }
