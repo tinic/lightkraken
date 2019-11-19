@@ -91,8 +91,8 @@ namespace lightkraken {
     }
 
     void Strip::init() {
-        memset(comp_buf, 0, sizeof(comp_buf));
-        memset(spi_buf, 0, sizeof(spi_buf));
+        comp_buf.fill(0);
+        spi_buf.fill(0);
         transfer_flag = false;
         RGBColorSpace rgbSpace;
         rgbSpace.setLED();
@@ -214,7 +214,7 @@ namespace lightkraken {
 
     void Strip::setLen(size_t len) {
         comp_len = std::min(getMaxLen(), size_t(len));
-        memset(&comp_buf[comp_len], 0, sizeof(comp_buf)-comp_len);
+        memset(&comp_buf.data()[comp_len], 0, comp_buf.size()-comp_len);
     }
     
     bool Strip::use32Bit() {
@@ -434,14 +434,14 @@ namespace lightkraken {
             case UCS1904_RGB:
             case TM1829_RGB:
             case GS8208_RGB: {
-                len = std::min(sizeof(spi_buf), (comp_len + compLatchLen) * 4);
+                len = std::min(spi_buf.size(), (comp_len + compLatchLen) * 4);
                 ws2812_alike_convert(0, std::min(comp_len + compLatchLen, size_t(burstHeadLen)));
-                return spi_buf;
+                return spi_buf.data();
             } break;
             case LPD8806_RGB: {
-                len = std::min(sizeof(spi_buf), (comp_len + 1));
+                len = std::min(spi_buf.size(), (comp_len + 1));
                 lpd8806_rgb_alike_convert(0, std::min(comp_len + 1, size_t(burstHeadLen)));
-                return spi_buf;
+                return spi_buf.data();
             } break;
             case SK9822_RGB:
             case HDS107S_RGB:
@@ -450,9 +450,9 @@ namespace lightkraken {
             case APA102_RGB: {
                 size_t out_len = comp_len + comp_len / 3;
                 size_t ext_len = 32 + ( ( comp_len / 2 ) + 7 ) / 8;
-                len = std::min(sizeof(spi_buf), (out_len + ext_len));
+                len = std::min(spi_buf.size(), (out_len + ext_len));
                 apa102_rgb_alike_convert(0, std::min(out_len + ext_len, size_t(burstHeadLen)));
-                return spi_buf;
+                return spi_buf.data();
             } break;
         }
     }
@@ -513,7 +513,7 @@ namespace lightkraken {
         switch(strip_type) {
             case TLS3001_RGB: {
                 tls3001_alike_convert(len);
-                return spi_buf;
+                return spi_buf.data();
             } break;
             default:
             case SK6812_RGB:
@@ -523,14 +523,14 @@ namespace lightkraken {
             case UCS1904_RGB:
             case TM1829_RGB:
             case GS8208_RGB: {
-                len = std::min(sizeof(spi_buf), (comp_len + compLatchLen) * 4);
+                len = std::min(spi_buf.size(), (comp_len + compLatchLen) * 4);
                 ws2812_alike_convert(0, (comp_len + compLatchLen) - 1);
-                return spi_buf;
+                return spi_buf.data();
             } break;
             case LPD8806_RGB: {
-                len = std::min(sizeof(spi_buf), (comp_len + 3));
+                len = std::min(spi_buf.size(), (comp_len + 3));
                 lpd8806_rgb_alike_convert(0, (comp_len + 3) - 1);
-                return spi_buf;
+                return spi_buf.data();
             } break;
             case SK9822_RGB:
             case HDS107S_RGB:
@@ -539,19 +539,19 @@ namespace lightkraken {
             case APA102_RGB: {
                 size_t out_len = comp_len + comp_len / 3;
                 size_t ext_len = 32 + ( ( out_len / 2 ) + 7 ) / 8;
-                len = std::min(sizeof(spi_buf), (out_len + ext_len));
+                len = std::min(spi_buf.size(), (out_len + ext_len));
                 apa102_rgb_alike_convert(0, (out_len + ext_len) - 1);
-                return spi_buf;
+                return spi_buf.data();
             } break;
         }
     }
 
     __attribute__ ((hot, optimize("O3")))
     void Strip::lpd8806_rgb_alike_convert(size_t start, size_t end) {
-        uint8_t *dst = spi_buf + start;
+        uint8_t *dst = spi_buf.data() + start;
         *dst++ = 0x00;
         if (use32Bit()) {
-            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
+            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf.data());
             for (size_t c = std::max(start, size_t(1)); c <= std::min(end, 1 + comp_len - 1); c++) {
                 *dst++ = 0x80 | ((comp_buf32[c-1] >> 9) & 0x7F);
             }
@@ -568,7 +568,7 @@ namespace lightkraken {
         // Align to 4 bytes
         start &= ~3;
 
-        uint8_t *dst = spi_buf + start;
+        uint8_t *dst = spi_buf.data() + start;
         size_t out_len = comp_len + ( comp_len / 3 );
 
         // start frame
@@ -586,7 +586,7 @@ namespace lightkraken {
         
         uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
         if (use32Bit()) {
-            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
+            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf.data());
             if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
                 for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
                     *dst++ = illum;
@@ -624,7 +624,7 @@ namespace lightkraken {
 
     __attribute__ ((hot, optimize("O3")))
     void Strip::ws2812_alike_convert(size_t start, size_t end) {
-        uint32_t *dst = (uint32_t *)(spi_buf + start * 4);
+        uint32_t *dst = (uint32_t *)(spi_buf.data() + start * 4);
         size_t head_len = compLatchLen / 2;
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
@@ -638,7 +638,7 @@ namespace lightkraken {
         };
         
         if (use32Bit()) {
-            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf);
+            uint32_t *comp_buf32 = reinterpret_cast<uint32_t *>(comp_buf.data());
             if (dither && Model::instance().outputMode() == Model::MODE_INTERRUPT) {
                 for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
                     int32_t v = int32_t(comp_buf32[c-head_len] & 0xFFFF) + int32_t(int16_t(comp_buf32[c-head_len] >> 16));
@@ -663,7 +663,7 @@ namespace lightkraken {
     
     __attribute__ ((hot, optimize("O3")))
     void Strip::tls3001_alike_convert(size_t &len) {
-        uint8_t *dst = spi_buf;
+        uint8_t *dst = spi_buf.data();
         uint32_t reset = 0b11111111'11111110'10000000'00000000; // 19 bits
         uint32_t syncw = 0b11111111'11111110'00100000'00000000; // 30 bits
         uint32_t start = 0b11111111'11111110'01000000'00000000; // 19 bits
