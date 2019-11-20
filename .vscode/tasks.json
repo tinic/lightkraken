@@ -52,7 +52,7 @@
       {
         "label": "Pre-Build Lightkraken",
         "type": "shell",
-        "command": "cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE='../arm-gcc-toolchain.cmake' -DCMAKE_BUILD_TYPE=Release -DBOOTLOADED=1 ${workspaceRoot}",
+        "command": "cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE='../arm-gcc-toolchain.cmake' -DCMAKE_BUILD_TYPE=Release -DBOOTLOADED=1 ..",
         "options": {
           "cwd": "${workspaceRoot}/build",
           "INCLUDE": "${config:arm-none-eabi.include}",
