@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
       {
-        "label": "Install",
+        "label": "Lightkraken: Install",
         "type": "shell",
         "command": "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program lightkraken_bootloaded.bin 0x08008000 verify reset exit'",
         "options": {
@@ -32,14 +32,14 @@
           }
         },
         "dependsOn": [
-          "Build Lightkraken"
+          "Lightkraken: Build"
         ],
         "problemMatcher": [
           "$gcc"
         ]
       },
       {
-        "label": "Clean",
+        "label": "Lightkraken: Clean",
         "type": "shell",
         "command": "ninja clean",
         "options": {
@@ -50,7 +50,7 @@
         ]
       },
       {
-        "label": "Pre-Build Lightkraken",
+        "label": "Lightkraken: Pre-Build",
         "type": "shell",
         "command": "cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE='../arm-gcc-toolchain.cmake' -DCMAKE_BUILD_TYPE=Release -DBOOTLOADED=1 ..",
         "options": {
@@ -84,11 +84,11 @@
         "problemMatcher": "$gcc"
       },
       {
-        "label": "Build Lightkraken",
+        "label": "Lightkraken: Build",
         "type": "shell",
         "command": "ninja",
         "dependsOn": [
-          "Pre-Build Lightkraken"
+          "Lightkraken: Pre-Build"
         ],
         "options": {
           "cwd": "${workspaceRoot}/build",

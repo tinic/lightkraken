@@ -70,14 +70,36 @@ public:
             uint16_t &pwm_g,
             uint16_t &pwm_b) const;
 
-    void sRGB8toLED8(
+    void sRGB8toLEDRGB8(
             size_t len,
             const uint8_t *src,
             uint8_t *dst,
             uint8_t off_r,
             uint8_t off_g,
             uint8_t off_b,
-            size_t in_channels);
+            size_t in_channels,
+            size_t out_channels);
+
+    void sRGBW8toLEDRGB8(
+            size_t len,
+            const uint8_t *src,
+            uint8_t *dst,
+            uint8_t off_r,
+            uint8_t off_g,
+            uint8_t off_b,
+            size_t in_channels,
+            size_t out_channels);
+
+    void sRGB8toLEDRGBW8(
+            size_t len,
+            const uint8_t *src,
+            uint8_t *dst,
+            uint8_t off_r,
+            uint8_t off_g,
+            uint8_t off_b,
+            uint8_t off_w,
+            size_t in_channels,
+            size_t out_channels);
 
     void sRGB8TransfertoLED8Transfer(
             size_t len,

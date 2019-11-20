@@ -87,16 +87,17 @@ static int32_t mul_fixed(int32_t x, int32_t y) {
 
 
 __attribute__ ((hot, optimize("O3")))
-void ColorSpaceConverter::sRGB8toLED8(
+void ColorSpaceConverter::sRGB8toLEDRGB8(
     size_t len,
     const uint8_t *src,
     uint8_t *dst,
     uint8_t off_r,
     uint8_t off_g,
     uint8_t off_b,
-    size_t channels) {
+    size_t in_channels,
+    size_t out_channels) {
 
-    for (size_t c = 0; c < len; c += channels) {
+    for (size_t c = 0; c < len; c += in_channels) {
 
         constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
         constexpr const int32_t delta = int32_t(0.160f * float(1UL<<fixed_shift));
@@ -136,8 +137,141 @@ void ColorSpaceConverter::sRGB8toLED8(
         dst[off_g] = __USAT((y >> fixed_post_shift) >> 8, 7);
         dst[off_b] = __USAT((z >> fixed_post_shift) >> 8, 7);
 
-        src += channels;
-        dst += channels;
+        src += in_channels;
+        dst += out_channels;
+    }
+}
+
+__attribute__ ((hot, optimize("O3")))
+void ColorSpaceConverter::sRGBW8toLEDRGB8(
+    size_t len,
+    const uint8_t *src,
+    uint8_t *dst,
+    uint8_t off_r,
+    uint8_t off_g,
+    uint8_t off_b,
+    size_t in_channels,
+    size_t out_channels) {
+
+    for (size_t c = 0; c < len; c += in_channels) {
+
+        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
+        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<fixed_shift));
+
+        uint32_t r = src[0];
+        uint32_t g = src[1];
+        uint32_t b = src[2];
+        uint32_t w = src[3];
+
+        int32_t lr = srgb_2_srgbl_lookup_fixed[std::clamp(r+w, uint32_t(0), uint32_t(255))];
+        int32_t lg = srgb_2_srgbl_lookup_fixed[std::clamp(g+w, uint32_t(0), uint32_t(255))];
+        int32_t lb = srgb_2_srgbl_lookup_fixed[std::clamp(b+w, uint32_t(0), uint32_t(255))];
+        
+        int32_t x = mul_fixed(srgbl2ledl_fixed[0], lr) + mul_fixed(srgbl2ledl_fixed[1], lg) + mul_fixed(srgbl2ledl_fixed[2], lb);
+        int32_t y = mul_fixed(srgbl2ledl_fixed[3], lr) + mul_fixed(srgbl2ledl_fixed[4], lg) + mul_fixed(srgbl2ledl_fixed[5], lb);
+        int32_t z = mul_fixed(srgbl2ledl_fixed[6], lr) + mul_fixed(srgbl2ledl_fixed[7], lg) + mul_fixed(srgbl2ledl_fixed[8], lb);
+
+        if ( x > theta ) {
+            x = mul_fixed(x + delta, const_mul0);
+            x = mul_fixed(x, mul_fixed(x, x)); 
+        } else {
+            x = mul_fixed(x, const_mul1);
+        }
+
+        if ( y > theta ) {
+            y = mul_fixed(y + delta, const_mul0);
+            y = mul_fixed(y, mul_fixed(y, y)); 
+        } else {
+            y = mul_fixed(y, const_mul1);
+        }
+
+        if ( z > theta ) {
+            z = mul_fixed(z + delta, const_mul0);
+            z = mul_fixed(z, mul_fixed(z, z)); 
+        } else {
+            z = mul_fixed(z, const_mul1);
+        }
+        
+        dst[off_r] = __USAT((x >> fixed_post_shift) >> 8, 7);
+        dst[off_g] = __USAT((y >> fixed_post_shift) >> 8, 7);
+        dst[off_b] = __USAT((z >> fixed_post_shift) >> 8, 7);
+
+        src += in_channels;
+        dst += out_channels;
+    }
+}
+
+__attribute__ ((hot, optimize("O3")))
+void ColorSpaceConverter::sRGB8toLEDRGBW8(
+    size_t len,
+    const uint8_t *src,
+    uint8_t *dst,
+    uint8_t off_r,
+    uint8_t off_g,
+    uint8_t off_b,
+    uint8_t off_w,
+    size_t in_channels,
+    size_t out_channels) {
+
+    for (size_t c = 0; c < len; c += in_channels) {
+
+        constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
+        constexpr const int32_t delta = int32_t(0.160f * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<fixed_shift));
+        constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<fixed_shift));
+
+        int32_t r = src[0];
+        int32_t g = src[1];
+        int32_t b = src[2];
+		int32_t w = std::min(r, std::min(g, b));
+
+        int32_t lr = srgb_2_srgbl_lookup_fixed[r - w];
+        int32_t lg = srgb_2_srgbl_lookup_fixed[g - w];
+        int32_t lb = srgb_2_srgbl_lookup_fixed[b - w];
+        int32_t lw = srgb_2_srgbl_lookup_fixed[    w];
+        
+        int32_t x = mul_fixed(srgbl2ledl_fixed[0], lr) + mul_fixed(srgbl2ledl_fixed[1], lg) + mul_fixed(srgbl2ledl_fixed[2], lb);
+        int32_t y = mul_fixed(srgbl2ledl_fixed[3], lr) + mul_fixed(srgbl2ledl_fixed[4], lg) + mul_fixed(srgbl2ledl_fixed[5], lb);
+        int32_t z = mul_fixed(srgbl2ledl_fixed[6], lr) + mul_fixed(srgbl2ledl_fixed[7], lg) + mul_fixed(srgbl2ledl_fixed[8], lb);
+        w = lw;
+
+        if ( x > theta ) {
+            x = mul_fixed(x + delta, const_mul0);
+            x = mul_fixed(x, mul_fixed(x, x)); 
+        } else {
+            x = mul_fixed(x, const_mul1);
+        }
+
+        if ( y > theta ) {
+            y = mul_fixed(y + delta, const_mul0);
+            y = mul_fixed(y, mul_fixed(y, y)); 
+        } else {
+            y = mul_fixed(y, const_mul1);
+        }
+
+        if ( z > theta ) {
+            z = mul_fixed(z + delta, const_mul0);
+            z = mul_fixed(z, mul_fixed(z, z)); 
+        } else {
+            z = mul_fixed(z, const_mul1);
+        }
+
+        if ( w > theta ) {
+            w = mul_fixed(w + delta, const_mul0);
+            w = mul_fixed(w, mul_fixed(w, w)); 
+        } else {
+            w = mul_fixed(w, const_mul1);
+        }
+
+        dst[off_r] = __USAT((x >> fixed_post_shift) >> 8, 7);
+        dst[off_g] = __USAT((y >> fixed_post_shift) >> 8, 7);
+        dst[off_b] = __USAT((z >> fixed_post_shift) >> 8, 7);
+        dst[off_w] = __USAT((w >> fixed_post_shift) >> 8, 7);
+
+        src += in_channels;
+        dst += out_channels;
     }
 }
 

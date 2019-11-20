@@ -266,9 +266,14 @@ namespace lightkraken {
 					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
-							converter.sRGB8toLED8(std::min(len, input_pad), data, &comp_buf[0], order[0], order[1], order[2], order.size()); 
+							converter.sRGB8toLEDRGB8(std::min(len, input_pad), 
+                                data, &comp_buf[0], 
+                                order[0], order[1], order[2], order.size(), 3);
 						} break;
 						case NATIVE_RGBW8: {
+							converter.sRGB8toLEDRGBW8(std::min(len, input_pad), 
+                                data, &comp_buf[0], 
+                                order[0], order[1], order[2], 3, order.size(), 4);
 						} break;
 					}
             	} break;
@@ -276,10 +281,16 @@ namespace lightkraken {
 					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
+							converter.sRGBW8toLEDRGB8(std::min(len, input_pad), 
+                                data, &comp_buf[0], 
+                                order[0], order[1], order[2], order.size(), 3);
 						} break;
 						case NATIVE_RGBW8: {
-							converter.sRGB8toLED8(std::min(len, input_pad), data, &comp_buf[0], order[0], order[1], order[2], order.size()); 
-							converter.sRGB8TransfertoLED8Transfer(std::min(len, input_pad), data, &comp_buf[0], order[3], 3, order.size());
+							converter.sRGB8toLEDRGB8(std::min(len, input_pad), 
+                                data, &comp_buf[0], 
+                                order[0], order[1], order[2], order.size(), 4);
+							converter.sRGB8TransfertoLED8Transfer(std::min(len, input_pad), 
+                                data, &comp_buf[0], order[3], 3, order.size());
 						} break;
 					}
             	} break;
@@ -393,9 +404,14 @@ namespace lightkraken {
 					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
-							converter.sRGB8toLED8(std::min(len, input_pad), data, &comp_buf[input_pad * uniN], order[0], order[1], order[2], order.size());
+							converter.sRGB8toLEDRGB8(std::min(len, input_pad), 
+                                data, &comp_buf[input_pad * uniN], 
+                                order[0], order[1], order[2], order.size(), 3);
 						} break;
 						case NATIVE_RGBW8: {
+							converter.sRGB8toLEDRGBW8(std::min(len, input_pad), 
+                                data, &comp_buf[input_pad * uniN], 
+                                order[0], order[1], order[2], 3, order.size(), 4);
 						} break;
 					}
             	} break;
@@ -403,10 +419,16 @@ namespace lightkraken {
 					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
+							converter.sRGBW8toLEDRGB8(std::min(len, input_pad), 
+                                data, &comp_buf[input_pad * uniN], 
+                                order[0], order[1], order[2], order.size(), 3);
 						} break;
 						case NATIVE_RGBW8: {
-							converter.sRGB8toLED8(std::min(len, input_pad), data, &comp_buf[input_pad * uniN], order[0], order[1], order[2], order.size());
-							converter.sRGB8TransfertoLED8Transfer(std::min(len, input_pad), data, &comp_buf[input_pad * uniN], order[3], 3, order.size());
+							converter.sRGB8toLEDRGB8(std::min(len, input_pad), 
+                                data, &comp_buf[input_pad * uniN], 
+                                order[0], order[1], order[2], order.size(), 4);
+							converter.sRGB8TransfertoLED8Transfer(std::min(len, input_pad), 
+                                data, &comp_buf[input_pad * uniN], order[3], 3, order.size());
 						} break;
 					}
             	} break;
@@ -591,6 +613,15 @@ namespace lightkraken {
     }
 
     __attribute__ ((hot, optimize("O3")))
+    static inline uint32_t ditherPixel(Strip::DitherPixel *dp, size_t shift = 8) {
+        int32_t p = dp->value;
+        int32_t o = p >> shift;
+        p += dp->error << 1;
+        dp->error = (p - (o << shift)) >> 1;
+        return uint32_t(o);
+    }
+
+    __attribute__ ((hot, optimize("O3")))
     void Strip::lpd8806_rgb_alike_convert(size_t start, size_t end) {
         uint8_t *dst = spi_buf.data() + start;
         *dst++ = 0x00;
@@ -605,7 +636,9 @@ namespace lightkraken {
 			} break;
     		case NATIVE_D8R16D8G16D8B16:
     		case NATIVE_D8R16D8G16D8B16D8W16: {
-    			// dither mode
+				for (size_t c = std::max(start, size_t(1)); c <= std::min(end, 1 + bytes_len - 1); c++) {
+					*dst++ = 0x80 | (ditherPixel(reinterpret_cast<DitherPixel *>(&comp_buf[(c-1)*sizeof(DitherPixel)]), 9));
+				}
     		} break;
 		}
     }
@@ -646,7 +679,13 @@ namespace lightkraken {
 			} break;
     		case NATIVE_D8R16D8G16D8B16:
     		case NATIVE_D8R16D8G16D8B16D8W16: {
-    			// dither mode
+				uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
+				for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
+					*dst++ = illum;
+					*dst++ = comp_buf[ditherPixel(reinterpret_cast<DitherPixel *>(&comp_buf[(offset+0)*sizeof(DitherPixel)]))];
+					*dst++ = comp_buf[ditherPixel(reinterpret_cast<DitherPixel *>(&comp_buf[(offset+1)*sizeof(DitherPixel)]))];
+					*dst++ = comp_buf[ditherPixel(reinterpret_cast<DitherPixel *>(&comp_buf[(offset+2)*sizeof(DitherPixel)]))];
+				}
     		} break;
 		}
         // latch words
@@ -685,13 +724,7 @@ namespace lightkraken {
     		case NATIVE_D8R16D8G16D8B16:
     		case NATIVE_D8R16D8G16D8B16D8W16: {
 				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + bytes_len - 1); c++) {
-					int32_t p = (comp_buf[(c-head_len)*3+1] << 8) |
-							    (comp_buf[(c-head_len)*3+2] << 0) ;
-					int32_t o = p >> 8;
-					int32_t  d = int32_t(int8_t(comp_buf[(c-head_len)*3+0]));
-					p += d << 1;
-					comp_buf[(c-head_len)*3+0] = ( p - (o << 8) ) >> 1;
-					dst = convert_to_one_wire(dst, o);
+					dst = convert_to_one_wire(dst, ditherPixel(reinterpret_cast<DitherPixel *>(&comp_buf[((c-head_len)+0)*sizeof(DitherPixel)])));
 				}
     		} break;
 		}
@@ -715,10 +748,24 @@ namespace lightkraken {
             buf.push(0, 12*(bytes_len/3));
         } else {
             buf.push(start, 19);
-			for (size_t c = 0; c < bytes_len; c++) {
-				uint32_t p = uint32_t(comp_buf[c]);
-				buf.push((p<<19)|(p<<11), 13);
-			}
+            switch(nativeType()) {
+                default: {
+                } break;
+                case NATIVE_RGBW8:
+                case NATIVE_RGB8: {
+                    for (size_t c = 0; c < bytes_len; c++) {
+                        uint32_t p = uint32_t(comp_buf[c]);
+                        buf.push((p<<19)|(p<<11), 13);
+                    }
+                } break;
+                case NATIVE_D8R16D8G16D8B16:
+                case NATIVE_D8R16D8G16D8B16D8W16: {
+                    for (size_t c = 0; c < bytes_len; c++) {
+                        uint32_t p = ditherPixel(reinterpret_cast<DitherPixel *>(&comp_buf[c*sizeof(DitherPixel)]), 3);
+                        buf.push(p << 19, 13);
+                    }
+                } break;
+            }
             buf.push(0, 100);
             buf.push(start, 19);
         }

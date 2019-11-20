@@ -34,7 +34,12 @@ namespace lightkraken {
     
     class Strip {
     public:
-    
+
+        struct DitherPixel {
+            uint16_t value;
+            int8_t error;
+        } __attribute__((packed));
+
     	enum InputType {
     		INPUT_dRGB8,
     		INPUT_dRGBW8,
