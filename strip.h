@@ -68,9 +68,9 @@ namespace lightkraken {
         };
 
         static constexpr size_t dmxMaxLen = 512;
-        static constexpr size_t compMaxLen = (dmxMaxLen*lightkraken::Model::universeN);
-        static constexpr size_t compLatchLen = 64;
-        static constexpr size_t spiMaxLen = (compMaxLen*sizeof(uint32_t)+compLatchLen*sizeof(uint32_t));
+        static constexpr size_t bytesMaxLen = (dmxMaxLen*lightkraken::Model::universeN);
+        static constexpr size_t bytesLatchLen = 64;
+        static constexpr size_t spiMaxLen = (bytesMaxLen*sizeof(uint32_t)+bytesLatchLen*sizeof(uint32_t));
         static constexpr size_t burstHeadLen = 128;
 
         static Strip &get(size_t index);
@@ -83,7 +83,7 @@ namespace lightkraken {
         void setPixelLen(size_t len);
         size_t getPixelLen() const;
         size_t getMaxPixelLen() const;
-        size_t getComponentsPerPixel() const;
+        size_t getBytesPerPixel() const;
 
 	    NativeType nativeType() const;
 
@@ -104,9 +104,9 @@ namespace lightkraken {
         
         void init();
 
-        void setComponentLen(size_t len);
-        size_t getMaxComponentsLen() const;
-	    size_t getComponentsPerInputPixel(InputType input_type) const;
+        void setBytesLen(size_t len);
+        size_t getMaxBytesLen() const;
+	    size_t getBytesPerInputPixel(InputType input_type) const;
 
         const uint8_t *prepareHead(size_t &len);
         void prepareTail();
@@ -117,11 +117,12 @@ namespace lightkraken {
         void ws2812_alike_convert(size_t start, size_t end);
         void tls3001_alike_convert(size_t &len);
 
+		bool dither = false;
         bool transfer_flag;
         bool strip_reset = false;
         OutputType output_type = WS2812_RGB;
-        size_t comp_len = 0;
-        std::array<uint8_t, compMaxLen> comp_buf;
+        size_t bytes_len = 0;
+        std::array<uint8_t, bytesMaxLen> comp_buf;
         std::array<uint8_t, spiMaxLen> spi_buf;
     };
 

@@ -103,10 +103,10 @@ namespace lightkraken {
         converter.setRGBColorSpace(colorSpace);
     }
     
-    size_t Strip::getComponentsPerPixel() const {
+    size_t Strip::getBytesPerPixel() const {
         switch(output_type) {
             case SK6812_RGBW: {
-				return 4;
+				return 4 * ( dither ? 3 : 1);
 			} break;
             default:
             case WS2812_RGB:
@@ -121,7 +121,7 @@ namespace lightkraken {
             case P9813_RGB:
             case TM1829_RGB:
             case APA102_RGB: {
-                return 3;
+                return 3 * ( dither ? 3 : 1);
             } break;
         }
         return 0;
@@ -130,7 +130,7 @@ namespace lightkraken {
     Strip::NativeType Strip::nativeType() const {
         switch(output_type) {
             case SK6812_RGBW: {
-	            return NATIVE_RGBW8;
+	            return dither ? NATIVE_D8R16D8G16D8B16D8W16 : NATIVE_RGBW8;
 	        } break;
             default:
             case WS2812_RGB:
@@ -144,42 +144,42 @@ namespace lightkraken {
             case HDS107S_RGB:
             case P9813_RGB:
             case APA102_RGB: {
-	            return NATIVE_RGB8;
+	            return dither ? NATIVE_D8R16D8G16D8B16 : NATIVE_RGB8;
             } break;
         }
         return NATIVE_RGB8;
     }
 
     size_t Strip::getPixelLen() const {
-		const size_t pixsize = getComponentsPerPixel();
-		return comp_len / pixsize;
+		const size_t pixsize = getBytesPerPixel();
+		return bytes_len / pixsize;
     }
 
     size_t Strip::getMaxPixelLen() const {
-		const size_t pixsize = getComponentsPerPixel();
+		const size_t pixsize = getBytesPerPixel();
 		const size_t pixpad = size_t(dmxMaxLen / pixsize);
 		return pixpad * Model::universeN;
     }
     
     void Strip::setPixelLen(size_t len) {
-		const size_t pixsize = getComponentsPerPixel();
+		const size_t pixsize = getBytesPerPixel();
 		const size_t c_len = len * pixsize;
-		setComponentLen(c_len);
+		setBytesLen(c_len);
     }
 
-    size_t Strip::getMaxComponentsLen() const {
-		const size_t pixsize = getComponentsPerPixel();
+    size_t Strip::getMaxBytesLen() const {
+		const size_t pixsize = getBytesPerPixel();
 		const size_t pixpad = size_t(dmxMaxLen / pixsize) * pixsize;
 		return pixpad * Model::universeN;
     }
 
-    void Strip::setComponentLen(size_t len) {
-        comp_len = std::min(getMaxComponentsLen(), size_t(len));
-        memset(&comp_buf.data()[comp_len], 0, comp_buf.size()-comp_len);
+    void Strip::setBytesLen(size_t len) {
+        bytes_len = std::min(getMaxBytesLen(), size_t(len));
+        memset(&comp_buf.data()[bytes_len], 0, comp_buf.size()-bytes_len);
     }
     
     bool Strip::isUniverseActive(size_t uniN, InputType input_type) const {
-		const size_t pixsize = getComponentsPerInputPixel(input_type);
+		const size_t pixsize = getBytesPerInputPixel(input_type);
 		const size_t pixpad = size_t(dmxMaxLen / pixsize);
 		if (uniN * pixpad < getPixelLen()) {
 			return true;
@@ -187,7 +187,7 @@ namespace lightkraken {
         return false;
     }
     
-    size_t Strip::getComponentsPerInputPixel(InputType input_type) const {
+    size_t Strip::getBytesPerInputPixel(InputType input_type) const {
 		switch (input_type) {
 			default:
 			case INPUT_sRGB8: 
@@ -206,7 +206,7 @@ namespace lightkraken {
         PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
         
         auto transfer = [=] (const std::vector<int> &order) {
-			const size_t input_size = getComponentsPerInputPixel(input_type);
+			const size_t input_size = getBytesPerInputPixel(input_type);
 			const size_t pixel_pad = std::min(input_size, order.size());
 			const size_t input_pad = Model::universeN * (size_t(dmxMaxLen / input_size) * order.size());
             switch (input_type) {
@@ -333,7 +333,7 @@ namespace lightkraken {
         }
         
         auto transfer = [=] (const std::vector<int> &order) {
-			const size_t input_size = getComponentsPerInputPixel(input_type);
+			const size_t input_size = getBytesPerInputPixel(input_type);
 			const size_t pixel_pad = std::min(input_size, order.size());
 			const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size();
             switch (input_type) {
@@ -478,13 +478,13 @@ namespace lightkraken {
             case UCS1904_RGB:
             case TM1829_RGB:
             case GS8208_RGB: {
-                len = std::min(spi_buf.size(), (comp_len + compLatchLen) * 4);
-                ws2812_alike_convert(0, std::min(comp_len + compLatchLen, size_t(burstHeadLen)));
+                len = std::min(spi_buf.size(), (bytes_len + bytesLatchLen) * 4);
+                ws2812_alike_convert(0, std::min(bytes_len + bytesLatchLen, size_t(burstHeadLen)));
                 return spi_buf.data();
             } break;
             case LPD8806_RGB: {
-                len = std::min(spi_buf.size(), (comp_len + 1));
-                lpd8806_rgb_alike_convert(0, std::min(comp_len + 1, size_t(burstHeadLen)));
+                len = std::min(spi_buf.size(), (bytes_len + 1));
+                lpd8806_rgb_alike_convert(0, std::min(bytes_len + 1, size_t(burstHeadLen)));
                 return spi_buf.data();
             } break;
             case SK9822_RGB:
@@ -492,8 +492,8 @@ namespace lightkraken {
             case P9813_RGB:
             case APA107_RGB:
             case APA102_RGB: {
-                size_t out_len = comp_len + comp_len / 3;
-                size_t ext_len = 32 + ( ( comp_len / 2 ) + 7 ) / 8;
+                size_t out_len = bytes_len + bytes_len / 3;
+                size_t ext_len = 32 + ( ( bytes_len / 2 ) + 7 ) / 8;
                 len = std::min(spi_buf.size(), (out_len + ext_len));
                 apa102_rgb_alike_convert(0, std::min(out_len + ext_len, size_t(burstHeadLen)));
                 return spi_buf.data();
@@ -513,18 +513,18 @@ namespace lightkraken {
             case UCS1904_RGB:
             case TM1829_RGB:
             case GS8208_RGB: {
-                ws2812_alike_convert(std::min(comp_len + compLatchLen, size_t(burstHeadLen)), (comp_len + compLatchLen) - 1);
+                ws2812_alike_convert(std::min(bytes_len + bytesLatchLen, size_t(burstHeadLen)), (bytes_len + bytesLatchLen) - 1);
             } break;
             case LPD8806_RGB: {
-                lpd8806_rgb_alike_convert(std::min(comp_len + 1, size_t(burstHeadLen)), (comp_len + 1) - 1);
+                lpd8806_rgb_alike_convert(std::min(bytes_len + 1, size_t(burstHeadLen)), (bytes_len + 1) - 1);
             } break;
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
             case APA107_RGB:
             case APA102_RGB: {
-                size_t out_len = comp_len + comp_len / 3;
-                size_t ext_len = 32 + ( ( comp_len / 2 ) + 7 ) / 8;
+                size_t out_len = bytes_len + bytes_len / 3;
+                size_t ext_len = 32 + ( ( bytes_len / 2 ) + 7 ) / 8;
                 apa102_rgb_alike_convert(std::min(out_len + ext_len, size_t(burstHeadLen)), (out_len + ext_len) - 1);
             } break;
         }
@@ -567,13 +567,13 @@ namespace lightkraken {
             case UCS1904_RGB:
             case TM1829_RGB:
             case GS8208_RGB: {
-                len = std::min(spi_buf.size(), (comp_len + compLatchLen) * 4);
-                ws2812_alike_convert(0, (comp_len + compLatchLen) - 1);
+                len = std::min(spi_buf.size(), (bytes_len + bytesLatchLen) * 4);
+                ws2812_alike_convert(0, (bytes_len + bytesLatchLen) - 1);
                 return spi_buf.data();
             } break;
             case LPD8806_RGB: {
-                len = std::min(spi_buf.size(), (comp_len + 3));
-                lpd8806_rgb_alike_convert(0, (comp_len + 3) - 1);
+                len = std::min(spi_buf.size(), (bytes_len + 3));
+                lpd8806_rgb_alike_convert(0, (bytes_len + 3) - 1);
                 return spi_buf.data();
             } break;
             case SK9822_RGB:
@@ -581,7 +581,7 @@ namespace lightkraken {
             case P9813_RGB:
             case APA107_RGB:
             case APA102_RGB: {
-                size_t out_len = comp_len + comp_len / 3;
+                size_t out_len = bytes_len + bytes_len / 3;
                 size_t ext_len = 32 + ( ( out_len / 2 ) + 7 ) / 8;
                 len = std::min(spi_buf.size(), (out_len + ext_len));
                 apa102_rgb_alike_convert(0, (out_len + ext_len) - 1);
@@ -599,7 +599,7 @@ namespace lightkraken {
         	} break;
     		case NATIVE_RGBW8:
     		case NATIVE_RGB8: {
-				for (size_t c = std::max(start, size_t(1)); c <= std::min(end, 1 + comp_len - 1); c++) {
+				for (size_t c = std::max(start, size_t(1)); c <= std::min(end, 1 + bytes_len - 1); c++) {
 					*dst++ = 0x80 | (comp_buf[c-1] >> 1);
 				}
 			} break;
@@ -617,7 +617,7 @@ namespace lightkraken {
         start &= ~3;
 
         uint8_t *dst = spi_buf.data() + start;
-        size_t out_len = comp_len + ( comp_len / 3 );
+        size_t out_len = bytes_len + ( bytes_len / 3 );
 
         // start frame
         size_t head_len = 32;
@@ -661,7 +661,7 @@ namespace lightkraken {
     __attribute__ ((hot, optimize("O3")))
     void Strip::ws2812_alike_convert(size_t start, size_t end) {
         uint32_t *dst = (uint32_t *)(spi_buf.data() + start * 4);
-        size_t head_len = compLatchLen / 2;
+        size_t head_len = bytesLatchLen / 2;
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
             *dst++ = 0x00;
         }
@@ -678,13 +678,13 @@ namespace lightkraken {
         	} break;
     		case NATIVE_RGBW8:
     		case NATIVE_RGB8: {
-				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
+				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + bytes_len - 1); c++) {
 					dst = convert_to_one_wire(dst, comp_buf[c-head_len]);
 				}
 			} break;
     		case NATIVE_D8R16D8G16D8B16:
     		case NATIVE_D8R16D8G16D8B16D8W16: {
-				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
+				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + bytes_len - 1); c++) {
 					int32_t p = (comp_buf[(c-head_len)*3+1] << 8) |
 							    (comp_buf[(c-head_len)*3+2] << 0) ;
 					int32_t o = p >> 8;
@@ -695,7 +695,7 @@ namespace lightkraken {
 				}
     		} break;
 		}
-        for (size_t c = std::max(start, head_len + comp_len); c <= end; c++) {
+        for (size_t c = std::max(start, head_len + bytes_len); c <= end; c++) {
             *dst++ = 0x00;
         }
     }
@@ -712,10 +712,10 @@ namespace lightkraken {
             buf.push(reset, 19);
             buf.push(0, 4000);
             buf.push(syncw, 30);
-            buf.push(0, 12*(comp_len/3));
+            buf.push(0, 12*(bytes_len/3));
         } else {
             buf.push(start, 19);
-			for (size_t c = 0; c < comp_len; c++) {
+			for (size_t c = 0; c < bytes_len; c++) {
 				uint32_t p = uint32_t(comp_buf[c]);
 				buf.push((p<<19)|(p<<11), 13);
 			}

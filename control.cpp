@@ -458,9 +458,9 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
 }
 
 void Control::setColor() {
-    uint8_t buf[Strip::compMaxLen];
+    uint8_t buf[Strip::bytesMaxLen];
     for (size_t c = 0; c < Model::stripN; c++) {
-        size_t cpp = lightkraken::Strip::get(c).getComponentsPerPixel();
+        size_t cpp = lightkraken::Strip::get(c).getBytesPerPixel();
         size_t len = 0;
         switch(cpp) {
             case 3: {
