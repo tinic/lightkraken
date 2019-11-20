@@ -44,7 +44,9 @@ namespace lightkraken {
 
     	enum NativeType {
     		NATIVE_RGB8,
-    		NATIVE_RGBW8
+    		NATIVE_RGBW8,
+    		NATIVE_D8R16D8G16D8B16,
+    		NATIVE_D8R16D8G16D8B16D8W16
     	};
 
         enum OutputType {

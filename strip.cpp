@@ -212,7 +212,7 @@ namespace lightkraken {
             switch (input_type) {
             	default:
             	case INPUT_dRGB8: {
-					switch (NativeType()) {
+					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
@@ -238,7 +238,7 @@ namespace lightkraken {
 					}
             	} break;
             	case INPUT_dRGBW8: {
-					switch (NativeType()) {
+					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
@@ -263,7 +263,7 @@ namespace lightkraken {
 					}
             	} break;
             	case INPUT_sRGB8: {
-					switch (NativeType()) {
+					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
 							converter.sRGB8toLED8(std::min(len, input_pad), data, &comp_buf[0], order[0], order[1], order[2], order.size()); 
@@ -273,7 +273,7 @@ namespace lightkraken {
 					}
             	} break;
             	case INPUT_sRGBW8: {
-					switch (NativeType()) {
+					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
 						} break;
@@ -339,7 +339,7 @@ namespace lightkraken {
             switch (input_type) {
             	default:
             	case INPUT_dRGB8: {
-					switch (NativeType()) {
+					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
@@ -365,7 +365,7 @@ namespace lightkraken {
 					}
             	} break;
             	case INPUT_dRGBW8: {
-					switch (NativeType()) {
+					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
@@ -390,7 +390,7 @@ namespace lightkraken {
 					}
             	} break;
             	case INPUT_sRGB8: {
-					switch (NativeType()) {
+					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
 							converter.sRGB8toLED8(std::min(len, input_pad), data, &comp_buf[input_pad * uniN], order[0], order[1], order[2], order.size());
@@ -400,7 +400,7 @@ namespace lightkraken {
 					}
             	} break;
             	case INPUT_sRGBW8: {
-					switch (NativeType()) {
+					switch (nativeType()) {
 						default:
 						case NATIVE_RGB8: {
 						} break;
@@ -594,8 +594,19 @@ namespace lightkraken {
     void Strip::lpd8806_rgb_alike_convert(size_t start, size_t end) {
         uint8_t *dst = spi_buf.data() + start;
         *dst++ = 0x00;
-		for (size_t c = std::max(start, size_t(1)); c <= std::min(end, 1 + comp_len - 1); c++) {
-			*dst++ = 0x80 | (comp_buf[c-1] >> 1);
+        switch(nativeType()) {
+        	default: {
+        	} break;
+    		case NATIVE_RGBW8:
+    		case NATIVE_RGB8: {
+				for (size_t c = std::max(start, size_t(1)); c <= std::min(end, 1 + comp_len - 1); c++) {
+					*dst++ = 0x80 | (comp_buf[c-1] >> 1);
+				}
+			} break;
+    		case NATIVE_D8R16D8G16D8B16:
+    		case NATIVE_D8R16D8G16D8B16D8W16: {
+    			// dither mode
+    		} break;
 		}
     }
 
@@ -621,12 +632,22 @@ namespace lightkraken {
         size_t loop_start = std::max(start, size_t(head_len));
         size_t loop_end = std::min(end, head_len + out_len - 1);
         
-        uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
-		for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
-			*dst++ = illum;
-			*dst++ = comp_buf[offset+0];
-			*dst++ = comp_buf[offset+1];
-			*dst++ = comp_buf[offset+2];
+        switch(nativeType()) {
+        	default: {
+        	} break;
+    		case NATIVE_RGB8: {
+				uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
+				for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
+					*dst++ = illum;
+					*dst++ = comp_buf[offset+0];
+					*dst++ = comp_buf[offset+1];
+					*dst++ = comp_buf[offset+2];
+				}
+			} break;
+    		case NATIVE_D8R16D8G16D8B16:
+    		case NATIVE_D8R16D8G16D8B16D8W16: {
+    			// dither mode
+    		} break;
 		}
         // latch words
         for (size_t c = std::max(start, head_len + out_len); c <= end; c++) {
@@ -652,8 +673,27 @@ namespace lightkraken {
             return ptr;
         };
         
-		for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
-			dst = convert_to_one_wire(dst, comp_buf[c-head_len]);
+        switch(nativeType()) {
+        	default: {
+        	} break;
+    		case NATIVE_RGBW8:
+    		case NATIVE_RGB8: {
+				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
+					dst = convert_to_one_wire(dst, comp_buf[c-head_len]);
+				}
+			} break;
+    		case NATIVE_D8R16D8G16D8B16:
+    		case NATIVE_D8R16D8G16D8B16D8W16: {
+				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + comp_len - 1); c++) {
+					int32_t p = (comp_buf[(c-head_len)*3+1] << 8) |
+							    (comp_buf[(c-head_len)*3+2] << 0) ;
+					int32_t o = p >> 8;
+					int32_t  d = int32_t(int8_t(comp_buf[(c-head_len)*3+0]));
+					p += d << 1;
+					comp_buf[(c-head_len)*3+0] = ( p - (o << 8) ) >> 1;
+					dst = convert_to_one_wire(dst, o);
+				}
+    		} break;
 		}
         for (size_t c = std::max(start, head_len + comp_len); c <= end; c++) {
             *dst++ = 0x00;
