@@ -206,7 +206,7 @@ namespace lightkraken {
         PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
         
         auto transfer = [=] (const std::vector<int> &order) {
-            const uint32_t limit_8bit = uint32_t(std::clamp(Model::instance().globCompLimit(), 0.0f, 1.0f) * 255.f);
+            const uint32_t limit_8bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 255.f);
 			const size_t input_size = getBytesPerInputPixel(input_type);
 			const size_t pixel_pad = std::min(input_size, order.size());
 			const size_t input_pad = Model::universeN * (size_t(dmxMaxLen / input_size) * order.size());
@@ -345,7 +345,7 @@ namespace lightkraken {
         }
         
         auto transfer = [=] (const std::vector<int> &order) {
-            const uint32_t limit_8bit = uint32_t(std::clamp(Model::instance().globCompLimit(), 0.0f, 1.0f) * 255.f);
+            const uint32_t limit_8bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 255.f);
 			const size_t input_size = getBytesPerInputPixel(input_type);
 			const size_t pixel_pad = std::min(input_size, order.size());
 			const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size();
@@ -671,7 +671,7 @@ namespace lightkraken {
         	default: {
         	} break;
     		case NATIVE_RGB8: {
-				uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
+				uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * glob_illum));
 				for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
 					*dst++ = illum;
 					*dst++ = comp_buf[offset+0];
@@ -681,7 +681,7 @@ namespace lightkraken {
 			} break;
     		case NATIVE_D8R16D8G16D8B16:
     		case NATIVE_D8R16D8G16D8B16D8W16: {
-				uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * Model::instance().globIllum()));
+				uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * glob_illum));
 				for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
 					*dst++ = illum;
 					*dst++ = comp_buf[ditherPixel(reinterpret_cast<DitherPixel *>(&comp_buf[(offset+0)*sizeof(DitherPixel)]))];

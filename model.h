@@ -48,6 +48,7 @@ public:
     struct AnalogConfig {
         uint32_t output_type;
         uint32_t input_type;
+        float pwm_limit;
         RGBColorSpace rgbSpace;
         struct Component {
             uint16_t artnet;
@@ -60,6 +61,8 @@ public:
     struct StripConfig {
         uint32_t output_type;
         uint32_t input_type;
+        float comp_limit;
+        float glob_illum;
         rgb8 color;
         RGBColorSpace rgbSpace;
         uint16_t len;
@@ -88,15 +91,6 @@ public:
     void apply();
     
     bool burstMode() const { return burst_mode; }
-
-    float globPWMLimit() const { return glob_pwmlimit; }
-    void setGlobPWMLimit(float value) { glob_pwmlimit = value; }
-    
-    float globIllum() const { return glob_illum; }
-    void setGlobIllum(float value) { glob_illum = value; }
-
-    float globCompLimit() const { return glob_comp_lim; }
-    void setGlobCompLimit(float value) { glob_comp_lim = value; }
 
     bool dhcpEnabled() const { return dhcp; }
     void setDhcpEnabled(bool state) { dhcp = state; }
@@ -152,10 +146,6 @@ private:
     OutputMode output_mode;
 
     bool burst_mode;
-
-    float glob_pwmlimit;
-    float glob_illum;
-    float glob_comp_lim;
     
     StripConfig strip_config[stripN];
     AnalogConfig analog_config[analogN];

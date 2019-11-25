@@ -84,6 +84,8 @@ namespace lightkraken {
 
         void setStripType(OutputType type) { output_type = type; }
         void setRGBColorSpace(const RGBColorSpace &colorSpace);
+        void setCompLimit(float value) { comp_limit = value; };
+        void setGlobIllum(float value) { glob_illum = value; };
 
         void setPixelLen(size_t len);
         size_t getPixelLen() const;
@@ -127,6 +129,8 @@ namespace lightkraken {
         bool strip_reset = false;
         OutputType output_type = WS2812_RGB;
         size_t bytes_len = 0;
+        float comp_limit = 1.0f;
+        float glob_illum = 1.0f;
         std::array<uint8_t, bytesMaxLen> comp_buf;
         std::array<uint8_t, spiMaxLen> spi_buf;
     };

@@ -130,24 +130,6 @@ public:
             Model::instance().setOutputConfig(Model::OutputConfig(int(atof(buf))));
         }
 
-        if (mjson_get_number(post_buf, post_len, "$.globpwmlimit", &dval) > 0) {
-            Model::instance().setGlobPWMLimit(float(dval));
-        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-            Model::instance().setGlobPWMLimit(float(atof(buf)));
-        }
-        
-        if (mjson_get_number(post_buf, post_len, "$.globcomplimit", &dval) > 0) {
-            Model::instance().setGlobCompLimit(float(dval));
-        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-            Model::instance().setGlobCompLimit(float(atof(buf)));
-        }
-
-        if (mjson_get_number(post_buf, post_len, "$.globillum", &dval) > 0) {
-            Model::instance().setGlobIllum(float(dval));
-        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-            Model::instance().setGlobIllum(float(atof(buf)));
-        }
-        
         for (int c=0; c<int(Model::analogN); c++) {
             Model::AnalogConfig &config = Model::instance().analogConfig(c);
 
@@ -163,6 +145,13 @@ public:
                 config.input_type = int(dval);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
                 config.input_type = int(atof(buf));
+            }
+
+            sprintf(ss, "$.rgbconfig[%d].pwmlimit", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.pwm_limit = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.pwm_limit = float(atof(buf));
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xw", c);
@@ -270,7 +259,21 @@ public:
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
                 config.input_type = int(atof(buf));
             }
-            
+
+            sprintf(ss, "$.stripconfig[%d].complimit", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.comp_limit = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.comp_limit = float(atof(buf));
+            }
+
+            sprintf(ss, "$.stripconfig[%d].globillum", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.glob_illum = float(dval);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.glob_illum = float(atof(buf));
+            }
+
             sprintf(ss, "$.stripconfig[%d].length", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.len = int(dval);
@@ -573,21 +576,6 @@ public:
         addString("\"outputmode\":%d",int(Model::instance().outputMode())); 
     }
 
-    void addPwmLimit() {
-        handleDelimiter();
-        addString("\"globpwmlimit\":%s", ftos(Model::instance().globPWMLimit())); 
-    }
-
-    void addCompLimit() {
-        handleDelimiter();
-        addString("\"globcomplimit\":%s", ftos(Model::instance().globCompLimit())); 
-    }
-
-    void addIllum() {
-        handleDelimiter();
-        addString("\"globillum\":%s",ftos(Model::instance().globIllum())); 
-    }
-
     void addAnalogConfig() {
         handleDelimiter();
         addString("\"rgbconfig\":["); 
@@ -596,6 +584,7 @@ public:
             addString("{");
             addString("\"outputtype\":%d,",int(a.output_type)); 
             addString("\"inputtype\":%d,",int(a.input_type)); 
+            addString("\"pwmlimit\":%s", ftos(a.pwm_limit)); 
             addString("\"rgbspace\" : {");
             addString("\"xw\":%s,",ftos(a.rgbSpace.xw)); 
             addString("\"yw\":%s,",ftos(a.rgbSpace.yw)); 
@@ -629,6 +618,8 @@ public:
             addString("{");
             addString("\"outputtype\":%d,",int(s.output_type)); 
             addString("\"inputtype\":%d,",int(s.input_type)); 
+            addString("\"complimit\":%s", ftos(s.comp_limit)); 
+            addString("\"globillum\":%s", ftos(s.glob_illum)); 
             addString("\"length\":%d,",int(s.len)); 
             addString("\"rgbspace\" : {");
             addString("\"xw\":%s,",ftos(s.rgbSpace.xw)); 
@@ -706,7 +697,6 @@ public:
         MethodNone,
         MethodGetStatus,
         MethodGetSettings,
-        MethodGetOneSetting,
         MethodPostSettings,
         MethodPostBootLoader,
     };
@@ -793,11 +783,6 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
             } else if (strcmp(url, "/settings") == 0) {
                 info->method = ConnectionManager::MethodGetSettings;
                 return ERR_OK;
-            } else if (strncmp(url, "/settings/", strlen("/settings/")) == 0) {
-                info->method = ConnectionManager::MethodGetOneSetting;
-                strncpy(info->property, url + strlen("/settings/"), 15);
-                info->property[15] = 0;
-                return ERR_OK;
             }
         } break;
         case REST_METHOD_POST: {
@@ -867,40 +852,6 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             ConnectionManager::instance().end(handle);
             return ERR_OK;
         } break;
-        case ConnectionManager::MethodGetOneSetting: {
-
-            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
-            response.beginJSONResponse();
-            if (strcmp(info->property, "dhcp")) {
-                response.addDHCP();
-            } else if (strcmp(info->property, "tag")) {
-                response.addTag();
-            } else if (strcmp(info->property, "broadcast")) {
-                response.addBroadcast();
-            } else if (strcmp(info->property, "ipv4address")) {
-                response.addIPv4Address();
-            } else if (strcmp(info->property, "ipv4netmask")) {
-                response.addIPv4Netmask();
-            } else if (strcmp(info->property, "ipv4gateway")) {
-                response.addIPv4Gateway();
-            } else if (strcmp(info->property, "outputmode")) {
-                response.addOutputMode();
-            } else if (strcmp(info->property, "globpwmlimit")) {
-                response.addPwmLimit();
-            } else if (strcmp(info->property, "globcomplimit")) {
-                response.addCompLimit();
-            } else if (strcmp(info->property, "globillum")) {
-                response.addIllum();
-            } else if (strcmp(info->property, "rgbconfig")) {
-                response.addAnalogConfig();
-            } else if (strcmp(info->property, "stripconfig")) {
-                response.addStripConfig();
-            }
-            *data = response.finish(*dataLen);
-            
-            ConnectionManager::instance().end(handle);
-            return ERR_OK;
-        } break;
         case ConnectionManager::MethodGetSettings: {
             PerfMeasure perf(PerfMeasure::SLOT_REST_GET);
 
@@ -914,9 +865,6 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             response.addIPv4Gateway();
             response.addOutputMode();
             response.addOutputConfig();
-            response.addPwmLimit();
-            response.addCompLimit();
-            response.addIllum();
             response.addAnalogConfig();
             response.addStripConfig();
             *data = response.finish(*dataLen);

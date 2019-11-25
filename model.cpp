@@ -133,10 +133,6 @@ void Model::defaults() {
     
     receive_broadcast = false;
 
-    glob_pwmlimit = 1.0f;
-    glob_illum = 0x1F;
-    glob_comp_lim = 0xFF;
-
     output_config = OUTPUT_CONFIG_DUAL_STRIP;
     output_mode = MODE_MAIN_LOOP;
 
@@ -148,6 +144,8 @@ void Model::defaults() {
     for (size_t c = 0; c < stripN; c++) {
         strip_config[c].output_type = Strip::GS8208_RGB;
         strip_config[c].input_type = Strip::INPUT_dRGB8;
+        strip_config[c].comp_limit = 1.0f;
+        strip_config[c].glob_illum = 1.0f;
         lightkraken::Strip::get(c).setStripType(Strip::OutputType(strip_config[c].output_type));
         strip_config[c].len = 256;
         strip_config[c].color = rgb8();
@@ -163,6 +161,7 @@ void Model::defaults() {
     memset(analog_config, 0, sizeof(analog_config));
     for (size_t c = 0; c < analogN; c++) {
         analog_config[c].rgbSpace.setLED();
+        analog_config[c].pwm_limit = 1.0f;
         for (size_t d = 0; d < analogCompN; d++) {
             analog_config[c].components[d].offset = counter++;
             analog_config[c].components[d].e131 = 1;
@@ -176,6 +175,8 @@ void Model::apply() {
         lightkraken::Strip::get(c).setStripType(Strip::OutputType(strip_config[c].output_type));
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
+        lightkraken::Strip::get(c).setCompLimit(strip_config[c].comp_limit);
+        lightkraken::Strip::get(c).setGlobIllum(strip_config[c].glob_illum);
     }
 
     for (size_t c = 0; c < analogN; c++) {
@@ -187,6 +188,7 @@ void Model::apply() {
         col.ww = analog_config[c].components[4].value;
         Driver::instance().setsRGBWWCIE(c, col);
         Driver::instance().setRGBColorSpace(c, analog_config[c].rgbSpace);
+        Driver::instance().setPWMLimit(c, analog_config[c].pwm_limit);
     }
 
     Control::instance().setColor();
