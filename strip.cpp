@@ -244,13 +244,13 @@ namespace lightkraken {
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								uint32_t r = std::min(limit_8bit, uint32_t(data[c + 0]));
-								uint32_t g = std::min(limit_8bit, uint32_t(data[c + 1]));
-								uint32_t b = std::min(limit_8bit, uint32_t(data[c + 2]));
-								uint32_t w = std::min(limit_8bit, uint32_t(data[c + 3]));
-								buf[n + order[0]] = uint8_t(std::clamp(r+w, uint32_t(0), uint32_t(255)));
-								buf[n + order[1]] = uint8_t(std::clamp(g+w, uint32_t(0), uint32_t(255)));
-								buf[n + order[2]] = uint8_t(std::clamp(b+w, uint32_t(0), uint32_t(255)));
+								uint32_t r = uint32_t(data[c + 0]);
+								uint32_t g = uint32_t(data[c + 1]);
+								uint32_t b = uint32_t(data[c + 2]);
+								uint32_t w = uint32_t(data[c + 3]);
+								buf[n + order[0]] = uint8_t(std::clamp(r+w, uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[1]] = uint8_t(std::clamp(g+w, uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[2]] = uint8_t(std::clamp(b+w, uint32_t(0), uint32_t(limit_8bit)));
 							}
 						} break;
 						case NATIVE_RGBW8: {
@@ -383,13 +383,13 @@ namespace lightkraken {
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								uint32_t r = std::min(limit_8bit, uint32_t(data[c + 0]));
-								uint32_t g = std::min(limit_8bit, uint32_t(data[c + 1]));
-								uint32_t b = std::min(limit_8bit, uint32_t(data[c + 2]));
-								uint32_t w = std::min(limit_8bit, uint32_t(data[c + 3]));
-								buf[n + order[0]] = uint8_t(std::clamp(r+w, uint32_t(0), uint32_t(255)));
-								buf[n + order[1]] = uint8_t(std::clamp(g+w, uint32_t(0), uint32_t(255)));
-								buf[n + order[2]] = uint8_t(std::clamp(b+w, uint32_t(0), uint32_t(255)));
+								uint32_t r = uint32_t(data[c + 0]);
+								uint32_t g = uint32_t(data[c + 1]);
+								uint32_t b = uint32_t(data[c + 2]); 
+								uint32_t w = uint32_t(data[c + 3]);
+								buf[n + order[0]] = uint8_t(std::clamp(r+w, uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[1]] = uint8_t(std::clamp(g+w, uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[2]] = uint8_t(std::clamp(b+w, uint32_t(0), uint32_t(limit_8bit)));
 							}
 						} break;
 						case NATIVE_RGBW8: {
@@ -671,7 +671,7 @@ namespace lightkraken {
         	default: {
         	} break;
     		case NATIVE_RGB8: {
-				uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * glob_illum));
+				uint8_t illum = 0b11100000 | uint8_t(float(0x1f) * std::clamp(glob_illum, 0.0f, 1.0f));
 				for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
 					*dst++ = illum;
 					*dst++ = comp_buf[offset+0];
@@ -681,7 +681,7 @@ namespace lightkraken {
 			} break;
     		case NATIVE_D8R16D8G16D8B16:
     		case NATIVE_D8R16D8G16D8B16D8W16: {
-				uint8_t illum = 0b11100000 | std::min(uint8_t(0x1F), uint8_t((float)0x1f * glob_illum));
+				uint8_t illum = 0b11100000 | uint8_t(float(0x1f) * std::clamp(glob_illum, 0.0f, 1.0f));
 				for (size_t c = loop_start; c <= loop_end; c += 4, offset += 3) {
 					*dst++ = illum;
 					*dst++ = comp_buf[ditherPixel(reinterpret_cast<DitherPixel *>(&comp_buf[(offset+0)*sizeof(DitherPixel)]))];
