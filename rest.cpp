@@ -58,12 +58,6 @@ static const char *ftos(float value) {
     return buffer;
 }
 
-static const char *dtos(int32_t value) {
-    static char buffer[64];
-    d2s_buffered(value, buffer);
-    return buffer;
-}
-
 namespace lightkraken {
 
 class HTTPPostParser {
@@ -475,29 +469,29 @@ public:
 
     void addNetConfIPv4Address() {
         handleDelimiter();
-        addString("\"ipv4address\":\"%s.%s.%s.%s\"", 
-                dtos(ip4_addr1(&NetConf::instance().netInterface()->ip_addr)),
-                dtos(ip4_addr2(&NetConf::instance().netInterface()->ip_addr)),
-                dtos(ip4_addr3(&NetConf::instance().netInterface()->ip_addr)),
-                dtos(ip4_addr4(&NetConf::instance().netInterface()->ip_addr)));
+        addString("\"ipv4address\":\"%d.%d.%d.%d\"", 
+                int(ip4_addr1(&NetConf::instance().netInterface()->ip_addr)),
+                int(ip4_addr2(&NetConf::instance().netInterface()->ip_addr)),
+                int(ip4_addr3(&NetConf::instance().netInterface()->ip_addr)),
+                int(ip4_addr4(&NetConf::instance().netInterface()->ip_addr)));
     }
 
     void addNetConfIPv4Netmask() {
         handleDelimiter();
-        addString("\"ipv4netmask\":\"%s.%s.%s.%s\"", 
-                dtos(ip4_addr1(&NetConf::instance().netInterface()->netmask)),
-                dtos(ip4_addr2(&NetConf::instance().netInterface()->netmask)),
-                dtos(ip4_addr3(&NetConf::instance().netInterface()->netmask)),
-                dtos(ip4_addr4(&NetConf::instance().netInterface()->netmask)));
+        addString("\"ipv4netmask\":\"%d.%d.%d.%d\"", 
+                int(ip4_addr1(&NetConf::instance().netInterface()->netmask)),
+                int(ip4_addr2(&NetConf::instance().netInterface()->netmask)),
+                int(ip4_addr3(&NetConf::instance().netInterface()->netmask)),
+                int(ip4_addr4(&NetConf::instance().netInterface()->netmask)));
     }
 
     void addNetConfIPv4Gateway() {
         handleDelimiter();
-        addString("\"ipv4gateway\":\"%s.%s.%s.%s\"", 
-                dtos(ip4_addr1(&NetConf::instance().netInterface()->gw)),
-                dtos(ip4_addr2(&NetConf::instance().netInterface()->gw)),
-                dtos(ip4_addr3(&NetConf::instance().netInterface()->gw)),
-                dtos(ip4_addr4(&NetConf::instance().netInterface()->gw)));
+        addString("\"ipv4gateway\":\"%d.%d.%d.%d\"", 
+                int(ip4_addr1(&NetConf::instance().netInterface()->gw)),
+                int(ip4_addr2(&NetConf::instance().netInterface()->gw)),
+                int(ip4_addr3(&NetConf::instance().netInterface()->gw)),
+                int(ip4_addr4(&NetConf::instance().netInterface()->gw)));
     }
 
     void addTag() {
@@ -507,12 +501,12 @@ public:
 
     void addSystemTime() {
         handleDelimiter();
-        addString("\"systemtime\":%s", dtos(Systick::instance().systemTime())); 
+        addString("\"systemtime\":%d", int(Systick::instance().systemTime())); 
     }
 
     void addBuildNumber() {
         handleDelimiter();
-        addString("\"buildnumber\": \"Rev %s (%s %s)\"  ", dtos(build_number), __DATE__, __TIME__); 
+        addString("\"buildnumber\": \"Rev %d (%s %s)\"  ", int(build_number), __DATE__, __TIME__); 
     }
 
     void addHostname() {
@@ -543,40 +537,40 @@ public:
     
     void addIPv4Address() {
         handleDelimiter();
-        addString("\"ipv4address\":\"%s.%s.%s.%s\"", 
-            dtos(ip4_addr1(Model::instance().ip4Address())),
-            dtos(ip4_addr2(Model::instance().ip4Address())),
-            dtos(ip4_addr3(Model::instance().ip4Address())),
-            dtos(ip4_addr4(Model::instance().ip4Address())));
+        addString("\"ipv4address\":\"%d.%d.%d.%d\"", 
+            int(ip4_addr1(Model::instance().ip4Address())),
+            int(ip4_addr2(Model::instance().ip4Address())),
+            int(ip4_addr3(Model::instance().ip4Address())),
+            int(ip4_addr4(Model::instance().ip4Address())));
     }
     
     
     void addIPv4Netmask() {
         handleDelimiter();
-        addString("\"ipv4netmask\":\"%s.%s.%s.%s\"", 
-            dtos(ip4_addr1(Model::instance().ip4Netmask())),
-            dtos(ip4_addr2(Model::instance().ip4Netmask())),
-            dtos(ip4_addr3(Model::instance().ip4Netmask())),
-            dtos(ip4_addr4(Model::instance().ip4Netmask())));
+        addString("\"ipv4netmask\":\"%d.%d.%d.%d\"", 
+            int(ip4_addr1(Model::instance().ip4Netmask())),
+            int(ip4_addr2(Model::instance().ip4Netmask())),
+            int(ip4_addr3(Model::instance().ip4Netmask())),
+            int(ip4_addr4(Model::instance().ip4Netmask())));
     }
     
     void addIPv4Gateway() {
         handleDelimiter();
-        addString("\"ipv4gateway\":\"%s.%s.%s.%s\"", 
-            dtos(ip4_addr1(Model::instance().ip4Gateway())),
-            dtos(ip4_addr2(Model::instance().ip4Gateway())),
-            dtos(ip4_addr3(Model::instance().ip4Gateway())),
-            dtos(ip4_addr4(Model::instance().ip4Gateway())));
+        addString("\"ipv4gateway\":\"%d.%d.%d.%d\"", 
+            int(ip4_addr1(Model::instance().ip4Gateway())),
+            int(ip4_addr2(Model::instance().ip4Gateway())),
+            int(ip4_addr3(Model::instance().ip4Gateway())),
+            int(ip4_addr4(Model::instance().ip4Gateway())));
     }
 
     void addOutputConfig() {
         handleDelimiter();
-        addString("\"outputconfig\":%s",dtos(Model::instance().outputConfig())); 
+        addString("\"outputconfig\":%d",int(Model::instance().outputConfig())); 
     }
 
     void addOutputMode() {
         handleDelimiter();
-        addString("\"outputmode\":%s",dtos(Model::instance().outputMode())); 
+        addString("\"outputmode\":%d",int(Model::instance().outputMode())); 
     }
 
     void addPwmLimit() {
@@ -600,8 +594,8 @@ public:
         for (size_t c=0; c<Model::analogN; c++) {
             const Model::AnalogConfig &a = Model::instance().analogConfig(c);
             addString("{");
-            addString("\"outputtype\":%s,",dtos(a.output_type)); 
-            addString("\"inputtype\":%s,",dtos(a.input_type)); 
+            addString("\"outputtype\":%d,",int(a.output_type)); 
+            addString("\"inputtype\":%d,",int(a.input_type)); 
             addString("\"rgbspace\" : {");
             addString("\"xw\":%s,",ftos(a.rgbSpace.xw)); 
             addString("\"yw\":%s,",ftos(a.rgbSpace.yw)); 
@@ -615,10 +609,10 @@ public:
             addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
                 addString("{");
-                addString("\"artnet\":%s,",dtos(a.components[d].artnet)); 
-                addString("\"e131\":%s,", dtos(a.components[d].e131)); 
-                addString("\"offset\":%s,",dtos(a.components[d].offset)); 
-                addString("\"value\":%s",dtos(a.components[d].value)); 
+                addString("\"artnet\":%d,",int(a.components[d].artnet)); 
+                addString("\"e131\":%d,", int(a.components[d].e131)); 
+                addString("\"offset\":%d,",int(a.components[d].offset)); 
+                addString("\"value\":%d",int(a.components[d].value)); 
                 addString("}%c", (d==Model::analogCompN-1)?' ':','); 
             }
             addString("]");
@@ -633,9 +627,9 @@ public:
         for (size_t c=0; c<Model::stripN; c++) {
             const Model::StripConfig &s = Model::instance().stripConfig(c);
             addString("{");
-            addString("\"outputtype\":%s,",dtos(s.output_type)); 
-            addString("\"inputtype\":%s,",dtos(s.input_type)); 
-            addString("\"length\":%s,",dtos(s.len)); 
+            addString("\"outputtype\":%d,",int(s.output_type)); 
+            addString("\"inputtype\":%d,",int(s.input_type)); 
+            addString("\"length\":%d,",int(s.len)); 
             addString("\"rgbspace\" : {");
             addString("\"xw\":%s,",ftos(s.rgbSpace.xw)); 
             addString("\"yw\":%s,",ftos(s.rgbSpace.yw)); 
@@ -646,16 +640,16 @@ public:
             addString("\"xb\":%s,",ftos(s.rgbSpace.xb)); 
             addString("\"yb\":%s,",ftos(s.rgbSpace.yb)); 
             addString("},");
-            addString("\"color\":{\"r\":%s,\"g\":%s,\"b\":%s,\"a\":%s},",
-                            dtos(s.color.r),
-                            dtos(s.color.g),
-                            dtos(s.color.b),
-                            dtos(s.color.x)); 
+            addString("\"color\":{\"r\":%d,\"g\":%d,\"b\":%d,\"a\":%d},",
+                            int(s.color.r),
+                            int(s.color.g),
+                            int(s.color.b),
+                            int(s.color.x)); 
             addString("\"universes\" : [");
             for (size_t d=0; d<Model::universeN; d++) {
                 addString("{");
-                addString("\"artnet\":%s,",dtos(s.artnet[d])); 
-                addString("\"e131\":%s", dtos(s.e131[d])); 
+                addString("\"artnet\":%d,",int(s.artnet[d])); 
+                addString("\"e131\":%d", int(s.e131[d])); 
                 addString("}%c", (d==Model::universeN-1)?' ':','); 
             }
             addString("]");
