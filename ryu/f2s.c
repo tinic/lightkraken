@@ -15,9 +15,6 @@
 // is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 // KIND, either express or implied.
 
-// Runtime compiler options:
-// -DRYU_DEBUG Generate verbose debugging output to stdout.
-
 #include "ryu/ryu.h"
 
 #include <assert.h>
@@ -27,28 +24,9 @@
 #include <string.h>
 #include <limits.h>
 
-#ifdef RYU_DEBUG
-#include <stdio.h>
-#endif
-
 #include "ryu/common.h"
 #include "ryu/digit_table.h"
-
-#if defined(RYU_FLOAT_FULL_TABLE)
-
 #include "ryu/f2s_full_table.h"
-
-#else
-
-#if defined(RYU_OPTIMIZE_SIZE)
-#include "ryu/d2s_small_table.h"
-#else
-#include "ryu/d2s_full_table.h"
-#endif
-#define FLOAT_POW5_INV_BITCOUNT (DOUBLE_POW5_INV_BITCOUNT - 64)
-#define FLOAT_POW5_BITCOUNT (DOUBLE_POW5_BITCOUNT - 64)
-
-#endif
 
 #define FLOAT_MANTISSA_BITS 23
 #define FLOAT_EXPONENT_BITS 8
@@ -92,7 +70,6 @@ static inline uint32_t mulShift(const uint32_t m, const uint64_t factor, const i
   const uint64_t bits0 = (uint64_t)m * factorLo;
   const uint64_t bits1 = (uint64_t)m * factorHi;
 
-#ifdef RYU_32_BIT_PLATFORM
   // On 32-bit platforms we can avoid a 64-bit shift-right since we only
   // need the upper 32 bits of the result and the shift value is > 32.
   const uint32_t bits0Hi = (uint32_t)(bits0 >> 32);
@@ -102,39 +79,14 @@ static inline uint32_t mulShift(const uint32_t m, const uint64_t factor, const i
   bits1Hi += (bits1Lo < bits0Hi);
   const int32_t s = shift - 32;
   return (bits1Hi << (32 - s)) | (bits1Lo >> s);
-#else // RYU_32_BIT_PLATFORM
-  const uint64_t sum = (bits0 >> 32) + bits1;
-  const uint64_t shiftedSum = sum >> (shift - 32);
-  assert(shiftedSum <= UINT32_MAX);
-  return (uint32_t) shiftedSum;
-#endif // RYU_32_BIT_PLATFORM
 }
 
 static inline uint32_t mulPow5InvDivPow2(const uint32_t m, const uint32_t q, const int32_t j) {
-#if defined(RYU_FLOAT_FULL_TABLE)
   return mulShift(m, FLOAT_POW5_INV_SPLIT[q], j);
-#elif defined(RYU_OPTIMIZE_SIZE)
-  // The inverse multipliers are defines as [2^x / 5^y] + 1; the upper 64 bit from the double lookup
-  // table are the correct bits for [2^x / 5^y], so we have to add 1 here. Note that we rely on the
-  // fact that the added 1 that's already stored in the table never overflows into the upper 64 bit.
-  uint64_t pow5[2];
-  double_computeInvPow5(q, pow5);
-  return mulShift(m, pow5[1] + 1, j);
-#else
-  return mulShift(m, DOUBLE_POW5_INV_SPLIT[q][1] + 1, j);
-#endif
 }
 
 static inline uint32_t mulPow5divPow2(const uint32_t m, const uint32_t i, const int32_t j) {
-#if defined(RYU_FLOAT_FULL_TABLE)
   return mulShift(m, FLOAT_POW5_SPLIT[i], j);
-#elif defined(RYU_OPTIMIZE_SIZE)
-  uint64_t pow5[2];
-  double_computePow5(i, pow5);
-  return mulShift(m, pow5[1], j);
-#else
-  return mulShift(m, DOUBLE_POW5_SPLIT[i][1], j);
-#endif
 }
 
 // A floating decimal representing m * 10^e.
@@ -159,10 +111,6 @@ static inline floating_decimal_32 f2d(const uint32_t ieeeMantissa, const uint32_
   const bool even = (m2 & 1) == 0;
   const bool acceptBounds = even;
 
-#ifdef RYU_DEBUG
-  printf("-> %u * 2^%d\n", m2, e2 + 2);
-#endif
-
   // Step 2: Determine the interval of valid decimal representations.
   const uint32_t mv = 4 * m2;
   const uint32_t mp = 4 * m2 + 2;
@@ -184,10 +132,7 @@ static inline floating_decimal_32 f2d(const uint32_t ieeeMantissa, const uint32_
     vr = mulPow5InvDivPow2(mv, q, i);
     vp = mulPow5InvDivPow2(mp, q, i);
     vm = mulPow5InvDivPow2(mm, q, i);
-#ifdef RYU_DEBUG
-    printf("%u * 2^%d / 10^%u\n", mv, e2, q);
-    printf("V+=%u\nV =%u\nV-=%u\n", vp, vr, vm);
-#endif
+
     if (q != 0 && (vp - 1) / 10 <= vm / 10) {
       // We need to know one removed digit even if we are not going to loop below. We could use
       // q = X - 1 above, except that would require 33 bits for the result, and we've found that
@@ -215,11 +160,7 @@ static inline floating_decimal_32 f2d(const uint32_t ieeeMantissa, const uint32_
     vr = mulPow5divPow2(mv, (uint32_t) i, j);
     vp = mulPow5divPow2(mp, (uint32_t) i, j);
     vm = mulPow5divPow2(mm, (uint32_t) i, j);
-#ifdef RYU_DEBUG
-    printf("%u * 5^%d / 10^%u\n", mv, -e2, q);
-    printf("%u %d %d %d\n", q, i, k, j);
-    printf("V+=%u\nV =%u\nV-=%u\n", vp, vr, vm);
-#endif
+
     if (q != 0 && (vp - 1) / 10 <= vm / 10) {
       j = (int32_t) q - 1 - (pow5bits(i + 1) - FLOAT_POW5_BITCOUNT);
       lastRemovedDigit = (uint8_t) (mulPow5divPow2(mv, (uint32_t) (i + 1), j) % 10);
@@ -237,17 +178,8 @@ static inline floating_decimal_32 f2d(const uint32_t ieeeMantissa, const uint32_
       }
     } else if (q < 31) { // TODO(ulfjack): Use a tighter bound here.
       vrIsTrailingZeros = multipleOfPowerOf2_32(mv, q - 1);
-#ifdef RYU_DEBUG
-      printf("vr is trailing zeros=%s\n", vrIsTrailingZeros ? "true" : "false");
-#endif
     }
   }
-#ifdef RYU_DEBUG
-  printf("e10=%d\n", e10);
-  printf("V+=%u\nV =%u\nV-=%u\n", vp, vr, vm);
-  printf("vm is trailing zeros=%s\n", vmIsTrailingZeros ? "true" : "false");
-  printf("vr is trailing zeros=%s\n", vrIsTrailingZeros ? "true" : "false");
-#endif
 
   // Step 4: Find the shortest decimal representation in the interval of valid representations.
   int32_t removed = 0;
@@ -269,10 +201,6 @@ static inline floating_decimal_32 f2d(const uint32_t ieeeMantissa, const uint32_
       vm /= 10;
       ++removed;
     }
-#ifdef RYU_DEBUG
-    printf("V+=%u\nV =%u\nV-=%u\n", vp, vr, vm);
-    printf("d-10=%s\n", vmIsTrailingZeros ? "true" : "false");
-#endif
     if (vmIsTrailingZeros) {
       while (vm % 10 == 0) {
         vrIsTrailingZeros &= lastRemovedDigit == 0;
@@ -283,10 +211,6 @@ static inline floating_decimal_32 f2d(const uint32_t ieeeMantissa, const uint32_
         ++removed;
       }
     }
-#ifdef RYU_DEBUG
-    printf("%u %d\n", vr, lastRemovedDigit);
-    printf("vr is trailing zeros=%s\n", vrIsTrailingZeros ? "true" : "false");
-#endif
     if (vrIsTrailingZeros && lastRemovedDigit == 5 && vr % 2 == 0) {
       // Round even if the exact number is .....50..0.
       lastRemovedDigit = 4;
@@ -304,20 +228,10 @@ static inline floating_decimal_32 f2d(const uint32_t ieeeMantissa, const uint32_
       vm /= 10;
       ++removed;
     }
-#ifdef RYU_DEBUG
-    printf("%u %d\n", vr, lastRemovedDigit);
-    printf("vr is trailing zeros=%s\n", vrIsTrailingZeros ? "true" : "false");
-#endif
     // We need to take vr + 1 if vr is outside bounds or we need to round up.
     output = vr + (vr == vm || lastRemovedDigit >= 5);
   }
   const int32_t exp = e10 + removed;
-
-#ifdef RYU_DEBUG
-  printf("V+=%u\nV =%u\nV-=%u\n", vp, vr, vm);
-  printf("O=%u\n", output);
-  printf("EXP=%d\n", exp);
-#endif
 
   floating_decimal_32 fd;
   fd.exponent = exp;
@@ -334,12 +248,6 @@ static inline int to_chars(const floating_decimal_32 v, const bool sign, char* c
 
   uint32_t output = v.mantissa;
   const uint32_t olength = decimalLength9(output);
-
-#ifdef RYU_DEBUG
-  printf("DIGITS=%u\n", v.mantissa);
-  printf("OLEN=%u\n", olength);
-  printf("EXP=%u\n", v.exponent + olength);
-#endif
 
   // Print the decimal digits.
   // The following code is equivalent to:
@@ -407,14 +315,6 @@ int f2s_buffered_n(float f, char* result) {
   // Step 1: Decode the floating-point number, and unify normalized and subnormal cases.
   const uint32_t bits = float_to_bits(f);
 
-#ifdef RYU_DEBUG
-  printf("IN=");
-  for (int32_t bit = 31; bit >= 0; --bit) {
-    printf("%u", (bits >> bit) & 1);
-  }
-  printf("\n");
-#endif
-
   // Decode bits into sign, mantissa, and exponent.
   const bool ieeeSign = ((bits >> (FLOAT_MANTISSA_BITS + FLOAT_EXPONENT_BITS)) & 1) != 0;
   const uint32_t ieeeMantissa = bits & ((1u << FLOAT_MANTISSA_BITS) - 1);
@@ -434,10 +334,4 @@ void f2s_buffered(float f, char* result) {
 
   // Terminate the string.
   result[index] = '\0';
-}
-
-char* f2s(float f) {
-  char* const result = (char*) malloc(16);
-  f2s_buffered(f, result);
-  return result;
 }

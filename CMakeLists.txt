@@ -126,8 +126,6 @@ else(BOOTLOADER)
 		strip.cpp
 		status.cpp 
 		perf.cpp
-		ryu/d2fixed.c
-		ryu/d2s.c
 		ryu/f2s.c)
 endif(BOOTLOADER)
 

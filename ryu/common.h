@@ -21,10 +21,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#if defined(_M_IX86) || defined(_M_ARM) || defined(__arm__)
-#define RYU_32_BIT_PLATFORM
-#endif
-
 // Returns the number of decimal digits in v, which must not contain more than 9 digits.
 static inline uint32_t decimalLength9(const uint32_t v) {
   // Function precondition: v is not a 10-digit number.
