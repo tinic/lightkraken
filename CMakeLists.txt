@@ -125,7 +125,6 @@ else(BOOTLOADER)
 		model.cpp
 		strip.cpp
 		status.cpp 
-		ftoa.cpp 
 		perf.cpp
 		ryu/d2fixed.c
 		ryu/d2s.c
