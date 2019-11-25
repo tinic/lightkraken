@@ -126,7 +126,10 @@ else(BOOTLOADER)
 		strip.cpp
 		status.cpp 
 		ftoa.cpp 
-		perf.cpp)
+		perf.cpp
+		ryu/d2fixed.c
+		ryu/d2s.c
+		ryu/f2s.c)
 endif(BOOTLOADER)
 
 set(SOURCE_FILES 
@@ -141,7 +144,7 @@ set(SOURCE_FILES
 
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
 
-target_include_directories(${PROJECT_NAME}.elf PRIVATE ${LWIP_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}.elf PRIVATE ${LWIP_INCLUDE_DIRS} ryu)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=\"${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.map\"")
 set(HEX_FILE ${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.hex)

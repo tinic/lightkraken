@@ -78,7 +78,8 @@ public:
             uint8_t off_g,
             uint8_t off_b,
             size_t in_channels,
-            size_t out_channels);
+            size_t out_channels,
+            uint8_t limit);
 
     void sRGBW8toLEDRGB8(
             size_t len,
@@ -88,7 +89,8 @@ public:
             uint8_t off_g,
             uint8_t off_b,
             size_t in_channels,
-            size_t out_channels);
+            size_t out_channels,
+            uint8_t limit);
 
     void sRGB8toLEDRGBW8(
             size_t len,
@@ -99,7 +101,8 @@ public:
             uint8_t off_b,
             uint8_t off_w,
             size_t in_channels,
-            size_t out_channels);
+            size_t out_channels,
+            uint8_t limit);
 
     void sRGB8TransfertoLED8Transfer(
             size_t len,
@@ -107,7 +110,8 @@ public:
             uint8_t *dst,
             uint8_t off_in,
             uint8_t off_out,
-            size_t channels);
+            size_t channels,
+            uint8_t limit);
 
     void sRGB8toLED16(
             size_t len,
@@ -116,7 +120,8 @@ public:
             uint8_t off_r,
             uint8_t off_g,
             uint8_t off_b,
-            size_t channels);
+            size_t channels,
+            uint16_t limit);
 
     void sRGB8TransfertoLED16Transfer(
             size_t len,
@@ -124,7 +129,8 @@ public:
             uint32_t *dst,
             uint8_t off_in,
             uint8_t off_out,
-            size_t channels);
+            size_t channels,
+            uint16_t limit);
     
     void setRGBColorSpace(const RGBColorSpace &rgbSpace);
 

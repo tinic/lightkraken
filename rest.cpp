@@ -35,7 +35,7 @@ extern "C" {
 #include "./mjson.h"
 };
 
-#include "./ftoa.h"
+#include "./ryu/ryu.h"
 #include "./color.h"
 #include "./model.h"
 #include "./netconf.h"
@@ -51,6 +51,18 @@ const int32_t build_number =
 #if LWIP_HTTPD_SUPPORT_REST
 
 #define CRLF "\r\n"
+
+static const char *ftos(float value) {
+    static char buffer[64];
+    f2s_buffered(value, buffer);
+    return buffer;
+}
+
+static const char *dtos(int32_t value) {
+    static char buffer[64];
+    d2s_buffered(value, buffer);
+    return buffer;
+}
 
 namespace lightkraken {
 
@@ -463,29 +475,29 @@ public:
 
     void addNetConfIPv4Address() {
         handleDelimiter();
-        addString("\"ipv4address\":\"%d.%d.%d.%d\"", 
-                ip4_addr1(&NetConf::instance().netInterface()->ip_addr),
-                ip4_addr2(&NetConf::instance().netInterface()->ip_addr),
-                ip4_addr3(&NetConf::instance().netInterface()->ip_addr),
-                ip4_addr4(&NetConf::instance().netInterface()->ip_addr));
+        addString("\"ipv4address\":\"%s.%s.%s.%s\"", 
+                dtos(ip4_addr1(&NetConf::instance().netInterface()->ip_addr)),
+                dtos(ip4_addr2(&NetConf::instance().netInterface()->ip_addr)),
+                dtos(ip4_addr3(&NetConf::instance().netInterface()->ip_addr)),
+                dtos(ip4_addr4(&NetConf::instance().netInterface()->ip_addr)));
     }
 
     void addNetConfIPv4Netmask() {
         handleDelimiter();
-        addString("\"ipv4netmask\":\"%d.%d.%d.%d\"", 
-                ip4_addr1(&NetConf::instance().netInterface()->netmask),
-                ip4_addr2(&NetConf::instance().netInterface()->netmask),
-                ip4_addr3(&NetConf::instance().netInterface()->netmask),
-                ip4_addr4(&NetConf::instance().netInterface()->netmask));
+        addString("\"ipv4netmask\":\"%s.%s.%s.%s\"", 
+                dtos(ip4_addr1(&NetConf::instance().netInterface()->netmask)),
+                dtos(ip4_addr2(&NetConf::instance().netInterface()->netmask)),
+                dtos(ip4_addr3(&NetConf::instance().netInterface()->netmask)),
+                dtos(ip4_addr4(&NetConf::instance().netInterface()->netmask)));
     }
 
     void addNetConfIPv4Gateway() {
         handleDelimiter();
-        addString("\"ipv4gateway\":\"%d.%d.%d.%d\"", 
-                ip4_addr1(&NetConf::instance().netInterface()->gw),
-                ip4_addr2(&NetConf::instance().netInterface()->gw),
-                ip4_addr3(&NetConf::instance().netInterface()->gw),
-                ip4_addr4(&NetConf::instance().netInterface()->gw));
+        addString("\"ipv4gateway\":\"%s.%s.%s.%s\"", 
+                dtos(ip4_addr1(&NetConf::instance().netInterface()->gw)),
+                dtos(ip4_addr2(&NetConf::instance().netInterface()->gw)),
+                dtos(ip4_addr3(&NetConf::instance().netInterface()->gw)),
+                dtos(ip4_addr4(&NetConf::instance().netInterface()->gw)));
     }
 
     void addTag() {
@@ -495,12 +507,12 @@ public:
 
     void addSystemTime() {
         handleDelimiter();
-        addString("\"systemtime\":%d", int(Systick::instance().systemTime())); 
+        addString("\"systemtime\":%s", dtos(Systick::instance().systemTime())); 
     }
 
     void addBuildNumber() {
         handleDelimiter();
-        addString("\"buildnumber\": \"Rev %d (%s %s)\"  ", int(build_number), __DATE__, __TIME__); 
+        addString("\"buildnumber\": \"Rev %s (%s %s)\"  ", dtos(build_number), __DATE__, __TIME__); 
     }
 
     void addHostname() {
@@ -531,89 +543,82 @@ public:
     
     void addIPv4Address() {
         handleDelimiter();
-        addString("\"ipv4address\":\"%d.%d.%d.%d\"", 
-            ip4_addr1(Model::instance().ip4Address()),
-            ip4_addr2(Model::instance().ip4Address()),
-            ip4_addr3(Model::instance().ip4Address()),
-            ip4_addr4(Model::instance().ip4Address()));
+        addString("\"ipv4address\":\"%s.%s.%s.%s\"", 
+            dtos(ip4_addr1(Model::instance().ip4Address())),
+            dtos(ip4_addr2(Model::instance().ip4Address())),
+            dtos(ip4_addr3(Model::instance().ip4Address())),
+            dtos(ip4_addr4(Model::instance().ip4Address())));
     }
     
     
     void addIPv4Netmask() {
         handleDelimiter();
-        addString("\"ipv4netmask\":\"%d.%d.%d.%d\"", 
-            ip4_addr1(Model::instance().ip4Netmask()),
-            ip4_addr2(Model::instance().ip4Netmask()),
-            ip4_addr3(Model::instance().ip4Netmask()),
-            ip4_addr4(Model::instance().ip4Netmask()));
+        addString("\"ipv4netmask\":\"%s.%s.%s.%s\"", 
+            dtos(ip4_addr1(Model::instance().ip4Netmask())),
+            dtos(ip4_addr2(Model::instance().ip4Netmask())),
+            dtos(ip4_addr3(Model::instance().ip4Netmask())),
+            dtos(ip4_addr4(Model::instance().ip4Netmask())));
     }
     
     void addIPv4Gateway() {
         handleDelimiter();
-        addString("\"ipv4gateway\":\"%d.%d.%d.%d\"", 
-            ip4_addr1(Model::instance().ip4Gateway()),
-            ip4_addr2(Model::instance().ip4Gateway()),
-            ip4_addr3(Model::instance().ip4Gateway()),
-            ip4_addr4(Model::instance().ip4Gateway()));
+        addString("\"ipv4gateway\":\"%s.%s.%s.%s\"", 
+            dtos(ip4_addr1(Model::instance().ip4Gateway())),
+            dtos(ip4_addr2(Model::instance().ip4Gateway())),
+            dtos(ip4_addr3(Model::instance().ip4Gateway())),
+            dtos(ip4_addr4(Model::instance().ip4Gateway())));
     }
 
     void addOutputConfig() {
         handleDelimiter();
-        addString("\"outputconfig\":%d",Model::instance().outputConfig()); 
+        addString("\"outputconfig\":%s",dtos(Model::instance().outputConfig())); 
     }
 
     void addOutputMode() {
         handleDelimiter();
-        addString("\"outputmode\":%d",Model::instance().outputMode()); 
+        addString("\"outputmode\":%s",dtos(Model::instance().outputMode())); 
     }
 
     void addPwmLimit() {
         handleDelimiter();
-        char str[32];
-        ftoa(str, Model::instance().globPWMLimit(), NULL);
-        addString("\"globpwmlimit\":%s",str); 
+        addString("\"globpwmlimit\":%s", ftos(Model::instance().globPWMLimit())); 
     }
 
     void addCompLimit() {
         handleDelimiter();
-        char str[32];
-        ftoa(str, Model::instance().globCompLimit(), NULL);
-        addString("\"globcomplimit\":%s",str); 
+        addString("\"globcomplimit\":%s", ftos(Model::instance().globCompLimit())); 
     }
 
     void addIllum() {
         handleDelimiter();
-        char str[32];
-        ftoa(str, Model::instance().globIllum(), NULL);
-        addString("\"globillum\":%s",str); 
+        addString("\"globillum\":%s",ftos(Model::instance().globIllum())); 
     }
 
     void addAnalogConfig() {
         handleDelimiter();
-        char str[32];
         addString("\"rgbconfig\":["); 
         for (size_t c=0; c<Model::analogN; c++) {
             const Model::AnalogConfig &a = Model::instance().analogConfig(c);
             addString("{");
-            addString("\"outputtype\":%d,",int(a.output_type)); 
-            addString("\"inputtype\":%d,",int(a.input_type)); 
+            addString("\"outputtype\":%s,",dtos(a.output_type)); 
+            addString("\"inputtype\":%s,",dtos(a.input_type)); 
             addString("\"rgbspace\" : {");
-            ftoa(str, a.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
-            ftoa(str, a.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
-            ftoa(str, a.rgbSpace.xr, NULL); addString("\"xr\":%s,",str); 
-            ftoa(str, a.rgbSpace.yr, NULL); addString("\"yr\":%s,",str); 
-            ftoa(str, a.rgbSpace.xg, NULL); addString("\"xg\":%s,",str); 
-            ftoa(str, a.rgbSpace.yg, NULL); addString("\"yg\":%s,",str); 
-            ftoa(str, a.rgbSpace.xb, NULL); addString("\"xb\":%s,",str); 
-            ftoa(str, a.rgbSpace.yb, NULL); addString("\"yb\":%s",str); 
+            addString("\"xw\":%s,",ftos(a.rgbSpace.xw)); 
+            addString("\"yw\":%s,",ftos(a.rgbSpace.yw)); 
+            addString("\"xr\":%s,",ftos(a.rgbSpace.xr)); 
+            addString("\"yr\":%s,",ftos(a.rgbSpace.yr)); 
+            addString("\"xg\":%s,",ftos(a.rgbSpace.xg)); 
+            addString("\"yg\":%s,",ftos(a.rgbSpace.yg)); 
+            addString("\"xb\":%s,",ftos(a.rgbSpace.xb)); 
+            addString("\"yb\":%s,",ftos(a.rgbSpace.yb)); 
             addString("},");
             addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
                 addString("{");
-                addString("\"artnet\":%d,",int(a.components[d].artnet)); 
-                addString("\"e131\":%d,", int(a.components[d].e131)); 
-                addString("\"offset\":%d,",int(a.components[d].offset)); 
-                addString("\"value\":%d",int(a.components[d].value)); 
+                addString("\"artnet\":%s,",dtos(a.components[d].artnet)); 
+                addString("\"e131\":%s,", dtos(a.components[d].e131)); 
+                addString("\"offset\":%s,",dtos(a.components[d].offset)); 
+                addString("\"value\":%s",dtos(a.components[d].value)); 
                 addString("}%c", (d==Model::analogCompN-1)?' ':','); 
             }
             addString("]");
@@ -624,34 +629,33 @@ public:
 
     void addStripConfig() {
         handleDelimiter();
-        char str[32];
         addString("\"stripconfig\":["); 
         for (size_t c=0; c<Model::stripN; c++) {
             const Model::StripConfig &s = Model::instance().stripConfig(c);
             addString("{");
-            addString("\"outputtype\":%d,",int(s.output_type)); 
-            addString("\"inputtype\":%d,",int(s.input_type)); 
-            addString("\"length\":%d,",int(s.len)); 
+            addString("\"outputtype\":%s,",dtos(s.output_type)); 
+            addString("\"inputtype\":%s,",dtos(s.input_type)); 
+            addString("\"length\":%s,",dtos(s.len)); 
             addString("\"rgbspace\" : {");
-            ftoa(str, s.rgbSpace.xw, NULL); addString("\"xw\":%s,",str); 
-            ftoa(str, s.rgbSpace.yw, NULL); addString("\"yw\":%s,",str); 
-            ftoa(str, s.rgbSpace.xr, NULL); addString("\"xr\":%s,",str); 
-            ftoa(str, s.rgbSpace.yr, NULL); addString("\"yr\":%s,",str); 
-            ftoa(str, s.rgbSpace.xg, NULL); addString("\"xg\":%s,",str); 
-            ftoa(str, s.rgbSpace.yg, NULL); addString("\"yg\":%s,",str); 
-            ftoa(str, s.rgbSpace.xb, NULL); addString("\"xb\":%s,",str); 
-            ftoa(str, s.rgbSpace.yb, NULL); addString("\"yb\":%s",str); 
+            addString("\"xw\":%s,",ftos(s.rgbSpace.xw)); 
+            addString("\"yw\":%s,",ftos(s.rgbSpace.yw)); 
+            addString("\"xr\":%s,",ftos(s.rgbSpace.xr)); 
+            addString("\"yr\":%s,",ftos(s.rgbSpace.yr)); 
+            addString("\"xg\":%s,",ftos(s.rgbSpace.xg)); 
+            addString("\"yg\":%s,",ftos(s.rgbSpace.yg)); 
+            addString("\"xb\":%s,",ftos(s.rgbSpace.xb)); 
+            addString("\"yb\":%s,",ftos(s.rgbSpace.yb)); 
             addString("},");
-            addString("\"color\":{\"r\":%d,\"g\":%d,\"b\":%d,\"a\":%d},",
-                            (int)s.color.r,
-                            (int)s.color.g,
-                            (int)s.color.b,
-                            (int)s.color.x); 
+            addString("\"color\":{\"r\":%s,\"g\":%s,\"b\":%s,\"a\":%s},",
+                            dtos(s.color.r),
+                            dtos(s.color.g),
+                            dtos(s.color.b),
+                            dtos(s.color.x)); 
             addString("\"universes\" : [");
             for (size_t d=0; d<Model::universeN; d++) {
                 addString("{");
-                addString("\"artnet\":%d,",int(s.artnet[d])); 
-                addString("\"e131\":%d", int(s.e131[d])); 
+                addString("\"artnet\":%s,",dtos(s.artnet[d])); 
+                addString("\"e131\":%s", dtos(s.e131[d])); 
                 addString("}%c", (d==Model::universeN-1)?' ':','); 
             }
             addString("]");

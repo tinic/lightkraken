@@ -95,7 +95,8 @@ void ColorSpaceConverter::sRGB8toLEDRGB8(
     uint8_t off_g,
     uint8_t off_b,
     size_t in_channels,
-    size_t out_channels) {
+    size_t out_channels,
+    uint8_t limit) {
 
     for (size_t c = 0; c < len; c += in_channels) {
 
@@ -133,9 +134,9 @@ void ColorSpaceConverter::sRGB8toLEDRGB8(
             z = mul_fixed(z, const_mul1);
         }
         
-        dst[off_r] = __USAT((x >> fixed_post_shift) >> 8, 7);
-        dst[off_g] = __USAT((y >> fixed_post_shift) >> 8, 7);
-        dst[off_b] = __USAT((z >> fixed_post_shift) >> 8, 7);
+        dst[off_r] = std::min(limit, uint8_t(__USAT((x >> fixed_post_shift) >> 8, 7)));
+        dst[off_g] = std::min(limit, uint8_t(__USAT((y >> fixed_post_shift) >> 8, 7)));
+        dst[off_b] = std::min(limit, uint8_t(__USAT((z >> fixed_post_shift) >> 8, 7)));
 
         src += in_channels;
         dst += out_channels;
@@ -151,7 +152,8 @@ void ColorSpaceConverter::sRGBW8toLEDRGB8(
     uint8_t off_g,
     uint8_t off_b,
     size_t in_channels,
-    size_t out_channels) {
+    size_t out_channels,
+    uint8_t limit) {
 
     for (size_t c = 0; c < len; c += in_channels) {
 
@@ -194,9 +196,9 @@ void ColorSpaceConverter::sRGBW8toLEDRGB8(
             z = mul_fixed(z, const_mul1);
         }
         
-        dst[off_r] = __USAT((x >> fixed_post_shift) >> 8, 7);
-        dst[off_g] = __USAT((y >> fixed_post_shift) >> 8, 7);
-        dst[off_b] = __USAT((z >> fixed_post_shift) >> 8, 7);
+        dst[off_r] = std::min(limit, uint8_t(__USAT((x >> fixed_post_shift) >> 8, 7)));
+        dst[off_g] = std::min(limit, uint8_t(__USAT((y >> fixed_post_shift) >> 8, 7)));
+        dst[off_b] = std::min(limit, uint8_t(__USAT((z >> fixed_post_shift) >> 8, 7)));
 
         src += in_channels;
         dst += out_channels;
@@ -213,7 +215,8 @@ void ColorSpaceConverter::sRGB8toLEDRGBW8(
     uint8_t off_b,
     uint8_t off_w,
     size_t in_channels,
-    size_t out_channels) {
+    size_t out_channels,
+    uint8_t limit) {
 
     for (size_t c = 0; c < len; c += in_channels) {
 
@@ -265,10 +268,10 @@ void ColorSpaceConverter::sRGB8toLEDRGBW8(
             w = mul_fixed(w, const_mul1);
         }
 
-        dst[off_r] = __USAT((x >> fixed_post_shift) >> 8, 7);
-        dst[off_g] = __USAT((y >> fixed_post_shift) >> 8, 7);
-        dst[off_b] = __USAT((z >> fixed_post_shift) >> 8, 7);
-        dst[off_w] = __USAT((w >> fixed_post_shift) >> 8, 7);
+        dst[off_r] = std::min(limit, uint8_t(__USAT((x >> fixed_post_shift) >> 8, 7)));
+        dst[off_g] = std::min(limit, uint8_t(__USAT((y >> fixed_post_shift) >> 8, 7)));
+        dst[off_b] = std::min(limit, uint8_t(__USAT((z >> fixed_post_shift) >> 8, 7)));
+        dst[off_w] = std::min(limit, uint8_t(__USAT((w >> fixed_post_shift) >> 8, 7)));
 
         src += in_channels;
         dst += out_channels;
@@ -282,7 +285,8 @@ void ColorSpaceConverter::sRGB8TransfertoLED8Transfer(
     uint8_t *dst,
     uint8_t off_in,
     uint8_t off_out,
-    size_t channels) {
+    size_t channels,
+    uint8_t limit) {
 
     for (size_t c = 0; c < len; c += channels) {
         constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
@@ -299,7 +303,7 @@ void ColorSpaceConverter::sRGB8TransfertoLED8Transfer(
             x = mul_fixed(x, const_mul1);
         }
 
-        dst[off_out] = __USAT((x >> fixed_post_shift) >> 8, 7);
+        dst[off_out] = std::min(limit, uint8_t(__USAT((x >> fixed_post_shift) >> 8, 7)));
         
         src += channels;
         dst += channels;
@@ -314,7 +318,8 @@ void ColorSpaceConverter::sRGB8toLED16(
     uint8_t off_r,
     uint8_t off_g,
     uint8_t off_b,
-    size_t channels) {
+    size_t channels,
+    uint16_t limit) {
 
     for (size_t c = 0; c < len; c += channels) {
 
@@ -352,9 +357,9 @@ void ColorSpaceConverter::sRGB8toLED16(
             z = mul_fixed(z, const_mul1);
         }
         
-        dst[off_r] = __USAT(x >> fixed_post_shift, 15);
-        dst[off_g] = __USAT(y >> fixed_post_shift, 15);
-        dst[off_b] = __USAT(z >> fixed_post_shift, 15);
+        dst[off_r] = std::min(uint32_t(limit), __USAT(x >> fixed_post_shift, 15));
+        dst[off_g] = std::min(uint32_t(limit), __USAT(y >> fixed_post_shift, 15));
+        dst[off_b] = std::min(uint32_t(limit), __USAT(z >> fixed_post_shift, 15));
 
         src += channels;
         dst += channels;
@@ -368,7 +373,8 @@ void ColorSpaceConverter::sRGB8TransfertoLED16Transfer(
     uint32_t *dst,
     uint8_t off_in,
     uint8_t off_out,
-    size_t channels) {
+    size_t channels,
+    uint16_t limit) {
 
     for (size_t c = 0; c < len; c += channels) {
         constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
@@ -385,7 +391,7 @@ void ColorSpaceConverter::sRGB8TransfertoLED16Transfer(
             x = mul_fixed(x, const_mul1);
         }
 
-        dst[off_out] = __USAT(x >> fixed_post_shift, 15);
+        dst[off_out] = std::min(uint32_t(limit), __USAT(x >> fixed_post_shift, 15));
         
         src += channels;
         dst += channels;

@@ -62,8 +62,8 @@ Systick &Systick::instance() {
 
 static uint64_t large_dwt_cyccnt() {
 
-    static const uint32_t TRCENA 	= 0x01000000;
-    static const uint32_t CYCCNTENA = 0x00000001;
+    static constexpr uint32_t TRCENA 	= 0x01000000;
+    static constexpr uint32_t CYCCNTENA = 0x00000001;
 
     volatile uint32_t *DWT_CYCCNT  = reinterpret_cast<volatile uint32_t *>(0xE0001004);
     volatile uint32_t *DWT_CONTROL = reinterpret_cast<volatile uint32_t *>(0xE0001000);

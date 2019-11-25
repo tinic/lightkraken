@@ -238,8 +238,8 @@ err_t EthernetIf::ethernetif_init(struct netif *netif) {
     uid[2] = instance().get_uid2();
     uint32_t mac_addr  = instance().murmur3_32(reinterpret_cast<uint8_t *>(&uid[0]), sizeof(uid), 0x66cf8031);
 
-    static const char hostname_base[] = "lightkraken-";
-    static const char hex_table[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',};
+    static constexpr char hostname_base[] = "lightkraken-";
+    static constexpr char hex_table[16] = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f',};
     static char hostname[sizeof(hostname_base)+8];
     memset(hostname, 0, sizeof(hostname));
     strcpy(hostname, hostname_base);

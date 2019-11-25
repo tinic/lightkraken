@@ -37,7 +37,7 @@ extern "C" {
 
 namespace lightkraken {
 
-static const int32_t build_number = 
+static constexpr int32_t build_number = 
 #include "./build_number.h"
 ;
 

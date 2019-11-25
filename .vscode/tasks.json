@@ -10,32 +10,8 @@
         "options": {
           "cwd": "${workspaceRoot}/build"
         },
-        "osx": {
-          "options": {
-            "env": {
-              "PATH": "${config:arm-none-eabi.bin}:${env:PATH}"
-            }
-          }
-        },
-        "linux": {
-          "options": {
-            "env": {
-              "PATH": "${config:arm-none-eabi.bin}:${env:PATH}"
-            }
-          }
-        },
-        "windows": {
-          "options": {
-            "env": {
-              "PATH": "${config:arm-none-eabi.bin};${env:PATH}"
-            }
-          }
-        },
         "dependsOn": [
           "Lightkraken: Build"
-        ],
-        "problemMatcher": [
-          "$gcc"
         ]
       },
       {
@@ -52,12 +28,11 @@
       {
         "label": "Lightkraken: Pre-Build",
         "type": "shell",
-        "command": "cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE='../arm-gcc-toolchain.cmake' -DCMAKE_BUILD_TYPE=Release -DBOOTLOADED=1 ..",
+        "command": "cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE='../arm-gcc-toolchain.cmake' -DCMAKE_BUILD_TYPE=Release -DBOOTLOADED=1 ./..",
         "options": {
           "cwd": "${workspaceRoot}/build",
           "INCLUDE": "${config:arm-none-eabi.include}",
           "LIB": "${config:arm-none-eabi.lib}",
-          "LIBGCC": "${config:arm-none-eabi.libgcc}/thumb/v6-m/libgcc.a"
         },
         "osx": {
           "options": {
@@ -92,9 +67,6 @@
         ],
         "options": {
           "cwd": "${workspaceRoot}/build",
-          "INCLUDE": "${config:arm-none-eabi.include}",
-          "LIB": "${config:arm-none-eabi.lib}",
-          "LIBGCC": "${config:arm-none-eabi.libgcc}/thumb/v6-m/libgcc.a"
         },
         "group": {
           "kind": "build",

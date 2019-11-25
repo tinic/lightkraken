@@ -1,5 +1,6 @@
 {
-    "C_Cpp.errorSquiggles": "Enabled",
+    "cmake.ignoreKitEnv": true,
+    "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.dimInactiveRegions": false,
     "cortex-debug.armToolchainPath": "${config:arm-none-eabi.bin}",
     "files.associations": {
