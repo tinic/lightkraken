@@ -51,9 +51,14 @@ public:
         float pwm_limit;
         RGBColorSpace rgbSpace;
         struct Component {
-            uint16_t artnet;
-            uint16_t e131;
-            uint16_t offset;
+            struct {
+                uint16_t universe;
+                uint16_t channel;
+            } artnet;
+            struct {
+                uint16_t universe;
+                uint16_t channel;
+            } e131;
             uint16_t value;
         } components[analogCompN];
     };
@@ -81,6 +86,7 @@ public:
         OUTPUT_CONFIG_RGB_DUAL_STRIP, 	// channel0: single	    channel1: single     channel2: rgb
         OUTPUT_CONFIG_RGBW_STRIP, 	    // channel0: single	    channel1: rgbw
         OUTPUT_CONFIG_RGB_RGB, 	        // channel0: rgb 	    channel1: rgb
+        OUTPUT_CONFIG_RGBWWW, 	        // channel0: rgbwww 	
     };
 
     static Model &instance();

@@ -135,23 +135,23 @@ public:
 
             sprintf(ss, "$.rgbconfig[%d].outputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.output_type = int(dval);
+                config.output_type = std::clamp(int(dval), 0, 2);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.output_type = int(atof(buf));
+                config.output_type = std::clamp(int(atof(buf)), 0, 2);
             }
 
             sprintf(ss, "$.rgbconfig[%d].inputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.input_type = int(dval);
+                config.input_type = std::clamp(int(dval), 0, 5);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.input_type = int(atof(buf));
+                config.input_type = std::clamp(int(atof(buf)), 0, 5);
             }
 
             sprintf(ss, "$.rgbconfig[%d].pwmlimit", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.pwm_limit = float(dval) * (1.0f/100.0f);
+                config.pwm_limit = std::clamp(float(dval) * (1.0f/100.0f), 0.0f, 1.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.pwm_limit = float(atof(buf)) * (1.0f/100.0f);
+                config.pwm_limit = std::clamp(float(atof(buf)) * (1.0f/100.0f), 0.0f, 1.0f);
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xw", c);
@@ -212,33 +212,39 @@ public:
 
             for (int d=0; d<int(Model::analogCompN); d++) {
 
-                sprintf(ss, "$.rgbconfig[%d].components[%d].artnet", c, d);
+                sprintf(ss, "$.rgbconfig[%d].components[%d].artnet.universe", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                    config.components[d].artnet = int(dval);
+                    config.components[d].artnet.universe = std::clamp(int(dval), 0, 32767);
                 } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                    config.components[d].artnet = int(atof(buf));
+                    config.components[d].artnet.universe = std::clamp(int(atof(buf)), 0, 32767);
                 }
                 
-                sprintf(ss, "$.rgbconfig[%d].components[%d].e131", c, d);
+                sprintf(ss, "$.rgbconfig[%d].components[%d].artnet.channel", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                    config.components[d].e131 = int(dval);
-                }
-                else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                    config.components[d].e131 = int(atof(buf));
+                    config.components[d].artnet.channel = std::clamp(int(dval), 1, 512);
+                } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.components[d].artnet.channel = std::clamp(int(atof(buf)), 1, 512);
                 }
 
-                sprintf(ss, "$.rgbconfig[%d].components[%d].offset", c, d);
+                sprintf(ss, "$.rgbconfig[%d].components[%d].e131.universe", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                    config.components[d].offset = int(dval);
+                    config.components[d].e131.universe = std::clamp(int(dval), 1, 63999);
                 } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                    config.components[d].offset = int(atof(buf));
+                    config.components[d].e131.universe = std::clamp(int(atof(buf)), 1, 63999);
+                }
+
+                sprintf(ss, "$.rgbconfig[%d].components[%d].e131.channel", c, d);
+                if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                    config.components[d].e131.channel = std::clamp(int(dval), 1, 512);
+                } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                    config.components[d].e131.channel = std::clamp(int(atof(buf)), 1, 512);
                 }
                 
                 sprintf(ss, "$.rgbconfig[%d].components[%d].value", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                    config.components[d].value = int(dval);
+                    config.components[d].value = std::clamp(int(dval), 0, 65535);
                 } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                    config.components[d].value = int(atof(buf));
+                    config.components[d].value = std::clamp(int(atof(buf)), 0, 65535);
                 }
             }
         }
@@ -255,23 +261,23 @@ public:
 
             sprintf(ss, "$.stripconfig[%d].inputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.input_type = int(dval);
+                config.input_type = std::clamp(int(dval), 0, 3);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.input_type = int(atof(buf));
+                config.input_type = std::clamp(int(atof(buf)), 0, 3);
             }
 
             sprintf(ss, "$.stripconfig[%d].complimit", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.comp_limit = float(dval) * (1.0f/100.0f);
+                config.comp_limit = std::clamp(float(dval) * (1.0f/100.0f), 0.0f, 1.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.comp_limit = float(atof(buf)) * (1.0f/100.0f);
+                config.comp_limit = std::clamp(float(atof(buf)) * (1.0f/100.0f), 0.0f, 1.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].globillum", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.glob_illum = float(dval) * (1.0f/100.0f);
+                config.glob_illum = std::clamp(float(dval) * (1.0f/100.0f), 0.0f, 1.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.glob_illum = float(atof(buf)) * (1.0f/100.0f);
+                config.glob_illum = std::clamp(float(atof(buf)) * (1.0f/100.0f), 0.0f, 1.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].length", c);
@@ -368,20 +374,20 @@ public:
             for (int d = 0; d < int(Model::universeN); d++) {
                 sprintf(ss, "$.stripconfig[%d].universes[%d].artnet", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                    config.artnet[d] = int(dval);
+                    config.artnet[d] = std::clamp(int(dval), 0, 32767);
                 }
                 else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                    config.artnet[d] = int(atof(buf));
+                    config.artnet[d] = std::clamp(int(atof(buf)), 0, 32767);
                 }
             }
             
             for (int d = 0; d < int(Model::universeN); d++) {
                 sprintf(ss, "$.stripconfig[%d].universes[%d].e131", c, d);
                 if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                    config.e131[d] = int(dval);
+                    config.e131[d] = std::clamp(int(dval), 1, 63999);
                 }
                 else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                    config.e131[d] = int(atof(buf));
+                    config.e131[d] = std::clamp(int(atof(buf)), 1, 63999);
                 }
             }
         }
@@ -598,9 +604,14 @@ public:
             addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
                 addString("{");
-                addString("\"artnet\":%d,",int(a.components[d].artnet)); 
-                addString("\"e131\":%d,", int(a.components[d].e131)); 
-                addString("\"offset\":%d,",int(a.components[d].offset)); 
+                addString("\"artnet\": {"); 
+                addString("\"universe\": %d,",int(a.components[d].artnet.universe)); 
+                addString("\"channel\": %d",int(a.components[d].artnet.channel)); 
+                addString("},");
+                addString("\"e131\": {"); 
+                addString("\"universe\": %d,",int(a.components[d].e131.universe)); 
+                addString("\"channel\": %d",int(a.components[d].e131.channel)); 
+                addString("},");
                 addString("\"value\":%d",int(a.components[d].value)); 
                 addString("}%c", (d==Model::analogCompN-1)?' ':','); 
             }

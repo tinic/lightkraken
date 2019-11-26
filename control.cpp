@@ -162,9 +162,9 @@ void Control::collectAllActiveArtnetUniverses(std::array<uint16_t, Model::maxUni
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].artnet);
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].artnet);
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].artnet);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].artnet.universe);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].artnet.universe);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].artnet.universe);
         for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
             for (size_t d = 0; d < Model::universeN; d++) {
                 if (Strip::get(c).isUniverseActive(d, Strip::InputType(Model::instance().stripConfig(c).input_type))) {
@@ -174,9 +174,9 @@ void Control::collectAllActiveArtnetUniverses(std::array<uint16_t, Model::maxUni
         }
     } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].artnet);
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].artnet);
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].artnet);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].artnet.universe);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].artnet.universe);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].artnet.universe);
         for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
             for (size_t d = 0; d < Model::universeN; d++) {
                 if (Strip::get(c).isUniverseActive(d, Strip::InputType(Model::instance().stripConfig(c).input_type))) {
@@ -186,10 +186,10 @@ void Control::collectAllActiveArtnetUniverses(std::array<uint16_t, Model::maxUni
         }
     } break;
     case Model::OUTPUT_CONFIG_RGBW_STRIP: {
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].artnet);
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].artnet);
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].artnet);
-        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[3].artnet);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].artnet.universe);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].artnet.universe);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].artnet.universe);
+        uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[3].artnet.universe);
         for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
             for (size_t d = 0; d < Model::universeN; d++) {
                 if (Strip::get(c).isUniverseActive(d, Strip::InputType(Model::instance().stripConfig(c).input_type))) {
@@ -200,9 +200,18 @@ void Control::collectAllActiveArtnetUniverses(std::array<uint16_t, Model::maxUni
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
         for (size_t c = 0; c < Model::analogN; c++) {
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[0].artnet);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[1].artnet);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[2].artnet);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[0].artnet.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[1].artnet.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[2].artnet.universe);
+        }
+    } break;
+    case Model::OUTPUT_CONFIG_RGBWWW: {
+        for (size_t c = 0; c < 1; c++) {
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[0].artnet.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[1].artnet.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[2].artnet.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[3].artnet.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[4].artnet.universe);
         }
     } break;
     }
@@ -252,9 +261,9 @@ void Control::collectAllActiveE131Universes(std::array<uint16_t, Model::maxUnive
             }
         } break;
     case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].e131);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].e131);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].e131);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].e131.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].e131.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].e131.universe);
             for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
                 for (size_t d = 0; d < Model::universeN; d++) {
                     if (Strip::get(c).isUniverseActive(d, Strip::InputType(Model::instance().stripConfig(c).input_type))) {
@@ -264,9 +273,9 @@ void Control::collectAllActiveE131Universes(std::array<uint16_t, Model::maxUnive
             }
         } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].e131);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].e131);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].e131);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].e131.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].e131.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].e131.universe);
             for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
                 for (size_t d = 0; d < Model::universeN; d++) {
                     if (Strip::get(c).isUniverseActive(d, Strip::InputType(Model::instance().stripConfig(c).input_type))) {
@@ -276,10 +285,10 @@ void Control::collectAllActiveE131Universes(std::array<uint16_t, Model::maxUnive
             }
         } break;
     case Model::OUTPUT_CONFIG_RGBW_STRIP: {
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].e131);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].e131);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].e131);
-            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[3].e131);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[0].e131.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[1].e131.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[2].e131.universe);
+            uniqueCollector.maybeAcquire(Model::instance().analogConfig(0).components[3].e131.universe);
             for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
                 for (size_t d = 0; d < Model::universeN; d++) {
                     if (Strip::get(c).isUniverseActive(d, Strip::InputType(Model::instance().stripConfig(c).input_type))) {
@@ -290,9 +299,18 @@ void Control::collectAllActiveE131Universes(std::array<uint16_t, Model::maxUnive
         } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
             for (size_t c = 0; c < Model::analogN; c++) {
-                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[0].e131);
-                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[1].e131);
-                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[2].e131);
+                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[0].e131.universe);
+                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[1].e131.universe);
+                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[2].e131.universe);
+            }
+        } break;
+    case Model::OUTPUT_CONFIG_RGBWWW: {
+            for (size_t c = 0; c < 1; c++) {
+                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[0].e131.universe);
+                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[1].e131.universe);
+                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[2].e131.universe);
+                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[3].e131.universe);
+                uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[4].e131.universe);
             }
         } break;
     }
@@ -317,41 +335,41 @@ void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components
     for (size_t c = 0; c < terminals; c++) {
         switch(components) {
         case 5: {
-            if (len > Model::instance().analogConfig(c).components[4].offset) {
-                if (Model::instance().analogConfig(c).components[4].artnet == uni) {
-                    rgb[c].ww = data[Model::instance().analogConfig(c).components[4].offset];
+            if (len > Model::instance().analogConfig(c).components[4].artnet.channel - 1) {
+                if (Model::instance().analogConfig(c).components[4].artnet.universe == uni) {
+                    rgb[c].ww = data[Model::instance().analogConfig(c).components[4].artnet.channel - 1];
                 }
             }
         } 
         [[fallthrough]];
         case 4: {
-            if (len > Model::instance().analogConfig(c).components[3].offset) {
-                if (Model::instance().analogConfig(c).components[3].artnet == uni) {
-                    rgb[c].w = data[Model::instance().analogConfig(c).components[3].offset];
+            if (len > Model::instance().analogConfig(c).components[3].artnet.channel - 1) {
+                if (Model::instance().analogConfig(c).components[3].artnet.universe == uni) {
+                    rgb[c].w = data[Model::instance().analogConfig(c).components[3].artnet.channel - 1];
                 }
             }
         } 
         [[fallthrough]];
         case 3: {
-            if (len > Model::instance().analogConfig(c).components[2].offset) {
-                if (Model::instance().analogConfig(c).components[2].artnet == uni) {
-                    rgb[c].b = data[Model::instance().analogConfig(c).components[2].offset];
+            if (len > Model::instance().analogConfig(c).components[2].artnet.channel - 1) {
+                if (Model::instance().analogConfig(c).components[2].artnet.universe == uni) {
+                    rgb[c].b = data[Model::instance().analogConfig(c).components[2].artnet.channel - 1];
                 }
             }
         } 
         [[fallthrough]];
         case 2: {
-            if (len > Model::instance().analogConfig(c).components[1].offset) {
-                if (Model::instance().analogConfig(c).components[1].artnet == uni) {
-                    rgb[c].g = data[Model::instance().analogConfig(c).components[1].offset];
+            if (len > Model::instance().analogConfig(c).components[1].artnet.channel - 1) {
+                if (Model::instance().analogConfig(c).components[1].artnet.universe == uni) {
+                    rgb[c].g = data[Model::instance().analogConfig(c).components[1].artnet.channel - 1];
                 }
             }
         } 
         [[fallthrough]];
         case 1: {
-            if (len > Model::instance().analogConfig(c).components[0].offset) {
-                if (Model::instance().analogConfig(c).components[0].artnet == uni) {
-                    rgb[c].r = data[Model::instance().analogConfig(c).components[0].offset];
+            if (len > Model::instance().analogConfig(c).components[0].artnet.channel - 1) {
+                if (Model::instance().analogConfig(c).components[0].artnet.universe == uni) {
+                    rgb[c].r = data[Model::instance().analogConfig(c).components[0].artnet.channel - 1];
                 }
             }
         } 
@@ -452,6 +470,11 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     case Model::OUTPUT_CONFIG_RGB_RGB: {
         if (!nodriver) {
             setUniverseOutputDataForDriver(Model::analogN, 3, uni, data, len);
+        }
+    } break;
+    case Model::OUTPUT_CONFIG_RGBWWW: {
+        if (!nodriver) {
+            setUniverseOutputDataForDriver(Model::analogN, 5, uni, data, len);
         }
     } break;
     }

@@ -163,8 +163,11 @@ void Model::defaults() {
         analog_config[c].rgbSpace.setLED();
         analog_config[c].pwm_limit = 1.0f;
         for (size_t d = 0; d < analogCompN; d++) {
-            analog_config[c].components[d].offset = counter++;
-            analog_config[c].components[d].e131 = 1;
+            analog_config[c].components[d].artnet.channel = counter;
+            analog_config[c].components[d].artnet.universe = 0;
+            analog_config[c].components[d].e131.channel = counter++;
+            analog_config[c].components[d].e131.universe = 1;
+            analog_config[c].components[d].value = 0;
         }
     }
 }
