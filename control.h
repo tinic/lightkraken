@@ -34,7 +34,8 @@ class Control {
 public:
     static Control &instance();
 
-    void setUniverseOutputData(uint16_t universe, const uint8_t *data, size_t len, bool nodriver = false);
+    void setArtnetUniverseOutputData(uint16_t universe, const uint8_t *data, size_t len, bool nodriver = false);
+    void setE131UniverseOutputData(uint16_t universe, const uint8_t *data, size_t len, bool nodriver = false);
 
     void sync();
     void syncFromInterrupt(const SPI &spi);
@@ -56,7 +57,8 @@ private:
     bool color_scheduled = false;
     bool data_received = false;
     bool syncMode = false;
-    void setUniverseOutputDataForDriver(size_t channels, size_t components, uint16_t uni, const uint8_t *data, size_t len);
+    void setArtnetUniverseOutputDataForDriver(size_t channels, size_t components, uint16_t uni, const uint8_t *data, size_t len);
+    void setE131UniverseOutputDataForDriver(size_t channels, size_t components, uint16_t uni, const uint8_t *data, size_t len);
     bool initialized = false;
     void init();
 };

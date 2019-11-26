@@ -296,7 +296,7 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
                     }
                     OutputNzsPacket outputPacket;
                     if (ArtNetPacket::verify(outputPacket, buf, len)) {
-                        lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
+                        lightkraken::Control::instance().setArtnetUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
                             Control::instance().sync();
                             Control::instance().setEnableSyncMode(false);
@@ -310,7 +310,7 @@ bool ArtNetPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t le
                     }
                     OutputPacket outputPacket;
                     if (ArtNetPacket::verify(outputPacket, buf, len)) {
-                        lightkraken::Control::instance().setUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
+                        lightkraken::Control::instance().setArtnetUniverseOutputData(outputPacket.universe(), outputPacket.data(), outputPacket.len());
                         if(Control::instance().syncModeEnabled() && syncWatchDog.starved()) {
                             Control::instance().sync();
                             Control::instance().setEnableSyncMode(false);

@@ -257,7 +257,7 @@ bool sACNPacket::dispatch(const ip_addr_t *from, const uint8_t *buf, size_t len,
                     }
                     DataPacket dataPacket;
                     if (sACNPacket::verify(dataPacket, buf, len)) {
-                        lightkraken::Control::instance().setUniverseOutputData(dataPacket.universe(), dataPacket.data() + 1, dataPacket.datalen() - 1);
+                        lightkraken::Control::instance().setE131UniverseOutputData(dataPacket.universe(), dataPacket.data() + 1, dataPacket.datalen() - 1);
                         syncuniverse = dataPacket.syncuniverse();
                         if (dataPacket.syncuniverse() == 0) {
                             Control::instance().sync();

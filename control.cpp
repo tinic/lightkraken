@@ -342,7 +342,7 @@ void Control::interateAllActiveArtnetUniverses(std::function<void (uint16_t univ
     }
 }
 
-void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
+void Control::setArtnetUniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
     rgbww rgb[Driver::terminalN];
     for (size_t c = 0; c < terminals; c++) {
         rgb[c] = Driver::instance().srgbwwCIE(c);
@@ -359,7 +359,7 @@ void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components
         } 
         [[fallthrough]];
         case 4: {
-            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[4].artnet.channel - 1, 0, 511));
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[3].artnet.channel - 1, 0, 511));
             if (len > channel) {
                 if (Model::instance().analogConfig(c).components[3].artnet.universe == uni) {
                     rgb[c].w = data[channel];
@@ -407,7 +407,73 @@ void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components
     }
 }
 
-void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t len, bool nodriver) {
+void Control::setE131UniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
+    rgbww rgb[Driver::terminalN];
+    for (size_t c = 0; c < terminals; c++) {
+        rgb[c] = Driver::instance().srgbwwCIE(c);
+    }
+    for (size_t c = 0; c < terminals; c++) {
+        switch(components) {
+        case 5: {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[4].e131.channel - 1, 0, 511));
+            if (len > channel) {
+                if (Model::instance().analogConfig(c).components[4].e131.universe == uni) {
+                    rgb[c].ww = data[channel];
+                }
+            }
+        } 
+        [[fallthrough]];
+        case 4: {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[3].e131.channel - 1, 0, 511));
+            if (len > channel) {
+                if (Model::instance().analogConfig(c).components[3].e131.universe == uni) {
+                    rgb[c].w = data[channel];
+                }
+            }
+        } 
+        [[fallthrough]];
+        case 3: {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[2].e131.channel - 1, 0, 511));
+            if (len > channel) {
+                if (Model::instance().analogConfig(c).components[2].e131.universe == uni) {
+                    rgb[c].b = data[channel];
+                }
+            }
+        } 
+        [[fallthrough]];
+        case 2: {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[1].e131.channel - 1, 0, 511));
+            if (len > channel) {
+                if (Model::instance().analogConfig(c).components[1].e131.universe == uni) {
+                    rgb[c].g = data[channel];
+                }
+            }
+        } 
+        [[fallthrough]];
+        case 1: {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[0].e131.channel - 1, 0, 511));
+            if (len > channel) {
+                if (Model::instance().analogConfig(c).components[0].e131.universe == uni) {
+                    rgb[c].r = data[channel];
+                }
+            }
+        } 
+        [[fallthrough]];
+        default:
+        case 0:
+        break;
+        }
+    }
+    for (size_t c = 0; c < terminals; c++) {
+        Driver::instance().setsRGBWWCIE(c,rgb[c]);
+        if (!syncMode) {
+            Driver::instance().sync(c);
+        }
+    }
+}
+
+
+void Control::setArtnetUniverseOutputData(uint16_t uni, const uint8_t *data, size_t len, bool nodriver) {
     PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
     switch(Model::instance().outputConfig()) {
     case Model::OUTPUT_CONFIG_DUAL_STRIP: {
@@ -429,7 +495,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     } break;
     case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
         if (!nodriver) {
-            setUniverseOutputDataForDriver(1, 3, uni, data, len);
+            setArtnetUniverseOutputDataForDriver(1, 3, uni, data, len);
         }
         for (size_t c = 0; c < Model::stripN; c++) {
             bool set = false;
@@ -449,7 +515,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     } break;
     case Model::OUTPUT_CONFIG_RGB_STRIP: {
         if (!nodriver) {
-            setUniverseOutputDataForDriver(1, 3, uni, data, len);
+            setArtnetUniverseOutputDataForDriver(1, 3, uni, data, len);
         }
         for (size_t c = 1; c < Model::stripN; c++) {
             bool set = false;
@@ -469,7 +535,7 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     } break;
     case Model::OUTPUT_CONFIG_RGBW_STRIP: {
         if (!nodriver) {
-            setUniverseOutputDataForDriver(1, 4, uni, data, len);
+            setArtnetUniverseOutputDataForDriver(1, 4, uni, data, len);
         }
         for (size_t c = 1; c < Model::stripN; c++) {
             bool set = false;
@@ -489,12 +555,105 @@ void Control::setUniverseOutputData(uint16_t uni, const uint8_t *data, size_t le
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
         if (!nodriver) {
-            setUniverseOutputDataForDriver(Model::analogN, 3, uni, data, len);
+            setArtnetUniverseOutputDataForDriver(Model::analogN, 3, uni, data, len);
         }
     } break;
     case Model::OUTPUT_CONFIG_RGBWWW: {
         if (!nodriver) {
-            setUniverseOutputDataForDriver(Model::analogN, 5, uni, data, len);
+            setArtnetUniverseOutputDataForDriver(Model::analogN, 5, uni, data, len);
+        }
+    } break;
+    }
+}
+
+void Control::setE131UniverseOutputData(uint16_t uni, const uint8_t *data, size_t len, bool nodriver) {
+    PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
+    switch(Model::instance().outputConfig()) {
+    case Model::OUTPUT_CONFIG_DUAL_STRIP: {
+        for (size_t c = 0; c < Model::stripN; c++) {
+            bool set = false;
+            for (size_t d = 0; d < Model::universeN; d++) {
+                if (Model::instance().e131Strip(c,d) == uni) {
+                    lightkraken::Strip::get(c).setUniverseData(d, data, len, Strip::InputType(Model::instance().stripConfig(c).input_type));
+                    set = true;
+                }
+            }
+            if (set) {
+                setDataReceived();
+            }
+            if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
+                lightkraken::Strip::get(c).transfer();
+            }
+        }
+    } break;
+    case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
+        if (!nodriver) {
+            setE131UniverseOutputDataForDriver(1, 3, uni, data, len);
+        }
+        for (size_t c = 0; c < Model::stripN; c++) {
+            bool set = false;
+            for (size_t d = 0; d < Model::universeN; d++) {
+                if (Model::instance().e131Strip(c, d) == uni) {
+                    lightkraken::Strip::get(c).setUniverseData(d, data, len, Strip::InputType(Model::instance().stripConfig(c).input_type));
+                    set = true;
+                }
+            }
+            if (set) {
+                setDataReceived();
+            }
+            if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
+                lightkraken::Strip::get(c).transfer();
+            }
+        }
+    } break;
+    case Model::OUTPUT_CONFIG_RGB_STRIP: {
+        if (!nodriver) {
+            setE131UniverseOutputDataForDriver(1, 3, uni, data, len);
+        }
+        for (size_t c = 1; c < Model::stripN; c++) {
+            bool set = false;
+            for (size_t d = 0; d < Model::universeN; d++) {
+                if (Model::instance().e131Strip(c, d) == uni) {
+                    lightkraken::Strip::get(c).setUniverseData(d, data, len, Strip::InputType(Model::instance().stripConfig(c).input_type));
+                    set = true;
+                }
+            }
+            if (set) {
+                setDataReceived();
+            }
+            if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
+                lightkraken::Strip::get(c).transfer();
+            }
+        }
+    } break;
+    case Model::OUTPUT_CONFIG_RGBW_STRIP: {
+        if (!nodriver) {
+            setE131UniverseOutputDataForDriver(1, 4, uni, data, len);
+        }
+        for (size_t c = 1; c < Model::stripN; c++) {
+            bool set = false;
+            for (size_t d = 0; d < Model::universeN; d++) {
+                if (Model::instance().e131Strip(c, d) == uni) {
+                    lightkraken::Strip::get(c).setUniverseData(d, data, len, Strip::InputType(Model::instance().stripConfig(c).input_type));
+                    set = true;
+                }
+            }
+            if (set) {
+                setDataReceived();
+            }
+            if (set && !syncMode && Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
+                lightkraken::Strip::get(c).transfer();
+            }
+        }
+    } break;
+    case Model::OUTPUT_CONFIG_RGB_RGB: {
+        if (!nodriver) {
+            setE131UniverseOutputDataForDriver(Model::analogN, 3, uni, data, len);
+        }
+    } break;
+    case Model::OUTPUT_CONFIG_RGBWWW: {
+        if (!nodriver) {
+            setE131UniverseOutputDataForDriver(Model::analogN, 5, uni, data, len);
         }
     } break;
     }
