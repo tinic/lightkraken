@@ -711,6 +711,8 @@ public:
         MethodGetSettings,
         MethodPostSettings,
         MethodPostBootLoader,
+        MethodPostResetConfig,
+        MethodPostReset,
     };
 
     constexpr static size_t maxConnections = MEMP_NUM_TCP_PCB;
@@ -805,6 +807,12 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
             } else if (strcmp(url, "/bootloader") == 0) {
                 info->method = ConnectionManager::MethodPostBootLoader;
                 return ERR_OK;
+            } else if (strcmp(url, "/reset") == 0) {
+                info->method = ConnectionManager::MethodPostReset;
+                return ERR_OK;
+            } else if (strcmp(url, "/resetconfig") == 0) {
+                info->method = ConnectionManager::MethodPostResetConfig;
+                return ERR_OK;
             }
         } break;
         case REST_METHOD_PUT: {
@@ -832,6 +840,8 @@ err_t httpd_rest_receive_data(void *handle, struct pbuf *p) {
         } break;
         default:
         case ConnectionManager::MethodNone:
+        case ConnectionManager::MethodPostReset:
+        case ConnectionManager::MethodPostResetConfig:
         case ConnectionManager::MethodPostBootLoader:
         case ConnectionManager::MethodGetSettings:
         case ConnectionManager::MethodGetStatus: {
@@ -882,6 +892,30 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             *data = response.finish(*dataLen);
 
             ConnectionManager::instance().end(handle);
+            return ERR_OK;
+        } break;
+        case ConnectionManager::MethodPostReset: {
+            Systick::instance().scheduleReset(4000, false);
+
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+            response.beginOKResponse();
+            *data = response.finish(*dataLen);
+
+            ConnectionManager::instance().end(handle);
+
+            return ERR_OK;
+        } break;
+        case ConnectionManager::MethodPostResetConfig: {
+            Model::instance().reset();
+
+            Systick::instance().scheduleReset(4000, false);
+            
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+            response.beginOKResponse();
+            *data = response.finish(*dataLen);
+
+            ConnectionManager::instance().end(handle);
+
             return ERR_OK;
         } break;
         case ConnectionManager::MethodPostBootLoader: {
