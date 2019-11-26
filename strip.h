@@ -44,7 +44,8 @@ namespace lightkraken {
     		INPUT_dRGB8,
     		INPUT_dRGBW8,
     		INPUT_sRGB8,
-    		INPUT_sRGBW8
+    		INPUT_sRGBW8,
+            INPUT_TYPE_COUNT
     	};
 
     	enum NativeType {

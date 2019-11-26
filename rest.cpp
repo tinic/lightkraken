@@ -43,6 +43,7 @@ extern "C" {
 #include "./status.h"
 #include "./perf.h"
 #include "./sacn.h"
+#include "./strip.h"
 
 const int32_t build_number = 
 #include "./build_number.h"
@@ -254,16 +255,16 @@ public:
 
             sprintf(ss, "$.stripconfig[%d].outputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.output_type = int(dval);
+                config.output_type = std::clamp(int(dval), 0, int(Strip::OUTPUT_TYPE_COUNT) - 1);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.output_type = int(atof(buf));
+                config.output_type = std::clamp(int(atof(buf)), 0, int(Strip::OUTPUT_TYPE_COUNT) - 1);
             }
 
             sprintf(ss, "$.stripconfig[%d].inputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.input_type = std::clamp(int(dval), 0, 3);
+                config.input_type = std::clamp(int(dval), 0, int(Strip::INPUT_TYPE_COUNT) - 1);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.input_type = std::clamp(int(atof(buf)), 0, 3);
+                config.input_type = std::clamp(int(atof(buf)), 0, int(Strip::INPUT_TYPE_COUNT) - 1);
             }
 
             sprintf(ss, "$.stripconfig[%d].complimit", c);

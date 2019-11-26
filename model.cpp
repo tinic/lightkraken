@@ -157,7 +157,7 @@ void Model::defaults() {
         }
     }
 
-    int32_t counter = 0;
+    int32_t counter = 1;
     memset(analog_config, 0, sizeof(analog_config));
     for (size_t c = 0; c < analogN; c++) {
         analog_config[c].rgbSpace.setLED();

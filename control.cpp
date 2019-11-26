@@ -75,6 +75,10 @@ void Control::syncFromInterrupt(const SPI &spi) {
     } break;
     case Model::OUTPUT_CONFIG_RGB_RGB: {
     } break;
+    case Model::OUTPUT_CONFIG_RGBWWW: {
+    } break;
+    default: {
+    } break;
     }
 }
 
@@ -115,6 +119,13 @@ void Control::sync() {
         for (size_t c = 0; c < Model::analogN; c++) {
             Driver::instance().sync(c);
         }
+    } break;
+    case Model::OUTPUT_CONFIG_RGBWWW: {
+        for (size_t c = 0; c < 1; c++) {
+            Driver::instance().sync(c);
+        }
+    } break;
+    default: {
     } break;
     }
 }
@@ -213,6 +224,8 @@ void Control::collectAllActiveArtnetUniverses(std::array<uint16_t, Model::maxUni
             uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[3].artnet.universe);
             uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[4].artnet.universe);
         }
+    } break;
+    default: {
     } break;
     }
     uniqueCollector.fillArray(universes, universeCount);
@@ -313,6 +326,8 @@ void Control::collectAllActiveE131Universes(std::array<uint16_t, Model::maxUnive
                 uniqueCollector.maybeAcquire(Model::instance().analogConfig(c).components[4].e131.universe);
             }
         } break;
+    default: {
+        } break;
     }
     uniqueCollector.fillArray(universes, universeCount);
 }
@@ -335,41 +350,46 @@ void Control::setUniverseOutputDataForDriver(size_t terminals, size_t components
     for (size_t c = 0; c < terminals; c++) {
         switch(components) {
         case 5: {
-            if (len > Model::instance().analogConfig(c).components[4].artnet.channel - 1) {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[4].artnet.channel - 1, 0, 511));
+            if (len > channel) {
                 if (Model::instance().analogConfig(c).components[4].artnet.universe == uni) {
-                    rgb[c].ww = data[Model::instance().analogConfig(c).components[4].artnet.channel - 1];
+                    rgb[c].ww = data[channel];
                 }
             }
         } 
         [[fallthrough]];
         case 4: {
-            if (len > Model::instance().analogConfig(c).components[3].artnet.channel - 1) {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[4].artnet.channel - 1, 0, 511));
+            if (len > channel) {
                 if (Model::instance().analogConfig(c).components[3].artnet.universe == uni) {
-                    rgb[c].w = data[Model::instance().analogConfig(c).components[3].artnet.channel - 1];
+                    rgb[c].w = data[channel];
                 }
             }
         } 
         [[fallthrough]];
         case 3: {
-            if (len > Model::instance().analogConfig(c).components[2].artnet.channel - 1) {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[2].artnet.channel - 1, 0, 511));
+            if (len > channel) {
                 if (Model::instance().analogConfig(c).components[2].artnet.universe == uni) {
-                    rgb[c].b = data[Model::instance().analogConfig(c).components[2].artnet.channel - 1];
+                    rgb[c].b = data[channel];
                 }
             }
         } 
         [[fallthrough]];
         case 2: {
-            if (len > Model::instance().analogConfig(c).components[1].artnet.channel - 1) {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[1].artnet.channel - 1, 0, 511));
+            if (len > channel) {
                 if (Model::instance().analogConfig(c).components[1].artnet.universe == uni) {
-                    rgb[c].g = data[Model::instance().analogConfig(c).components[1].artnet.channel - 1];
+                    rgb[c].g = data[channel];
                 }
             }
         } 
         [[fallthrough]];
         case 1: {
-            if (len > Model::instance().analogConfig(c).components[0].artnet.channel - 1) {
+            size_t channel = size_t(std::clamp(Model::instance().analogConfig(c).components[0].artnet.channel - 1, 0, 511));
+            if (len > channel) {
                 if (Model::instance().analogConfig(c).components[0].artnet.universe == uni) {
-                    rgb[c].r = data[Model::instance().analogConfig(c).components[0].artnet.channel - 1];
+                    rgb[c].r = data[channel];
                 }
             }
         } 
