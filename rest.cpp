@@ -136,16 +136,16 @@ public:
 
             sprintf(ss, "$.rgbconfig[%d].outputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.output_type = std::clamp(int(dval), 0, 2);
+                config.output_type = std::clamp(int(dval), int(Driver::OUTPUT_TYPE_RGB), int(Driver::OUTPUT_TYPE_RGBWWW));
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.output_type = std::clamp(int(atof(buf)), 0, 2);
+                config.output_type = std::clamp(int(atof(buf)), int(Driver::OUTPUT_TYPE_RGB), int(Driver::OUTPUT_TYPE_RGBWWW));
             }
 
             sprintf(ss, "$.rgbconfig[%d].inputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.input_type = std::clamp(int(dval), 0, 5);
+                config.input_type = std::clamp(int(dval), int(Driver::INPUT_TYPE_dRGB), int(Driver::INPUT_TYPE_sRGBWWW));
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.input_type = std::clamp(int(atof(buf)), 0, 5);
+                config.input_type = std::clamp(int(atof(buf)), int(Driver::INPUT_TYPE_dRGB), int(Driver::INPUT_TYPE_sRGBWWW));
             }
 
             sprintf(ss, "$.rgbconfig[%d].pwmlimit", c);
@@ -157,58 +157,58 @@ public:
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.xw = float(dval);
+                config.rgbSpace.xw = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.xw = float(atof(buf));
+                config.rgbSpace.xw = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.yw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.yw = float(dval);
+                config.rgbSpace.yw = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.yw = float(atof(buf));
+                config.rgbSpace.yw = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xr", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.xr = float(dval);
+                config.rgbSpace.xr = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.xr = float(atof(buf));
+                config.rgbSpace.xr = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.yr", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.yr = float(dval);
+                config.rgbSpace.yr = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.yr = float(atof(buf));
+                config.rgbSpace.yr = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xg", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.xg = float(dval);
+                config.rgbSpace.xg = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.xg = float(atof(buf));
+                config.rgbSpace.xg = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.yg", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.yg = float(dval);
+                config.rgbSpace.yg = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.yg = float(atof(buf));
+                config.rgbSpace.yg = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.xb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.xb = float(dval);
+                config.rgbSpace.xb = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.xb = float(atof(buf));
+                config.rgbSpace.xb = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.rgbconfig[%d].rgbspace.yb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.yb = float(dval);
+                config.rgbSpace.yb = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.yb = float(atof(buf));
+                config.rgbSpace.yb = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             for (int d=0; d<int(Model::analogCompN); d++) {
@@ -283,93 +283,93 @@ public:
 
             sprintf(ss, "$.stripconfig[%d].length", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.len = int(dval);
+                config.len = std::clamp(int(dval), 0, 1023);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.len = int(atof(buf));
+                config.len = std::clamp(int(atof(buf)), 0, 1023);
             }
             
             sprintf(ss, "$.stripconfig[%d].color.r", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.color.r = int(dval);
+                config.color.r = std::clamp(int(dval), 0, 255);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
-                config.color.r = strtol(buf, NULL, 10);
+                config.color.r = std::clamp(int(strtol(buf, NULL, 10)), 0, 255);
             }
             
             sprintf(ss, "$.stripconfig[%d].color.g", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.color.g = int(dval);
+                config.color.g = std::clamp(int(dval), 0, 255);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
-                config.color.g = strtol(buf, NULL, 10);
+                config.color.g = std::clamp(int(strtol(buf, NULL, 10)), 0, 255);
             }
 
             sprintf(ss, "$.stripconfig[%d].color.b", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.color.b = int(dval);
+                config.color.b = std::clamp(int(dval), 0, 255);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
-                config.color.b = strtol(buf, NULL, 10);
+                config.color.b = std::clamp(int(strtol(buf, NULL, 10)), 0, 255);
             }
 
             sprintf(ss, "$.stripconfig[%d].color.a", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.color.x = int(dval);
+                config.color.x = std::clamp(int(dval), 0, 255);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf)) > 0) {
-                config.color.x = strtol(buf, NULL, 10);
+                config.color.x = std::clamp(int(strtol(buf, NULL, 10)), 0, 255);
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.xw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.xw = float(dval);
+                config.rgbSpace.xw = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.xw = float(atof(buf));
+                config.rgbSpace.xw = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yw", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.yw = float(dval);
+                config.rgbSpace.yw = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.yw = float(atof(buf));
+                config.rgbSpace.yw = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.xr", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.xr = float(dval);
+                config.rgbSpace.xr = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.xr = float(atof(buf));
+                config.rgbSpace.xr = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yr", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.yr = float(dval);
+                config.rgbSpace.yr = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.yr = float(atof(buf));
+                config.rgbSpace.yr = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.xg", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.xg = float(dval);
+                config.rgbSpace.xg = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.xg = float(atof(buf));
+                config.rgbSpace.xg = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yg", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.yg = float(dval);
+                config.rgbSpace.yg = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.yg = float(atof(buf));
+                config.rgbSpace.yg = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.xb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.xb = float(dval);
+                config.rgbSpace.xb = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.xb = float(atof(buf));
+                config.rgbSpace.xb = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             sprintf(ss, "$.stripconfig[%d].rgbspace.yb", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.rgbSpace.yb = float(dval);
+                config.rgbSpace.yb = std::clamp(float(dval), -16.0f, +16.0f);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.rgbSpace.yb = float(atof(buf));
+                config.rgbSpace.yb = std::clamp(float(atof(buf)), -16.0f, +16.0f);
             }
 
             for (int d = 0; d < int(Model::universeN); d++) {

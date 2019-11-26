@@ -32,6 +32,22 @@ namespace lightkraken {
 
 class Driver {
 public:
+
+    enum OutputTypes {
+        OUTPUT_TYPE_RGB,
+        OUTPUT_TYPE_RGBW,
+        OUTPUT_TYPE_RGBWWW
+    };
+
+    enum InputTypes {
+        INPUT_TYPE_dRGB,
+        INPUT_TYPE_dRGBW,
+        INPUT_TYPE_dRGBWWW,
+        INPUT_TYPE_sRGB,
+        INPUT_TYPE_sRGBW,
+        INPUT_TYPE_sRGBWWW,
+    };
+
     constexpr static size_t terminalN = 2;
     
     static Driver &instance();
