@@ -516,7 +516,7 @@ public:
 
     void addBuildNumber() {
         handleDelimiter();
-        addString("\"buildnumber\": \"Rev %d (%s %s)\"  ", int(build_number), __DATE__, __TIME__); 
+        addString("\"buildnumber\":\"Rev %d (%s %s)\"", int(build_number), __DATE__, __TIME__); 
     }
 
     void addHostname() {
@@ -592,7 +592,7 @@ public:
             addString("\"outputtype\":%d,",int(a.output_type)); 
             addString("\"inputtype\":%d,",int(a.input_type)); 
             addString("\"pwmlimit\":%s,", ftos(a.pwm_limit * 100.0f)); 
-            addString("\"rgbspace\" : {");
+            addString("\"rgbspace\":{");
             addString("\"xw\":%s,",ftos(a.rgbSpace.xw)); 
             addString("\"yw\":%s,",ftos(a.rgbSpace.yw)); 
             addString("\"xr\":%s,",ftos(a.rgbSpace.xr)); 
@@ -602,16 +602,16 @@ public:
             addString("\"xb\":%s,",ftos(a.rgbSpace.xb)); 
             addString("\"yb\":%s",ftos(a.rgbSpace.yb)); 
             addString("},");
-            addString("\"components\" : [");
+            addString("\"components\":[");
             for (size_t d=0; d<Model::analogCompN; d++) {
                 addString("{");
-                addString("\"artnet\": {"); 
-                addString("\"universe\": %d,",int(a.components[d].artnet.universe)); 
-                addString("\"channel\": %d",int(a.components[d].artnet.channel)); 
+                addString("\"artnet\":{"); 
+                addString("\"universe\":%d,",int(a.components[d].artnet.universe)); 
+                addString("\"channel\":%d",int(a.components[d].artnet.channel)); 
                 addString("},");
-                addString("\"e131\": {"); 
-                addString("\"universe\": %d,",int(a.components[d].e131.universe)); 
-                addString("\"channel\": %d",int(a.components[d].e131.channel)); 
+                addString("\"e131\":{"); 
+                addString("\"universe\":%d,",int(a.components[d].e131.universe)); 
+                addString("\"channel\":%d",int(a.components[d].e131.channel)); 
                 addString("},");
                 addString("\"value\":%d",int(a.components[d].value)); 
                 addString("}%c", (d==Model::analogCompN-1)?' ':','); 
@@ -633,7 +633,7 @@ public:
             addString("\"complimit\":%s,", ftos(s.comp_limit * 100.0f)); 
             addString("\"globillum\":%s,", ftos(s.glob_illum * 100.0f)); 
             addString("\"length\":%d,",int(s.len)); 
-            addString("\"rgbspace\" : {");
+            addString("\"rgbspace\":{");
             addString("\"xw\":%s,",ftos(s.rgbSpace.xw)); 
             addString("\"yw\":%s,",ftos(s.rgbSpace.yw)); 
             addString("\"xr\":%s,",ftos(s.rgbSpace.xr)); 
@@ -648,7 +648,7 @@ public:
                             int(s.color.g),
                             int(s.color.b),
                             int(s.color.x)); 
-            addString("\"universes\" : [");
+            addString("\"universes\":[");
             for (size_t d=0; d<Model::universeN; d++) {
                 addString("{");
                 addString("\"artnet\":%d,",int(s.artnet[d])); 
