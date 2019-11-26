@@ -12,7 +12,8 @@
         },
         "dependsOn": [
           "Lightkraken: Build"
-        ]
+        ],
+        "problemMatcher": []
       },
       {
         "label": "Lightkraken: Clean",
@@ -32,7 +33,7 @@
         "options": {
           "cwd": "${workspaceRoot}/build",
           "INCLUDE": "${config:arm-none-eabi.include}",
-          "LIB": "${config:arm-none-eabi.lib}",
+          "LIB": "${config:arm-none-eabi.lib}"
         },
         "osx": {
           "options": {
@@ -66,7 +67,7 @@
           "Lightkraken: Pre-Build"
         ],
         "options": {
-          "cwd": "${workspaceRoot}/build",
+          "cwd": "${workspaceRoot}/build"
         },
         "group": {
           "kind": "build",

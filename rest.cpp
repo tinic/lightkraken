@@ -591,7 +591,7 @@ public:
             addString("{");
             addString("\"outputtype\":%d,",int(a.output_type)); 
             addString("\"inputtype\":%d,",int(a.input_type)); 
-            addString("\"pwmlimit\":%s", ftos(a.pwm_limit * 100.0f)); 
+            addString("\"pwmlimit\":%s,", ftos(a.pwm_limit * 100.0f)); 
             addString("\"rgbspace\" : {");
             addString("\"xw\":%s,",ftos(a.rgbSpace.xw)); 
             addString("\"yw\":%s,",ftos(a.rgbSpace.yw)); 
@@ -600,7 +600,7 @@ public:
             addString("\"xg\":%s,",ftos(a.rgbSpace.xg)); 
             addString("\"yg\":%s,",ftos(a.rgbSpace.yg)); 
             addString("\"xb\":%s,",ftos(a.rgbSpace.xb)); 
-            addString("\"yb\":%s,",ftos(a.rgbSpace.yb)); 
+            addString("\"yb\":%s",ftos(a.rgbSpace.yb)); 
             addString("},");
             addString("\"components\" : [");
             for (size_t d=0; d<Model::analogCompN; d++) {
@@ -630,8 +630,8 @@ public:
             addString("{");
             addString("\"outputtype\":%d,",int(s.output_type)); 
             addString("\"inputtype\":%d,",int(s.input_type)); 
-            addString("\"complimit\":%s", ftos(s.comp_limit * 100.0f)); 
-            addString("\"globillum\":%s", ftos(s.glob_illum * 100.0f)); 
+            addString("\"complimit\":%s,", ftos(s.comp_limit * 100.0f)); 
+            addString("\"globillum\":%s,", ftos(s.glob_illum * 100.0f)); 
             addString("\"length\":%d,",int(s.len)); 
             addString("\"rgbspace\" : {");
             addString("\"xw\":%s,",ftos(s.rgbSpace.xw)); 
@@ -641,7 +641,7 @@ public:
             addString("\"xg\":%s,",ftos(s.rgbSpace.xg)); 
             addString("\"yg\":%s,",ftos(s.rgbSpace.yg)); 
             addString("\"xb\":%s,",ftos(s.rgbSpace.xb)); 
-            addString("\"yb\":%s,",ftos(s.rgbSpace.yb)); 
+            addString("\"yb\":%s",ftos(s.rgbSpace.yb)); 
             addString("},");
             addString("\"color\":{\"r\":%d,\"g\":%d,\"b\":%d,\"a\":%d},",
                             int(s.color.r),
