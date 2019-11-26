@@ -225,11 +225,11 @@ void Model::init() {
 }
 
 void Model::setOutputConfig(OutputConfig outputConfig) {
-    output_config = outputConfig;
+    output_config = std::clamp(outputConfig, OUTPUT_CONFIG_DUAL_STRIP, OUTPUT_CONFIG_RGBWWW);
 }
 
 void Model::setOutputMode(OutputMode outputMode) {
-    output_mode = outputMode;
+    output_mode = std::clamp(outputMode, MODE_MAIN_LOOP, MODE_INTERRUPT);
 }
 
 Model &Model::instance() {

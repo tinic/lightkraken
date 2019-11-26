@@ -111,6 +111,22 @@ void Driver::sync(size_t terminal) {
         setPulse(terminal*3 + 1, gp);
         setPulse(terminal*3 + 2, bp);
     } break;
+    case Model::OUTPUT_CONFIG_RGBWWW: {
+        if (terminal == 0) {
+            uint16_t rp = 0;
+            uint16_t gp = 0;
+            uint16_t bp = 0;
+            colorConverter[terminal].sRGB8toLEDPWM(
+                _srgbww[terminal].r,
+                _srgbww[terminal].g,
+                _srgbww[terminal].b,
+                PwmTimer::pwmPeriod, rp, gp, bp);
+            setPulse(0, rp);
+            setPulse(1, gp);
+            setPulse(2, bp);
+            setPulse(3, transferLookup.lookup[_srgbww[terminal].w]);
+        }
+    } break;
     }
 }
 
