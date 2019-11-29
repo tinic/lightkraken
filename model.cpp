@@ -149,7 +149,7 @@ void Model::defaults() {
         lightkraken::Strip::get(c).setStripType(Strip::OutputType(strip_config[c].output_type));
         strip_config[c].len = 256;
         strip_config[c].color = rgb8();
-        strip_config[c].rgbSpace.setLED();
+        strip_config[c].rgbSpace.setWorldSemiLED();
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         for (size_t d = 0; d < universeN; d++) {
             strip_config[c].artnet[d] = artnetcounter++;
@@ -160,7 +160,7 @@ void Model::defaults() {
     int32_t counter = 1;
     memset(analog_config, 0, sizeof(analog_config));
     for (size_t c = 0; c < analogN; c++) {
-        analog_config[c].rgbSpace.setLED();
+        analog_config[c].rgbSpace.setCreeLED();
         analog_config[c].pwm_limit = 1.0f;
         for (size_t d = 0; d < analogCompN; d++) {
             analog_config[c].components[d].artnet.channel = counter;

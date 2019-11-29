@@ -95,7 +95,7 @@ namespace lightkraken {
         spi_buf.fill(0);
         transfer_flag = false;
         RGBColorSpace rgbSpace;
-        rgbSpace.setLED();
+        rgbSpace.setWorldSemiLED();
         converter.setRGBColorSpace(rgbSpace);
     }
 
