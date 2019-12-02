@@ -40,14 +40,14 @@ struct RGBColorSpace {
     }
 
     void setWorldSemiLED() {
-        xw = 0.34567f; yw = 0.35850f; // D50 white point
-        xr = 0.68930f; yr = 0.30740f;
-        xg = 0.13940f; yg = 0.72140f;
-        xb = 0.13180f; yb = 0.07200f;
+        xw = 0.29902f; yw = 0.31485f; // D75 white point
+        xr = 0.64000f; yr = 0.33000f;
+        xg = 0.30000f; yg = 0.60000f;
+        xb = 0.15000f; yb = 0.06000f;
     }
 
     void setCreeLED() {
-        xw = 0.34567f; yw = 0.35850f; // D50 white point
+        xw = 0.31271f; yw = 0.32902f; // D65 white point
         xr = 0.67630f; yr = 0.32370f; // from http://ww1.microchip.com/downloads/en/AppNotes/00001562B.pdf
         xg = 0.20880f; yg = 0.74070f;
         xb = 0.14050f; yb = 0.03910f;
@@ -67,77 +67,14 @@ public:
 
 class ColorSpaceConverter {
 public:
-
     void sRGB8toLEDPWM(
-            uint8_t srgb_r,
-            uint8_t srgb_g,
-            uint8_t srgb_b,
-            uint16_t pwm_l,
-            uint16_t &pwm_r,
-            uint16_t &pwm_g,
-            uint16_t &pwm_b) const;
-
-    void sRGB8toLEDRGB8(
-            size_t len,
-            const uint8_t *src,
-            uint8_t *dst,
-            uint8_t off_r,
-            uint8_t off_g,
-            uint8_t off_b,
-            size_t in_channels,
-            size_t out_channels,
-            uint8_t limit);
-
-    void sRGBW8toLEDRGB8(
-            size_t len,
-            const uint8_t *src,
-            uint8_t *dst,
-            uint8_t off_r,
-            uint8_t off_g,
-            uint8_t off_b,
-            size_t in_channels,
-            size_t out_channels,
-            uint8_t limit);
-
-    void sRGB8toLEDRGBW8(
-            size_t len,
-            const uint8_t *src,
-            uint8_t *dst,
-            uint8_t off_r,
-            uint8_t off_g,
-            uint8_t off_b,
-            uint8_t off_w,
-            size_t in_channels,
-            size_t out_channels,
-            uint8_t limit);
-
-    void sRGB8TransfertoLED8Transfer(
-            size_t len,
-            const uint8_t *src,
-            uint8_t *dst,
-            uint8_t off_in,
-            uint8_t off_out,
-            size_t channels,
-            uint8_t limit);
-
-    void sRGB8toLED16(
-            size_t len,
-            const uint8_t *src,
-            uint32_t *dst,
-            uint8_t off_r,
-            uint8_t off_g,
-            uint8_t off_b,
-            size_t channels,
-            uint16_t limit);
-
-    void sRGB8TransfertoLED16Transfer(
-            size_t len,
-            const uint8_t *src,
-            uint32_t *dst,
-            uint8_t off_in,
-            uint8_t off_out,
-            size_t channels,
-            uint16_t limit);
+        uint8_t srgb_r,
+        uint8_t srgb_g,
+        uint8_t srgb_b,
+        uint16_t pwm_l,
+        uint16_t &pwm_r,
+        uint16_t &pwm_g,
+        uint16_t &pwm_b) const;
     
     void setRGBColorSpace(const RGBColorSpace &rgbSpace);
 

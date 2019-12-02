@@ -37,7 +37,7 @@ namespace lightkraken {
 
         struct DitherPixel {
             uint16_t value;
-            int8_t error;
+            int8_t   error;
         } __attribute__((packed));
 
     	enum InputType {

@@ -214,7 +214,8 @@ namespace lightkraken {
             	default:
             	case INPUT_dRGB8: {
 					switch (nativeType()) {
-						default:
+						default: {
+                        } break;
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
@@ -240,7 +241,8 @@ namespace lightkraken {
             	} break;
             	case INPUT_dRGBW8: {
 					switch (nativeType()) {
-						default:
+						default: {
+                        } break;
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
@@ -265,33 +267,21 @@ namespace lightkraken {
             	} break;
             	case INPUT_sRGB8: {
 					switch (nativeType()) {
-						default:
+						default: {
+                        } break;
 						case NATIVE_RGB8: {
-							converter.sRGB8toLEDRGB8(std::min(len, input_pad), 
-                                data, &comp_buf[0], 
-                                order[0], order[1], order[2], order.size(), 3, limit_8bit);
 						} break;
 						case NATIVE_RGBW8: {
-							converter.sRGB8toLEDRGBW8(std::min(len, input_pad), 
-                                data, &comp_buf[0], 
-                                order[0], order[1], order[2], 3, order.size(), 4, limit_8bit);
 						} break;
 					}
             	} break;
             	case INPUT_sRGBW8: {
 					switch (nativeType()) {
-						default:
+						default: {
+                        } break;
 						case NATIVE_RGB8: {
-							converter.sRGBW8toLEDRGB8(std::min(len, input_pad), 
-                                data, &comp_buf[0], 
-                                order[0], order[1], order[2], order.size(), 3, limit_8bit);
 						} break;
 						case NATIVE_RGBW8: {
-							converter.sRGB8toLEDRGB8(std::min(len, input_pad), 
-                                data, &comp_buf[0], 
-                                order[0], order[1], order[2], order.size(), 4, limit_8bit);
-							converter.sRGB8TransfertoLED8Transfer(std::min(len, input_pad), 
-                                data, &comp_buf[0], order[3], 3, order.size(), limit_8bit);
 						} break;
 					}
             	} break;
@@ -323,7 +313,7 @@ namespace lightkraken {
             } break;
             case SK6812_RGBW: {
 				const std::vector<int> order = { 0, 1, 2, 3 };
-				transfer(order);
+                transfer(order);
             } break;
             case LPD8806_RGB: {
                 const std::vector<int> order = { 2, 0, 1 };
@@ -353,7 +343,8 @@ namespace lightkraken {
             	default:
             	case INPUT_dRGB8: {
 					switch (nativeType()) {
-						default:
+						default: {
+                        } break;
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
@@ -379,7 +370,8 @@ namespace lightkraken {
             	} break;
             	case INPUT_dRGBW8: {
 					switch (nativeType()) {
-						default:
+						default: {
+                        } break;
 						case NATIVE_RGB8: {
 							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
@@ -404,33 +396,21 @@ namespace lightkraken {
             	} break;
             	case INPUT_sRGB8: {
 					switch (nativeType()) {
-						default:
+						default: {
+                        } break;
 						case NATIVE_RGB8: {
-							converter.sRGB8toLEDRGB8(std::min(len, input_pad), 
-                                data, &comp_buf[input_pad * uniN], 
-                                order[0], order[1], order[2], order.size(), 3, limit_8bit);
 						} break;
 						case NATIVE_RGBW8: {
-							converter.sRGB8toLEDRGBW8(std::min(len, input_pad), 
-                                data, &comp_buf[input_pad * uniN], 
-                                order[0], order[1], order[2], 3, order.size(), 4, limit_8bit);
 						} break;
 					}
             	} break;
             	case INPUT_sRGBW8: {
 					switch (nativeType()) {
-						default:
+						default: {
+                        } break;
 						case NATIVE_RGB8: {
-							converter.sRGBW8toLEDRGB8(std::min(len, input_pad), 
-                                data, &comp_buf[input_pad * uniN], 
-                                order[0], order[1], order[2], order.size(), 3, limit_8bit);
 						} break;
 						case NATIVE_RGBW8: {
-							converter.sRGB8toLEDRGB8(std::min(len, input_pad), 
-                                data, &comp_buf[input_pad * uniN], 
-                                order[0], order[1], order[2], order.size(), 4, limit_8bit);
-							converter.sRGB8TransfertoLED8Transfer(std::min(len, input_pad), 
-                                data, &comp_buf[input_pad * uniN], order[3], 3, order.size(), limit_8bit);
 						} break;
 					}
             	} break;
