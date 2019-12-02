@@ -91,8 +91,8 @@ private:
     void LEDL2sRGBL(float *ledl, const float *srgbl) const;
     void sRGB2sRGBL(float *srgbl, const float *srgb) const;
     void sRGBL2sRGB(float *srgb, const float *srgbl) const;
-    void LEDL2LED(float *led, const float *ledl) const;
-    void LED2LEDL(float *ledl, const float *led) const;
+    void CIE2CIEL(float *cie, const float *ciel) const;
+    void CIEL2CIE(float *ciel, const float *cie) const;
     void invertMatrix(float *r, const float *a) const;
     void concatMatrix(float *d, const float *a, const float *b) const;
     void generateRGBMatrix(    float xw, float yw,

@@ -63,11 +63,6 @@ void ColorSpaceConverter::sRGB8toLEDPWM(
         uint16_t &pwm_b) const {
 
 #if 1
-    constexpr const int32_t theta = int32_t(0.080f * float(1UL<<fixed_shift));
-    constexpr const int32_t delta = int32_t(0.160f * float(1UL<<fixed_shift));
-    constexpr const int32_t const_mul0 = int32_t((1.0f / 1.160f) * float(1UL<<fixed_shift));
-    constexpr const int32_t const_mul1 = int32_t((1.0f / 9.03296296296296296294f) * float(1UL<<fixed_shift));
-
     int32_t lr = srgb_2_srgbl_lookup_fixed[srgb_r];
     int32_t lg = srgb_2_srgbl_lookup_fixed[srgb_g];
     int32_t lb = srgb_2_srgbl_lookup_fixed[srgb_b];
@@ -75,27 +70,6 @@ void ColorSpaceConverter::sRGB8toLEDPWM(
     int32_t x = mul_fixed(srgbl2ledl_fixed[0], lr) + mul_fixed(srgbl2ledl_fixed[1], lg) + mul_fixed(srgbl2ledl_fixed[2], lb);
     int32_t y = mul_fixed(srgbl2ledl_fixed[3], lr) + mul_fixed(srgbl2ledl_fixed[4], lg) + mul_fixed(srgbl2ledl_fixed[5], lb);
     int32_t z = mul_fixed(srgbl2ledl_fixed[6], lr) + mul_fixed(srgbl2ledl_fixed[7], lg) + mul_fixed(srgbl2ledl_fixed[8], lb);
-
-    if ( x > theta ) {
-        x = mul_fixed(x + delta, const_mul0);
-        x = mul_fixed(x, mul_fixed(x, x)); 
-    } else {
-        x = mul_fixed(x, const_mul1);
-    }
-
-    if ( y > theta ) {
-        y = mul_fixed(y + delta, const_mul0);
-        y = mul_fixed(y, mul_fixed(y, y)); 
-    } else {
-        y = mul_fixed(y, const_mul1);
-    }
-
-    if ( z > theta ) {
-        z = mul_fixed(z + delta, const_mul0);
-        z = mul_fixed(z, mul_fixed(z, z)); 
-    } else {
-        z = mul_fixed(z, const_mul1);
-    }
 
     pwm_r = uint16_t((__USAT((x >> fixed_post_shift), 15) * pwm_l) / 65536);
     pwm_g = uint16_t((__USAT((y >> fixed_post_shift), 15) * pwm_l) / 65536);
@@ -108,7 +82,6 @@ void ColorSpaceConverter::sRGB8toLEDPWM(
     
     sRGB2sRGBL(col, col); // sRGB to Linear sRGB
     sRGBL2LEDL(col, col); // Linear sRGB -> XYZ -> Linear LED RGB
-    LEDL2LED(col, col); // Linear LED RGB -> LED RGB
     
     for (size_t c = 0; c < 3; c++) {
         if (col[c] < 0.0f) {
@@ -200,22 +173,22 @@ void ColorSpaceConverter::sRGBL2sRGB(float *srgb, const float *srgbl) const {
     srgb[2] = b;
 }
 
-void ColorSpaceConverter::LEDL2LED(float *led, const float *ledl) const {
-    float r = (ledl[0] > 0.08f) ? powf( (ledl[0] + 0.160f) / 1.160f, 3.0f) : (ledl[0] / 9.03296296296296296294f);
-    float g = (ledl[1] > 0.08f) ? powf( (ledl[1] + 0.160f) / 1.160f, 3.0f) : (ledl[1] / 9.03296296296296296294f);
-    float b = (ledl[2] > 0.08f) ? powf( (ledl[2] + 0.160f) / 1.160f, 3.0f) : (ledl[2] / 9.03296296296296296294f);
-    led[0] = r;
-    led[1] = g;
-    led[2] = b;
+void ColorSpaceConverter::CIE2CIEL(float *ciel, const float *cie) const {
+    float r = (cie[0] > 0.08f) ? powf( (cie[0] + 0.160f) / 1.160f, 3.0f) : (cie[0] / 9.03296296296296296294f);
+    float g = (cie[1] > 0.08f) ? powf( (cie[1] + 0.160f) / 1.160f, 3.0f) : (cie[1] / 9.03296296296296296294f);
+    float b = (cie[2] > 0.08f) ? powf( (cie[2] + 0.160f) / 1.160f, 3.0f) : (cie[2] / 9.03296296296296296294f);
+    ciel[0] = r;
+    ciel[1] = g;
+    ciel[2] = b;
 }
 
-void ColorSpaceConverter::LED2LEDL(float *ledl, const float *led) const {
-    float r = (led[0] > 0.00885645167903563081f) ? (( powf(led[0], 1.0f / 3.0f) * 1.160f) - 0.160f) : (led[0] * 9.03296296296296296294f);
-    float g = (led[1] > 0.00885645167903563081f) ? (( powf(led[1], 1.0f / 3.0f) * 1.160f) - 0.160f) : (led[1] * 9.03296296296296296294f);
-    float b = (led[2] > 0.00885645167903563081f) ? (( powf(led[2], 1.0f / 3.0f) * 1.160f) - 0.160f) : (led[2] * 9.03296296296296296294f);
-    ledl[0] = r;
-    ledl[1] = g;
-    ledl[2] = b;
+void ColorSpaceConverter::CIEL2CIE(float *cie, const float *ciel) const {
+    float r = (ciel[0] > 0.00885645167903563081f) ? (( powf(ciel[0], 1.0f / 3.0f) * 1.160f) - 0.160f) : (ciel[0] * 9.03296296296296296294f);
+    float g = (ciel[1] > 0.00885645167903563081f) ? (( powf(ciel[1], 1.0f / 3.0f) * 1.160f) - 0.160f) : (ciel[1] * 9.03296296296296296294f);
+    float b = (ciel[2] > 0.00885645167903563081f) ? (( powf(ciel[2], 1.0f / 3.0f) * 1.160f) - 0.160f) : (ciel[2] * 9.03296296296296296294f);
+    cie[0] = r;
+    cie[1] = g;
+    cie[2] = b;
 }
 
 void ColorSpaceConverter::invertMatrix(float *r, const float *a) const {
