@@ -45,59 +45,6 @@ void CIETransferfromsRGBTransferLookup::init() {
     }
 }
 
-static constexpr int32_t fixed_shift = 24;
-static constexpr int32_t fixed_post_shift = 8;
-static constexpr int32_t fixed_post_clamp = 1UL << (fixed_shift - fixed_post_shift);
-
-__attribute__((used))
-static int32_t mul_fixed(int32_t x, int32_t y) {
-    return int32_t((int64_t(x) * int64_t(y)) >> fixed_shift);
-}
-
-void ColorSpaceConverter::sRGB8toLEDPWM(
-        uint8_t srgb_r, 
-        uint8_t srgb_g, 
-        uint8_t srgb_b,
-        uint16_t pwm_l,
-        uint16_t &pwm_r,
-        uint16_t &pwm_g,
-        uint16_t &pwm_b) const {
-#if 1
-    int32_t lr = srgb_2_srgbl_lookup_fixed[srgb_r];
-    int32_t lg = srgb_2_srgbl_lookup_fixed[srgb_g];
-    int32_t lb = srgb_2_srgbl_lookup_fixed[srgb_b];
-    
-    int32_t x = mul_fixed(srgbl2ledl_fixed[0], lr) + mul_fixed(srgbl2ledl_fixed[1], lg) + mul_fixed(srgbl2ledl_fixed[2], lb);
-    int32_t y = mul_fixed(srgbl2ledl_fixed[3], lr) + mul_fixed(srgbl2ledl_fixed[4], lg) + mul_fixed(srgbl2ledl_fixed[5], lb);
-    int32_t z = mul_fixed(srgbl2ledl_fixed[6], lr) + mul_fixed(srgbl2ledl_fixed[7], lg) + mul_fixed(srgbl2ledl_fixed[8], lb);
-
-    pwm_r = uint16_t((std::clamp((x >> fixed_post_shift), int32_t(0), fixed_post_clamp) * pwm_l) / fixed_post_clamp);
-    pwm_g = uint16_t((std::clamp((y >> fixed_post_shift), int32_t(0), fixed_post_clamp) * pwm_l) / fixed_post_clamp);
-    pwm_b = uint16_t((std::clamp((z >> fixed_post_shift), int32_t(0), fixed_post_clamp) * pwm_l) / fixed_post_clamp);
-#else            
-    float col[3];
-    col[0] = float(srgb_r) * (1.0f / 255.0f);
-    col[1] = float(srgb_g) * (1.0f / 255.0f);
-    col[2] = float(srgb_b) * (1.0f / 255.0f);
-    
-    sRGB2sRGBL(col, col); // sRGB to Linear sRGB
-    sRGBL2LEDL(col, col); // Linear sRGB -> XYZ -> Linear LED RGB
-    
-    for (size_t c = 0; c < 3; c++) {
-        if (col[c] < 0.0f) {
-            col[c] = 0.0f;
-        }
-        if (col[c] > 1.0f) {
-            col[c] = 1.0f;
-        }
-    }
-    
-    pwm_r = uint16_t(col[0]*float(pwm_l));
-    pwm_g = uint16_t(col[1]*float(pwm_l));
-    pwm_b = uint16_t(col[2]*float(pwm_l));
-#endif            
-}
-
 void ColorSpaceConverter::setRGBColorSpace(const RGBColorSpace &rgbSpace) {
     // Generate XYZ to LED matrices
     generateRGBMatrix(
