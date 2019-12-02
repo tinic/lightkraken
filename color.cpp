@@ -47,6 +47,7 @@ void CIETransferfromsRGBTransferLookup::init() {
 
 static constexpr int32_t fixed_shift = 24;
 static constexpr int32_t fixed_post_shift = 8;
+static constexpr int32_t fixed_post_clamp = 1UL << (fixed_shift - fixed_post_shift);
 
 __attribute__((used))
 static int32_t mul_fixed(int32_t x, int32_t y) {
@@ -61,7 +62,6 @@ void ColorSpaceConverter::sRGB8toLEDPWM(
         uint16_t &pwm_r,
         uint16_t &pwm_g,
         uint16_t &pwm_b) const {
-
 #if 1
     int32_t lr = srgb_2_srgbl_lookup_fixed[srgb_r];
     int32_t lg = srgb_2_srgbl_lookup_fixed[srgb_g];
@@ -71,9 +71,9 @@ void ColorSpaceConverter::sRGB8toLEDPWM(
     int32_t y = mul_fixed(srgbl2ledl_fixed[3], lr) + mul_fixed(srgbl2ledl_fixed[4], lg) + mul_fixed(srgbl2ledl_fixed[5], lb);
     int32_t z = mul_fixed(srgbl2ledl_fixed[6], lr) + mul_fixed(srgbl2ledl_fixed[7], lg) + mul_fixed(srgbl2ledl_fixed[8], lb);
 
-    pwm_r = uint16_t((__USAT((x >> fixed_post_shift), 15) * pwm_l) / 65536);
-    pwm_g = uint16_t((__USAT((y >> fixed_post_shift), 15) * pwm_l) / 65536);
-    pwm_b = uint16_t((__USAT((z >> fixed_post_shift), 15) * pwm_l) / 65536);
+    pwm_r = uint16_t((std::clamp((x >> fixed_post_shift), int32_t(0), fixed_post_clamp) * pwm_l) / fixed_post_clamp);
+    pwm_g = uint16_t((std::clamp((y >> fixed_post_shift), int32_t(0), fixed_post_clamp) * pwm_l) / fixed_post_clamp);
+    pwm_b = uint16_t((std::clamp((z >> fixed_post_shift), int32_t(0), fixed_post_clamp) * pwm_l) / fixed_post_clamp);
 #else            
     float col[3];
     col[0] = float(srgb_r) * (1.0f / 255.0f);
