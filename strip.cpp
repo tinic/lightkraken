@@ -203,175 +203,15 @@ namespace lightkraken {
     }
 
     void Strip::setData(const uint8_t *data, size_t len, InputType input_type) {
-        PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
-        
+
         auto transfer = [=] (const std::vector<int> &order) {
-            const uint32_t limit_8bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 255.f);
 			const size_t input_size = getBytesPerInputPixel(input_type);
-			const size_t pixel_pad = std::min(input_size, order.size());
-			const size_t input_pad = Model::universeN * (size_t(dmxMaxLen / input_size) * order.size());
-            switch (input_type) {
-            	default:
-            	case INPUT_dRGB8: {
-					switch (nativeType()) {
-						default: {
-                        } break;
-						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
-							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								for (size_t d = 0; d < pixel_pad; d++) {
-									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d]));
-								}
-							}
-						} break;
-						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
-							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								uint8_t r = std::min(limit_8bit, uint32_t(data[c + 0]));
-								uint8_t g = std::min(limit_8bit, uint32_t(data[c + 1]));
-								uint8_t b = std::min(limit_8bit, uint32_t(data[c + 2]));
-								uint8_t m = std::min(r, std::min(g, b));
-								buf[n + order[0]] = r - m;
-								buf[n + order[1]] = g - m;
-								buf[n + order[2]] = b - m;
-								buf[n + order[3]] = m;
-							}
-						} break;
-					}
-            	} break;
-            	case INPUT_dRGBW8: {
-					switch (nativeType()) {
-						default: {
-                        } break;
-						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
-							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								uint32_t r = uint32_t(data[c + 0]);
-								uint32_t g = uint32_t(data[c + 1]);
-								uint32_t b = uint32_t(data[c + 2]);
-								uint32_t w = uint32_t(data[c + 3]);
-								buf[n + order[0]] = uint8_t(std::clamp(r+w, uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[1]] = uint8_t(std::clamp(g+w, uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[2]] = uint8_t(std::clamp(b+w, uint32_t(0), uint32_t(limit_8bit)));
-							}
-						} break;
-						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
-							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								for (size_t d = 0; d < pixel_pad; d++) {
-									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d]));
-								}
-							}
-						} break;
-					}
-            	} break;
-            	case INPUT_sRGB8: {
-					switch (nativeType()) {
-						default: {
-                        } break;
-						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
-							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								uint8_t sr = data[c + 0];
-								uint8_t sg = data[c + 1];
-								uint8_t sb = data[c + 2];
-
-								uint16_t lr = 0;
-								uint16_t lg = 0;
-								uint16_t lb = 0;
-	
-								converter.sRGB8toLEDPWM(
-									sr, sg, sb, 255,
-									lr, lg, lb);
-
-								lr = std::min(uint16_t(limit_8bit), lr);
-								lg = std::min(uint16_t(limit_8bit), lg);
-								lb = std::min(uint16_t(limit_8bit), lb);
-
-								buf[n + order[0]] = lr;
-								buf[n + order[1]] = lg;
-								buf[n + order[2]] = lb;
-							}
-						} break;
-						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
-							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								uint8_t sr = data[c + 0];
-								uint8_t sg = data[c + 1];
-								uint8_t sb = data[c + 2];
-
-								uint16_t lr = 0;
-								uint16_t lg = 0;
-								uint16_t lb = 0;
-	
-								converter.sRGB8toLEDPWM(
-									sr, sg, sb, 255,
-									lr, lg, lb);
-
-								uint16_t lm = std::min(lr, std::min(lg, lb));
-
-								lr = std::min(uint16_t(limit_8bit), lr);
-								lg = std::min(uint16_t(limit_8bit), lg);
-								lb = std::min(uint16_t(limit_8bit), lb);
-								lm = std::min(uint16_t(limit_8bit), lm);
-
-								buf[n + order[0]] = lr - lm;
-								buf[n + order[1]] = lg - lm;
-								buf[n + order[2]] = lb - lm;
-								buf[n + order[3]] = lm;
-							}
-						} break;
-					}
-            	} break;
-            	case INPUT_sRGBW8: {
-					switch (nativeType()) {
-						default: {
-                        } break;
-						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
-							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								uint8_t sr = uint8_t(data[c + 0]);
-								uint8_t sg = uint8_t(data[c + 1]);
-								uint8_t sb = uint8_t(data[c + 2]); 
-								uint8_t lw = uint8_t(data[c + 3]);
-
-								uint16_t lr = 0;
-								uint16_t lg = 0;
-								uint16_t lb = 0;
-	
-								converter.sRGB8toLEDPWM(
-									sr, sg, sb, 255,
-									lr, lg, lb);
-
-								buf[n + order[0]] = uint8_t(std::clamp(uint32_t(lr+uint16_t(lw)), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[1]] = uint8_t(std::clamp(uint32_t(lg+uint16_t(lw)), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[2]] = uint8_t(std::clamp(uint32_t(lb+uint16_t(lw)), uint32_t(0), uint32_t(limit_8bit)));
-							}
-						} break;
-						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[0]);
-							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-								uint8_t sr = uint8_t(data[c + 0]);
-								uint8_t sg = uint8_t(data[c + 1]);
-								uint8_t sb = uint8_t(data[c + 2]); 
-								uint8_t lw = uint8_t(data[c + 3]);
-
-								uint16_t lr = 0;
-								uint16_t lg = 0;
-								uint16_t lb = 0;
-	
-								converter.sRGB8toLEDPWM(
-									sr, sg, sb, 255,
-									lr, lg, lb);
-
-								buf[n + order[0]] = uint8_t(std::clamp(uint32_t(lr), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[1]] = uint8_t(std::clamp(uint32_t(lg), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[2]] = uint8_t(std::clamp(uint32_t(lb), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[3]] = uint8_t(std::clamp(uint32_t(lw), uint32_t(0), uint32_t(limit_8bit)));
-							}
-						} break;
-					}
-            	} break;
+            const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size(); 
+            size_t left = len;
+            for (size_t c = 0; c <= ((len - 1) / input_pad); c++) {
+                size_t block = std::min(left, input_pad);
+                setUniverseData(c, data, block, input_type);
+                left -= block;
             }
         };
 
@@ -407,7 +247,6 @@ namespace lightkraken {
                 transfer(order);
             } break;
         }
-
     }
     
     void Strip::setUniverseData(size_t uniN, const uint8_t *data, size_t len, InputType input_type) {
@@ -423,9 +262,10 @@ namespace lightkraken {
         
         auto transfer = [=] (const std::vector<int> &order) {
             const uint32_t limit_8bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 255.f);
+            const uint32_t limit_16bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 65535.f);
 			const size_t input_size = getBytesPerInputPixel(input_type);
 			const size_t pixel_pad = std::min(input_size, order.size());
-			const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size();
+			const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size(); 
             switch (input_type) {
             	default:
             	case INPUT_dRGB8: {
@@ -433,7 +273,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d++) {
 									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d]));
@@ -441,7 +281,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint32_t r = std::min(limit_8bit, uint32_t(data[c + 0]));
 								uint32_t g = std::min(limit_8bit, uint32_t(data[c + 1]));
@@ -460,7 +300,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint32_t r = uint32_t(data[c + 0]);
 								uint32_t g = uint32_t(data[c + 1]);
@@ -472,7 +312,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d++) {
 									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d]));
@@ -486,7 +326,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = data[c + 0];
 								uint8_t sg = data[c + 1];
@@ -510,7 +350,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = data[c + 0];
 								uint8_t sg = data[c + 1];
@@ -537,6 +377,58 @@ namespace lightkraken {
 								buf[n + order[3]] = lm;
 							}
 						} break;
+						case NATIVE_D8R16D8G16D8B16: {
+							DitherPixel *buf = reinterpret_cast<DitherPixel *>(&comp_buf[input_pad * uniN * sizeof(DitherPixel)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint8_t sr = data[c + 0];
+								uint8_t sg = data[c + 1];
+								uint8_t sb = data[c + 2];
+
+								uint16_t lr = 0;
+								uint16_t lg = 0;
+								uint16_t lb = 0;
+	
+								converter.sRGB8toLEDPWM(
+									sr, sg, sb, 65535,
+									lr, lg, lb);
+
+								lr = std::min(uint16_t(limit_16bit), lr);
+								lg = std::min(uint16_t(limit_16bit), lg);
+								lb = std::min(uint16_t(limit_16bit), lb);
+
+								buf[n + order[0]].value = lr;
+								buf[n + order[1]].value = lg;
+								buf[n + order[2]].value = lb;
+							}
+						} break;
+						case NATIVE_D8R16D8G16D8B16D8W16: {
+							DitherPixel *buf = reinterpret_cast<DitherPixel *>(&comp_buf[input_pad * uniN * sizeof(DitherPixel)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint8_t sr = data[c + 0];
+								uint8_t sg = data[c + 1];
+								uint8_t sb = data[c + 2];
+
+								uint16_t lr = 0;
+								uint16_t lg = 0;
+								uint16_t lb = 0;
+	
+								converter.sRGB8toLEDPWM(
+									sr, sg, sb, 65535,
+									lr, lg, lb);
+
+								uint16_t lm = std::min(lr, std::min(lg, lb));
+
+								lr = std::min(uint16_t(limit_16bit), lr);
+								lg = std::min(uint16_t(limit_16bit), lg);
+								lb = std::min(uint16_t(limit_16bit), lb);
+								lm = std::min(uint16_t(limit_16bit), lm);
+
+								buf[n + order[0]].value = lr - lm;
+								buf[n + order[1]].value = lg - lm;
+								buf[n + order[2]].value = lb - lm;
+								buf[n + order[3]].value = lm;
+							}
+						} break;
 					}
             	} break;
             	case INPUT_sRGBW8: {
@@ -544,7 +436,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = uint8_t(data[c + 0]);
 								uint8_t sg = uint8_t(data[c + 1]);
@@ -565,7 +457,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = uint8_t(data[c + 0]);
 								uint8_t sg = uint8_t(data[c + 1]);
@@ -584,6 +476,49 @@ namespace lightkraken {
 								buf[n + order[1]] = uint8_t(std::clamp(uint32_t(lg), uint32_t(0), uint32_t(limit_8bit)));
 								buf[n + order[2]] = uint8_t(std::clamp(uint32_t(lb), uint32_t(0), uint32_t(limit_8bit)));
 								buf[n + order[3]] = uint8_t(std::clamp(uint32_t(lw), uint32_t(0), uint32_t(limit_8bit)));
+							}
+						} break;
+						case NATIVE_D8R16D8G16D8B16: {
+							DitherPixel *buf = reinterpret_cast<DitherPixel *>(&comp_buf[input_pad * uniN * sizeof(DitherPixel)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint8_t sr = uint8_t(data[c + 0]);
+								uint8_t sg = uint8_t(data[c + 1]);
+								uint8_t sb = uint8_t(data[c + 2]); 
+								uint8_t lw = uint8_t(data[c + 3]);
+
+								uint16_t lr = 0;
+								uint16_t lg = 0;
+								uint16_t lb = 0;
+	
+								converter.sRGB8toLEDPWM(
+									sr, sg, sb, 65535,
+									lr, lg, lb);
+
+								buf[n + order[0]].value = uint8_t(std::clamp(uint32_t(lr+uint16_t(lw)), uint32_t(0), uint32_t(limit_16bit)));
+								buf[n + order[1]].value = uint8_t(std::clamp(uint32_t(lg+uint16_t(lw)), uint32_t(0), uint32_t(limit_16bit)));
+								buf[n + order[2]].value = uint8_t(std::clamp(uint32_t(lb+uint16_t(lw)), uint32_t(0), uint32_t(limit_16bit)));
+							}
+						} break;
+						case NATIVE_D8R16D8G16D8B16D8W16: {
+							DitherPixel *buf = reinterpret_cast<DitherPixel *>(&comp_buf[input_pad * uniN * sizeof(DitherPixel)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint8_t sr = uint8_t(data[c + 0]);
+								uint8_t sg = uint8_t(data[c + 1]);
+								uint8_t sb = uint8_t(data[c + 2]); 
+								uint8_t lw = uint8_t(data[c + 3]);
+
+								uint16_t lr = 0;
+								uint16_t lg = 0;
+								uint16_t lb = 0;
+	
+								converter.sRGB8toLEDPWM(
+									sr, sg, sb, 65535,
+									lr, lg, lb);
+
+								buf[n + order[0]].value = uint8_t(std::clamp(uint32_t(lr), uint32_t(0), uint32_t(limit_16bit)));
+								buf[n + order[1]].value = uint8_t(std::clamp(uint32_t(lg), uint32_t(0), uint32_t(limit_16bit)));
+								buf[n + order[2]].value = uint8_t(std::clamp(uint32_t(lb), uint32_t(0), uint32_t(limit_16bit)));
+								buf[n + order[3]].value = uint8_t(std::clamp(uint32_t(lw), uint32_t(0), uint32_t(limit_16bit)));
 							}
 						} break;
 					}
