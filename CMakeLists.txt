@@ -108,6 +108,7 @@ if(BOOTLOADER)
 else(BOOTLOADER)
 	set(main_SRCS
 		main.cpp 
+		as73211.cpp 
 		sacn.cpp 
 		random.cpp 
 		color.cpp 
