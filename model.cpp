@@ -138,6 +138,8 @@ void Model::defaults() {
 
     burst_mode = true;
 
+	test_pattern = TEST_PATTERN_SOLID;
+
     int32_t artnetcounter = 0;
     int32_t e131counter = 1;
     memset(strip_config, 0, sizeof(strip_config));
