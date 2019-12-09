@@ -121,9 +121,6 @@ public:
     TestPattern testPattern() const { return test_pattern; };
     void setTestPattern(TestPattern pattern) { test_pattern = pattern; };
     
-    bool testMode() const { return test_mode; }
-    void setTestMode(bool state) { test_mode = state; }
-
     StripConfig &stripConfig(size_t index) { return strip_config[index]; }
     AnalogConfig &analogConfig(size_t index) { return analog_config[index]; }
 
@@ -170,7 +167,6 @@ private:
     AnalogConfig analog_config[analogN];
     
     TestPattern test_pattern;
-    bool test_mode;
     
     char tag_str[256];
 
