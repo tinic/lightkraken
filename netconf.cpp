@@ -220,7 +220,7 @@ void NetConf::update() {
 #endif  // #ifndef BOOTLOADER
 
 #if LWIP_DHCP
-    const int32_t MAX_DHCP_TRIES = 4;
+    const int32_t MAX_DHCP_TRIES = 20;
 
     if ((localtime - dhcp_fine_timer >= DHCP_FINE_TIMER_MSECS) 
 #ifndef BOOTLOADER

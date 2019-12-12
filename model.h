@@ -74,6 +74,13 @@ public:
         uint16_t artnet[universeN];
         uint16_t e131[universeN];
     };
+    
+    enum TestPattern {
+    	TEST_PATTERN_SOLID,
+    	TEST_PATTERN_TRACER,
+    	TEST_PATTERN_SOLID_TRACER,
+    	TEST_PATTERN_RAINBOW,
+    };
 
     enum OutputMode {
         MODE_MAIN_LOOP,
@@ -110,7 +117,10 @@ public:
     ip_addr_t *ip4Address() { return &ip4_address; }
     ip_addr_t *ip4Netmask() { return &ip4_netmask; }
     ip_addr_t *ip4Gateway() { return &ip4_gateway; }
-
+    
+    TestPattern testPattern() const { return test_pattern; };
+    void setTestPattern(TestPattern pattern) { test_pattern = pattern; };
+    
     StripConfig &stripConfig(size_t index) { return strip_config[index]; }
     AnalogConfig &analogConfig(size_t index) { return analog_config[index]; }
 
@@ -155,6 +165,8 @@ private:
     
     StripConfig strip_config[stripN];
     AnalogConfig analog_config[analogN];
+    
+    TestPattern test_pattern;
     
     char tag_str[256];
 

@@ -29,8 +29,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace lightkraken {
 
-
-
 //#define TEST_SRGB_IDENTITY
 
 struct RGBColorSpace {
@@ -165,6 +163,8 @@ private:
 
 };
 
+class rgb;
+
 class rgb8 {
 public:
 
@@ -191,6 +191,12 @@ public:
         b(_b),
         x(_x) {
     }
+
+    explicit rgb8(const rgb &from);
+    
+    uint8_t red() const  { return r; }
+    uint8_t green() const  { return g; }
+    uint8_t blue() const  { return b; }
     
     bool operator==(const rgb8 &c) const {
         return rgbx == c.rgbx;
@@ -202,6 +208,180 @@ public:
     
 private:
 
+	uint8_t sat8(const float v) const {
+		return v < 0.0f ? uint8_t(0) : ( v > 1.0f ? uint8_t(0xFF) : uint8_t( v * 255.f ) );
+	}
+
+};
+
+class hsv;
+
+class rgb {
+public:
+	float r;
+	float g;
+	float b;
+
+	rgb() :
+		r(0.0f),
+		g(0.0f),
+		b(0.0f){
+	}
+
+	rgb(const rgb &from) :
+		r(from.r),
+		g(from.g),
+		b(from.b) {
+	}
+
+	explicit rgb(const uint32_t color) {
+        r = static_cast<float>((color>>16)&0xFF) * (1.0f/255.0f);
+        g = static_cast<float>((color>> 8)&0xFF) * (1.0f/255.0f);
+        b = static_cast<float>((color>> 0)&0xFF) * (1.0f/255.0f);
+	}
+	
+	explicit rgb(const rgb8 &from) {
+        r = static_cast<float>(from.r) * (1.0f/255.0f);
+        g = static_cast<float>(from.g) * (1.0f/255.0f);
+        b = static_cast<float>(from.b) * (1.0f/255.0f);
+    }
+
+	explicit rgb(const hsv &from);
+
+	rgb(float _r, float _g, float _b) :
+		r(_r),
+		g(_g),
+		b(_b) {
+	}
+
+	void set(float _r, float _g, float _b) {
+		r = _r;
+		g = _g;
+		b = _b;
+	}
+
+	rgb &operator+=(const rgb &v) {
+		r += v.r;
+		g += v.g;
+		b += v.b;
+		return *this;
+	}
+
+	friend rgb operator+(rgb a, const rgb &_b) {
+		a += _b;
+		return a;
+	}
+
+	rgb &operator-=(const rgb &v) {
+		r -= v.r;
+		g -= v.g;
+		b -= v.b;
+		return *this;
+	}
+
+	friend rgb operator-(rgb a, const rgb &_b) {
+		a -= _b;
+		return a;
+	}
+
+	rgb &operator*=(const rgb &v) {
+		r *= v.r;
+		g *= v.g;
+		b *= v.b;
+		return *this;
+	}
+
+	friend rgb operator*(rgb a, const rgb &_b) {
+		a *= _b;
+		return a;
+	}
+
+	rgb &operator*=(float v) {
+		r *= v;
+		g *= v;
+		b *= v;
+		return *this;
+	}
+
+	friend rgb operator*(rgb a, float v) {
+		a *= v;
+		return a;
+	}
+
+	rgb &operator/=(const rgb &v) {
+		r /= v.r;
+		g /= v.g;
+		b /= v.b;
+		return *this;
+	}
+
+	friend rgb operator/(rgb a, const rgb &_b) {
+		a /= _b;
+		return a;
+	}
+
+	rgb &operator/=(float v) {
+		r /= v;
+		g /= v;
+		b /= v;
+		return *this;
+	}
+
+	friend rgb operator/(rgb a, float v) {
+		a /= v;
+		return a;
+	}
+
+private:
+};
+
+class hsv {
+public:
+	float h;
+	float s;
+	float v;
+
+	hsv() :
+		h(0.0f),
+		s(0.0f),
+		v(0.0f) {
+	}
+
+	hsv(float _h, float _s, float _v) :
+		h(_h),
+		s(_s),
+		v(_v) {
+	}
+
+	hsv(const hsv &from) :
+		h(from.h),
+		s(from.s),
+		v(from.v) {
+	}
+
+	explicit hsv(const rgb &from) {
+		float hi = std::max(std::max(from.r, from.g), from.b);
+		float lo = std::min(std::max(from.r, from.g), from.b);
+		float d = hi - lo;
+
+		h = 0.0f;
+		s = 0.0f;
+		v = hi;
+
+		if ( ( v > 0.00001f ) &&
+			 ( d > 0.00001f ) ) {
+			s = d / v;
+			if( hi == from.r ) {
+				h = (60.0f/360.0f) * (from.g - from.b) / d + (from.g < from.b ? 1.0f : 0.0f);
+			}
+			if( hi == from.g ) {
+				h = (60.0f/360.0f) * (from.b - from.r) / d + (120.0f/360.0f);
+			}
+			if( hi == from.b ) {
+				h = (60.0f/360.0f) * (from.r - from.g) / d + (240.0f/360.0f);
+			}
+		}
+	}
 };
 
 }

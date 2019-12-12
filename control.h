@@ -41,8 +41,12 @@ public:
     void syncFromInterrupt(const SPI &spi);
     void update();
 
+    bool testMode() const { return test_mode; }
+    void setTestMode(bool state) { test_mode = state; }
+
     void setEnableSyncMode(bool state) { syncMode = state; }
     bool syncModeEnabled() const { return syncMode; }
+
     void interateAllActiveArtnetUniverses(std::function<void (uint16_t universe)> callback);
     void collectAllActiveArtnetUniverses(std::array<uint16_t, Model::maxUniverses> &universes, size_t &universeCount);
     void collectAllActiveE131Universes(std::array<uint16_t, Model::maxUniverses> &universes, size_t &universeCount);
@@ -50,10 +54,13 @@ public:
     void setDataReceived() { data_received = true; }
     bool dataReceived() const { return data_received; }
     void scheduleColor() { color_scheduled = true; }
+
     void setColor();
-    
+    void testPattern();
+
 private:
 
+    bool test_mode = false;
     bool color_scheduled = false;
     bool data_received = false;
     bool syncMode = false;

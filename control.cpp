@@ -22,6 +22,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 #include "./main.h"
 #include "./control.h"
@@ -337,6 +338,10 @@ void Control::interateAllActiveArtnetUniverses(std::function<void (uint16_t univ
 }
 
 void Control::setArtnetUniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
+	if (testMode()) {
+		return;
+	}
+
     rgbww rgb[Driver::terminalN];
     for (size_t c = 0; c < terminals; c++) {
         rgb[c] = Driver::instance().srgbwwCIE(c);
@@ -402,6 +407,10 @@ void Control::setArtnetUniverseOutputDataForDriver(size_t terminals, size_t comp
 }
 
 void Control::setE131UniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
+	if (testMode()) {
+		return;
+	}
+
     rgbww rgb[Driver::terminalN];
     for (size_t c = 0; c < terminals; c++) {
         rgb[c] = Driver::instance().srgbwwCIE(c);
@@ -468,6 +477,10 @@ void Control::setE131UniverseOutputDataForDriver(size_t terminals, size_t compon
 
 
 void Control::setArtnetUniverseOutputData(uint16_t uni, const uint8_t *data, size_t len, bool nodriver) {
+	if (testMode()) {
+		return;
+	}
+
     PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
     switch(Model::instance().outputConfig()) {
     case Model::OUTPUT_CONFIG_DUAL_STRIP: {
@@ -561,6 +574,10 @@ void Control::setArtnetUniverseOutputData(uint16_t uni, const uint8_t *data, siz
 }
 
 void Control::setE131UniverseOutputData(uint16_t uni, const uint8_t *data, size_t len, bool nodriver) {
+	if (testMode()) {
+		return;
+	}
+
     PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
     switch(Model::instance().outputConfig()) {
     case Model::OUTPUT_CONFIG_DUAL_STRIP: {
@@ -684,6 +701,11 @@ void Control::setColor() {
 
 
 void Control::update() {
+	if (testMode()) {
+		testPattern();
+		sync();
+	}
+
     if (color_scheduled) {
         color_scheduled = false;
         setColor();
@@ -716,9 +738,89 @@ void Control::init() {
     lightkraken::Strip::get(1).dmaBusyFunc = []() {
         return SPI_2::instance().busy();
     };
-
     
     DEBUG_PRINTF(("Control up.\n"));
 }
+
+void Control::testPattern() {
+    PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
+
+	auto effect = [=] (size_t strip) {
+		switch (Model::instance().testPattern()) {
+			case Model::TEST_PATTERN_SOLID: {	
+				setColor();
+			} break;
+			case Model::TEST_PATTERN_RAINBOW: {	
+				uint8_t buf[Strip::bytesMaxLen];
+				float h = fmod( Systick::instance().systemTime() / 10000.f, 1.0f);
+				size_t l = lightkraken::Strip::get(strip).getPixelLen();
+				for (size_t c = 0; c < l; c++) {
+					hsv col_hsv(fmod(h + c * (1.0f / 255.0f), 1.0f), 1.0f, 1.0f);
+					rgb col_rgb(col_hsv);
+					rgb8 col_rgb8(col_rgb);
+					buf[c*3+0] = col_rgb8.red();
+					buf[c*3+1] = col_rgb8.green();
+					buf[c*3+2] = col_rgb8.blue();
+				}
+				lightkraken::Strip::get(strip).setData(buf, l * 3, Strip::INPUT_dRGB8);
+			} break;
+			case Model::TEST_PATTERN_TRACER: {	
+				uint8_t buf[Strip::bytesMaxLen];
+				float h = fmod( Systick::instance().systemTime() / 10000.f, 1.0f);
+				size_t l = lightkraken::Strip::get(strip).getPixelLen();
+				for (size_t c = 0; c < l; c++) {
+					size_t i = size_t(l * fmod(h + c / float(l), 1.0f));
+					if (i == 0) {
+						buf[c*3+0] = 0xFF;
+						buf[c*3+1] = 0xFF;
+						buf[c*3+2] = 0xFF;
+					} else {
+						buf[c*3+0] = 0x00;
+						buf[c*3+1] = 0x00;
+						buf[c*3+2] = 0x00;
+					}
+				}
+				lightkraken::Strip::get(strip).setData(buf, l * 3, Strip::INPUT_dRGB8);
+			} break;
+			case Model::TEST_PATTERN_SOLID_TRACER: {	
+				uint8_t buf[Strip::bytesMaxLen];
+				float h = fmod( Systick::instance().systemTime() / 10000.f, 1.0f);
+				size_t l = lightkraken::Strip::get(strip).getPixelLen();
+				for (size_t c = 0; c < l; c++) {
+					size_t i = size_t(l * fmod(h + c / float(l), 1.0f));
+					if (c <= i) {
+						buf[c*3+0] = 0xFF;
+						buf[c*3+1] = 0xFF;
+						buf[c*3+2] = 0xFF;
+					} else {
+						buf[c*3+0] = 0x00;
+						buf[c*3+1] = 0x00;
+						buf[c*3+2] = 0x00;
+					}
+				}
+				lightkraken::Strip::get(strip).setData(buf, l * 3, Strip::INPUT_dRGB8);
+			} break;
+		}
+	};
+
+    switch(Model::instance().outputConfig()) {
+    case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP:
+    case Model::OUTPUT_CONFIG_DUAL_STRIP: {
+        for (size_t c = 0; c < Model::stripN; c++) {
+        	effect(c);
+        }
+	} break;
+    case Model::OUTPUT_CONFIG_RGB_STRIP:
+    case Model::OUTPUT_CONFIG_RGBW_STRIP: {
+        for (size_t c = 1; c < Model::stripN; c++) {
+        	effect(c);
+        }
+	} break;
+	default: {
+	} break;
+	} 
+}
+
+
 
 }  // namespace lightkraken {

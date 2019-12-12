@@ -33,7 +33,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace lightkraken {
     
-
 void CIETransferfromsRGBTransferLookup::init() {
     for (size_t c = 0; c<256; c++) {
         float f = float(c) * (1.0f / 255.0f);
@@ -207,6 +206,35 @@ void ColorSpaceConverter::generateRGBMatrix(
     rgb2xyz[6] = Sr*Zr; rgb2xyz[7] = Sg*Zg; rgb2xyz[8] = Sb*Zb;
 
     invertMatrix(xyz2rgb, rgb2xyz);
+}
+
+rgb::rgb(const hsv &from) {
+	float v = from.v;
+	float h = from.h;
+	float s = from.s;
+
+	int32_t rd = static_cast<int32_t>( 6.0f * h );
+	float f = h * 6.0f - rd;
+	float p = v * (1.0f - s);
+	float q = v * (1.0f - f * s);
+	float t = v * (1.0f - (1.0f - f) * s);
+
+	switch ( rd  % 6 ) {
+		default:
+		case 0: r = v; g = t; b = p; break;
+		case 1: r = q; g = v; b = p; break;
+		case 2: r = p; g = v; b = t; break;
+		case 3: r = p; g = q; b = v; break;
+		case 4: r = t; g = p; b = v; break;
+		case 5: r = v; g = p; b = q; break;
+	}
+}
+
+rgb8::rgb8(const rgb &from) {
+	r = sat8(from.r);
+	g = sat8(from.g);
+	b = sat8(from.b);
+	x = 0;
 }
 
 }

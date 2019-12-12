@@ -44,6 +44,7 @@ extern "C" {
 #include "./perf.h"
 #include "./sacn.h"
 #include "./strip.h"
+#include "./control.h"
 
 const int32_t build_number = 
 #include "./build_number.h"
@@ -713,6 +714,8 @@ public:
         MethodPostBootLoader,
         MethodPostResetConfig,
         MethodPostReset,
+        MethodPostTestMode,
+        MethodDeleteTestMode,
     };
 
     constexpr static size_t maxConnections = MEMP_NUM_TCP_PCB;
@@ -813,6 +816,9 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
             } else if (strcmp(url, "/resetconfig") == 0) {
                 info->method = ConnectionManager::MethodPostResetConfig;
                 return ERR_OK;
+            } else if (strcmp(url, "/testmode") == 0) {
+                info->method = ConnectionManager::MethodPostTestMode;
+                return ERR_OK;
             }
         } break;
         case REST_METHOD_PUT: {
@@ -820,6 +826,10 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
         case REST_METHOD_PATCH: {
         } break;
         case REST_METHOD_DELETE: {
+            if (strcmp(url, "/testmode") == 0) {
+                info->method = ConnectionManager::MethodDeleteTestMode;
+                return ERR_OK;
+            }
         } break;
         case REST_METHOD_NONE: {
         } break;
@@ -840,6 +850,8 @@ err_t httpd_rest_receive_data(void *handle, struct pbuf *p) {
         } break;
         default:
         case ConnectionManager::MethodNone:
+        case ConnectionManager::MethodPostTestMode:
+        case ConnectionManager::MethodDeleteTestMode:
         case ConnectionManager::MethodPostReset:
         case ConnectionManager::MethodPostResetConfig:
         case ConnectionManager::MethodPostBootLoader:
@@ -939,6 +951,28 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             *data = response.finish(*dataLen);
 
             ConnectionManager::instance().end(handle);
+            return ERR_OK;
+        } break;
+        case ConnectionManager::MethodPostTestMode: {
+            ConnectionManager::instance().end(handle);
+
+            Control::instance().setTestMode(true);
+
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+            response.beginOKResponse();
+            *data = response.finish(*dataLen);
+
+            return ERR_OK;
+        } break;
+        case ConnectionManager::MethodDeleteTestMode: {
+            ConnectionManager::instance().end(handle);
+            
+            Control::instance().setTestMode(false);
+
+            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
+            response.beginOKResponse();
+            *data = response.finish(*dataLen);
+
             return ERR_OK;
         } break;
         case ConnectionManager::MethodNone: {
