@@ -157,7 +157,7 @@ void Driver::setPulse(size_t idx, uint16_t pulse) {
 void Driver::init() {
 
     RGBColorSpace rgbSpace;
-    rgbSpace.setCreeLED();
+    rgbSpace.setsRGB();
     for (size_t c = 0; c < terminalN; c++) {
         colorConverter[c].setRGBColorSpace(rgbSpace);
     }

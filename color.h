@@ -42,20 +42,6 @@ struct RGBColorSpace {
         xb = 0.15000f; yb = 0.06000f;
     }
 
-    void setWorldSemiLED() {
-        xw = 0.31271f; yw = 0.32902f; // D65 white point
-        xr = 0.68930f; yr = 0.30740f; // from world-semi.com
-        xg = 0.13940f; yg = 0.72140f;
-        xb = 0.13180f; yb = 0.07200f;
-    }
-
-    void setCreeLED() {
-        xw = 0.35000f; yw = 0.33000f; // D65 white point
-        xr = 0.67630f; yr = 0.32370f; // from http://ww1.microchip.com/downloads/en/AppNotes/00001562B.pdf
-        xg = 0.20880f; yg = 0.74070f;
-        xb = 0.14050f; yb = 0.03910f;
-    }
-
     float xw; float yw;
     float xr; float yr;
     float xg; float yg;
