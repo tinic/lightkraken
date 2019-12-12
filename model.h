@@ -37,7 +37,7 @@ private:
     uint32_t model_version;
 
 public:
-    static constexpr uint32_t currentModelVersion = 0x1ed50007;
+    static constexpr uint32_t currentModelVersion = 0x1ed50008;
 
     static constexpr size_t stripN = 2;
     static constexpr size_t analogN = 2;

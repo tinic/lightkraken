@@ -138,7 +138,7 @@ void Model::defaults() {
 
     burst_mode = true;
 
-	test_pattern = TEST_PATTERN_SOLID;
+	test_pattern = TEST_PATTERN_RAINBOW;
 
     int32_t artnetcounter = 0;
     int32_t e131counter = 1;
@@ -175,7 +175,6 @@ void Model::defaults() {
 }
 
 void Model::apply() {
-
 
     for (size_t c = 0; c < stripN; c++) {
     strip_config[c].rgbSpace.setsRGB();

@@ -704,9 +704,7 @@ void Control::update() {
 	if (testMode()) {
 		testPattern();
 		sync();
-	}
-
-    if (color_scheduled) {
+	} else if (color_scheduled) {
         color_scheduled = false;
         setColor();
         for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
@@ -752,7 +750,7 @@ void Control::testPattern() {
 			} break;
 			case Model::TEST_PATTERN_RAINBOW: {	
 				uint8_t buf[Strip::bytesMaxLen];
-				float h = fmod( Systick::instance().systemTime() / 10000.f, 1.0f);
+				float h = 1.0f - fmod( Systick::instance().systemTime() / 10000.f, 1.0f);
 				size_t l = lightkraken::Strip::get(strip).getPixelLen();
 				for (size_t c = 0; c < l; c++) {
 					hsv col_hsv(fmod(h + c * (1.0f / 255.0f), 1.0f), 1.0f, 1.0f);
@@ -766,10 +764,10 @@ void Control::testPattern() {
 			} break;
 			case Model::TEST_PATTERN_TRACER: {	
 				uint8_t buf[Strip::bytesMaxLen];
-				float h = fmod( Systick::instance().systemTime() / 10000.f, 1.0f);
+				float h = 1.0f - fmod( Systick::instance().systemTime() / 5000.f, 1.0f);
 				size_t l = lightkraken::Strip::get(strip).getPixelLen();
 				for (size_t c = 0; c < l; c++) {
-					size_t i = size_t(l * fmod(h + c / float(l), 1.0f));
+					size_t i = std::clamp(size_t(l * fmod(h + (c / float(l)), 1.0f)), size_t(0), l);
 					if (i == 0) {
 						buf[c*3+0] = 0xFF;
 						buf[c*3+1] = 0xFF;
@@ -784,11 +782,11 @@ void Control::testPattern() {
 			} break;
 			case Model::TEST_PATTERN_SOLID_TRACER: {	
 				uint8_t buf[Strip::bytesMaxLen];
-				float h = fmod( Systick::instance().systemTime() / 10000.f, 1.0f);
-				size_t l = lightkraken::Strip::get(strip).getPixelLen();
+				float h = 1.0f - fmod( Systick::instance().systemTime() / 5000.f, 1.0f);
+				size_t l = lightkraken::Strip::get(strip).getPixelLen() + 1;
 				for (size_t c = 0; c < l; c++) {
-					size_t i = size_t(l * fmod(h + c / float(l), 1.0f));
-					if (c <= i) {
+					size_t i = std::clamp(size_t(l * fmod(h + (c / float(l)), 1.0f)), size_t(0), l);
+					if (c < i) {
 						buf[c*3+0] = 0xFF;
 						buf[c*3+1] = 0xFF;
 						buf[c*3+2] = 0xFF;
