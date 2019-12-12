@@ -20,6 +20,10 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 cmake_minimum_required(VERSION 3.10)
 
+if(NOT BOOTLOADER AND NOT BOOTLOADED)
+	message(FATAL_ERROR "You must set either BOOTLOADER or BOOTLOADED. See build_release_all.sh for a valid cmake setup.")
+endif()
+
 # Boot loader
 if(BOOTLOADER)
 	set(PRJ_NAME bootloader)
