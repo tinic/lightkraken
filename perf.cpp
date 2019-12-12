@@ -48,6 +48,8 @@ PerfMeasure::~PerfMeasure() {
 }
 
 void PerfMeasure::print() {
+    (void)slotNames;
+#if 0
     static int32_t counter = 0;
     printf("== %04d ===============\n", int(counter++));
     for (int32_t c = 0; c < SLOT_COUNT ; c++) {
@@ -58,6 +60,7 @@ void PerfMeasure::print() {
         uint64_t count = slots[c].count;
         printf("%s: last(%012d) avg(%012d) min(%012d) max(%012d) count(%012d)\n", slotNames[c], int(last_time), int(avg_time), int(min_time), int(max_time), int(count));
     }
+#endif  // #if 0
 }
 
 }

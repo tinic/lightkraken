@@ -208,10 +208,12 @@ namespace lightkraken {
 			const size_t input_size = getBytesPerInputPixel(input_type);
             const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size(); 
             size_t left = len;
+            const uint8_t *ptr = data;
             for (size_t c = 0; c <= ((len - 1) / input_pad); c++) {
                 size_t block = std::min(left, input_pad);
-                setUniverseData(c, data, block, input_type);
+                setUniverseData(c, ptr, block, input_type);
                 left -= block;
+                ptr += block;
             }
         };
 
