@@ -4,6 +4,18 @@
     "version": "2.0.0",
     "tasks": [
       {
+        "label": "Lightkraken: Install Bootloader",
+        "type": "shell",
+        "command": "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program lightkraken_bootloader.bin 0x08000000 verify reset exit'",
+        "options": {
+          "cwd": "${workspaceRoot}/build"
+        },
+        "dependsOn": [
+          "Lightkraken: Build Bootloader"
+        ],
+        "problemMatcher": []
+      },
+      {
         "label": "Lightkraken: Install",
         "type": "shell",
         "command": "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program lightkraken_bootloaded.bin 0x08008000 verify reset exit'",
@@ -25,6 +37,39 @@
         "problemMatcher": [
           "$gcc"
         ]
+      },
+      {
+        "label": "Lightkraken: Pre-Build Bootloader",
+        "type": "shell",
+        "command": "cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE='../arm-gcc-toolchain.cmake' -DCMAKE_BUILD_TYPE=Release -DBOOTLOADER=1 ./..",
+        "options": {
+          "cwd": "${workspaceRoot}/build",
+          "INCLUDE": "${config:arm-none-eabi.include}",
+          "LIB": "${config:arm-none-eabi.lib}"
+        },
+        "osx": {
+          "options": {
+            "env": {
+              "PATH": "${config:arm-none-eabi.bin}:${env:PATH}"
+            }
+          }
+        },
+        "linux": {
+          "options": {
+            "env": {
+              "PATH": "${config:arm-none-eabi.bin}:${env:PATH}"
+            }
+          }
+        },
+        "windows": {
+          "options": {
+            "env": {
+              "PATH": "${config:arm-none-eabi.bin};${env:PATH}"
+            }
+          }
+        },
+        "group": "build",
+        "problemMatcher": "$gcc"
       },
       {
         "label": "Lightkraken: Pre-Build",
@@ -58,6 +103,45 @@
         },
         "group": "build",
         "problemMatcher": "$gcc"
+      },
+      {
+        "label": "Lightkraken: Build Bootloader",
+        "type": "shell",
+        "command": "ninja",
+        "dependsOn": [
+          "Lightkraken: Pre-Build Bootloader"
+        ],
+        "options": {
+          "cwd": "${workspaceRoot}/build"
+        },
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "osx": {
+          "options": {
+            "env": {
+              "PATH": "${config:arm-none-eabi.bin}:${env:PATH}"
+            }
+          }
+        },
+        "linux": {
+          "options": {
+            "env": {
+              "PATH": "${config:arm-none-eabi.bin}:${env:PATH}"
+            }
+          }
+        },
+        "windows": {
+          "options": {
+            "env": {
+              "PATH": "${config:arm-none-eabi.bin};${env:PATH}"
+            }
+          }
+        },
+        "problemMatcher": [
+          "$gcc"
+        ]
       },
       {
         "label": "Lightkraken: Build",
