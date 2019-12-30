@@ -30,7 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./color.h"
 #include "./perf.h"
 
-namespace lightkraken {
+namespace lightkraken { 
 
     static ColorSpaceConverter converter;
 
@@ -241,7 +241,7 @@ namespace lightkraken {
                 transfer(order);
             } break;
             case SK6812_RGBW: {
-				const std::vector<int> order = { 0, 1, 2, 3 };
+				const std::vector<int> order = { 1, 0, 2, 3 };
                 transfer(order);
             } break;
             case LPD8806_RGB: {
@@ -542,7 +542,7 @@ namespace lightkraken {
                 transfer(order);
             } break;
             case APA107_RGB:
-            case APA102_RGB:
+            case APA102_RGB: 
             case TM1829_RGB: {
                 const std::vector<int> order = { 2, 1, 0 };
                 transfer(order);
@@ -552,7 +552,7 @@ namespace lightkraken {
                 transfer(order);
             } break;
             case SK6812_RGBW: {
-				const std::vector<int> order = { 0, 1, 2, 3 };
+				const std::vector<int> order = { 1, 0, 2, 3 };
 				transfer(order);
             } break;
             case LPD8806_RGB: {

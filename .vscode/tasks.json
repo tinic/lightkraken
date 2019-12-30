@@ -4,48 +4,11 @@
     "version": "2.0.0",
     "tasks": [
       {
-        "label": "Lightkraken: Install Everything",
-        "type": "shell",
-        "command": "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program lightkraken_bootloaded.bin 0x08008000 verify reset exit'",
-        "options": {
-          "cwd": "${workspaceRoot}/build"
-        },
-        "dependsOn": [
-          "Lightkraken: Install Everything 1",
-        ],
-        "problemMatcher": []
-      },
-      {
-        "label": "Lightkraken: Install Everything 1",
-        "type": "shell",
-        "command": "timeout 1",
-        "options": {
-          "cwd": "${workspaceRoot}/build"
-        },
-        "dependsOn": [
-          "Lightkraken: Install Everything 2",
-        ],
-        "problemMatcher": []
-      },
-      {
-        "label": "Lightkraken: Install Everything 2",
-        "type": "shell",
-        "command": "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program lightkraken_bootloader.bin 0x08000000 verify reset exit'",
-        "options": {
-          "cwd": "${workspaceRoot}/build"
-        },
-        "dependsOn": [
-          "Lightkraken: Build Bootloader",
-          "Lightkraken: Build"
-        ],
-        "problemMatcher": []
-      },
-      {
         "label": "Lightkraken: Install Bootloader",
         "type": "shell",
         "command": "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program lightkraken_bootloader.bin 0x08000000 verify reset exit'",
         "options": {
-          "cwd": "${workspaceRoot}/build"
+          "cwd": "${workspaceRoot}/build_bootloader"
         },
         "dependsOn": [
           "Lightkraken: Build Bootloader"
@@ -53,23 +16,34 @@
         "problemMatcher": []
       },
       {
-        "label": "Lightkraken: Install",
+        "label": "Lightkraken: Install Firmware",
         "type": "shell",
         "command": "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program lightkraken_bootloaded.bin 0x08008000 verify reset exit'",
         "options": {
-          "cwd": "${workspaceRoot}/build"
+          "cwd": "${workspaceRoot}/build_bootloaded"
         },
         "dependsOn": [
-          "Lightkraken: Build"
+          "Lightkraken: Build Firmware"
         ],
         "problemMatcher": []
       },
       {
-        "label": "Lightkraken: Clean",
+        "label": "Lightkraken: Clean Firmware",
         "type": "shell",
         "command": "ninja clean",
         "options": {
-          "cwd": "${workspaceRoot}/build"
+          "cwd": "${workspaceRoot}/build_bootloaded"
+        },
+        "problemMatcher": [
+          "$gcc"
+        ]
+      },
+      {
+        "label": "Lightkraken: Clean Bootloader",
+        "type": "shell",
+        "command": "ninja clean",
+        "options": {
+          "cwd": "${workspaceRoot}/build_bootloader"
         },
         "problemMatcher": [
           "$gcc"
@@ -78,9 +52,12 @@
       {
         "label": "Lightkraken: Pre-Build Bootloader",
         "type": "shell",
+        "dependsOn": [
+          "Lightkraken: Create Bootloader Build Directory"
+        ],
         "command": "cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE='../arm-gcc-toolchain.cmake' -DCMAKE_BUILD_TYPE=Release -DBOOTLOADER=1 ./..",
         "options": {
-          "cwd": "${workspaceRoot}/build",
+          "cwd": "${workspaceRoot}/build_bootloader",
           "INCLUDE": "${config:arm-none-eabi.include}",
           "LIB": "${config:arm-none-eabi.lib}"
         },
@@ -109,11 +86,14 @@
         "problemMatcher": "$gcc"
       },
       {
-        "label": "Lightkraken: Pre-Build",
+        "label": "Lightkraken: Pre-Build Firmware",
         "type": "shell",
+        "dependsOn": [
+          "Lightkraken: Create Firmware Build Directory"
+        ],
         "command": "cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE='../arm-gcc-toolchain.cmake' -DCMAKE_BUILD_TYPE=Release -DBOOTLOADED=1 ./..",
         "options": {
-          "cwd": "${workspaceRoot}/build",
+          "cwd": "${workspaceRoot}/build_bootloaded",
           "INCLUDE": "${config:arm-none-eabi.include}",
           "LIB": "${config:arm-none-eabi.lib}"
         },
@@ -149,7 +129,7 @@
           "Lightkraken: Pre-Build Bootloader"
         ],
         "options": {
-          "cwd": "${workspaceRoot}/build"
+          "cwd": "${workspaceRoot}/build_bootloader"
         },
         "group": {
           "kind": "build",
@@ -181,14 +161,14 @@
         ]
       },
       {
-        "label": "Lightkraken: Build",
+        "label": "Lightkraken: Build Firmware",
         "type": "shell",
         "command": "ninja",
         "dependsOn": [
-          "Lightkraken: Pre-Build"
+          "Lightkraken: Pre-Build Firmware"
         ],
         "options": {
-          "cwd": "${workspaceRoot}/build"
+          "cwd": "${workspaceRoot}/build_bootloaded"
         },
         "group": {
           "kind": "build",
@@ -218,6 +198,28 @@
         "problemMatcher": [
           "$gcc"
         ]
+      },
+      {
+        "label": "Lightkraken: Create Bootloader Build Directory",
+        "type": "shell",
+        "linux": {
+            "command": "mkdir -p ${workspaceRoot}/build_bootloader"
+        },
+        "windows": {
+            "command": "cmd",
+            "args": ["/C", "if not exist ${workspaceRoot}\\build_bootloader mkdir ${workspaceRoot}\\build_bootloader"]
+        }
+      },
+      {
+        "label": "Lightkraken: Create Firmware Build Directory",
+        "type": "shell",
+        "linux": {
+            "command": "mkdir -p ${workspaceRoot}/build_bootloaded"
+        },
+        "windows": {
+            "command": "cmd",
+            "args": ["/C", "if not exist ${workspaceRoot}\\build_bootloaded mkdir ${workspaceRoot}\\build_bootloaded"]
+        }
       }
     ]
 }
