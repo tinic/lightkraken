@@ -5,7 +5,7 @@
             "type": "cortex-debug",
             "request": "launch",
             "servertype": "openocd",
-            "cwd": "${workspaceRoot}/build",
+            "cwd": "${workspaceRoot}/build_bootloaded",
             "executable": "lightkraken_bootloaded.elf",
             "name": "Debug (OpenOCD)",
             "device": "STM32F107RB",
