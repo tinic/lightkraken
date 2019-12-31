@@ -4,6 +4,17 @@
     "version": "2.0.0",
     "tasks": [
       {
+        "label": "Lightkraken: Install All",
+        "type": "shell",
+        "command": "timeout 1",
+        "dependsOrder": "sequence",
+        "dependsOn": [
+          "Lightkraken: Install Bootloader",
+          "Lightkraken: Install Firmware",
+        ],
+        "problemMatcher": []
+      },
+      {
         "label": "Lightkraken: Install Bootloader",
         "type": "shell",
         "command": "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program lightkraken_bootloader.bin 0x08000000 verify reset exit'",
