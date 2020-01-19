@@ -27,6 +27,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string.h>
 #include <algorithm>
 
+#if __cplusplus < 201703
+#ifndef _LEGACY_CLAMP_
+#define _LEGACY_CLAMP_
+namespace std {
+template<class T>
+constexpr const T& clamp( const T& v, const T& lo, const T& hi )
+{
+    return (v < lo) ? lo : (hi < v) ? hi : v;
+}
+}
+#endif  // #ifndef _LEGACY_CLAMP_
+#endif  // #if __cplusplus < 201703
+
 namespace lightkraken {
 
 //#define TEST_SRGB_IDENTITY
