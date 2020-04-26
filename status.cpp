@@ -85,14 +85,14 @@ void StatusLED::update() {
     pclass = PSE_TYPE_POWER_BAD;
     } else {
     pclass = (PowerClass)(((tph_state)?0x4:0x0)|
-                        ((tpl_state)?0x2:0x0)|
-                        (( bt_state)?0x0:0x1));
+                          ((tpl_state)?0x2:0x0)|
+                          (( bt_state)?0x0:0x1));
     }
     if (power_class != pclass) {
         power_class = pclass;
         switch(power_class) {
         default:
-            setUserLED(0x00, 0x00, 0xff);
+            setUserLED(0x00, 0x00, 0x0f);
             break;
         case PSE_TYPE_3_4_CLASS_0_3:
         case PSE_TYPE_1_2_CLASS_0_3:
