@@ -24,6 +24,7 @@ extern "C" {
 #include "gd32f10x.h"
 }
 
+#include "./main.h"
 #include "./model.h"
 #include "./strip.h"
 #include "./driver.h"
@@ -192,7 +193,7 @@ void Model::apply() {
         col.b = analog_config[c].components[2].value;
         col.w = analog_config[c].components[3].value;
         col.ww = analog_config[c].components[4].value;
-        Driver::instance().setsRGBWWCIE(c, col);
+        Driver::instance().setRGBWW(c, col);
         Driver::instance().setRGBColorSpace(c, analog_config[c].rgbSpace);
         Driver::instance().setPWMLimit(c, analog_config[c].pwm_limit);
     }
@@ -223,7 +224,7 @@ void Model::init() {
 
     defaults();
     readFlash();
-    
+
     Systick::instance().scheduleApply();
 }
 

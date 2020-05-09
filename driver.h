@@ -53,7 +53,7 @@ public:
     static Driver &instance();
 
     const rgbww &srgbwwCIE(size_t terminal) const { terminal %= terminalN; return _srgbww[terminal]; }
-    void setsRGBWWCIE(size_t terminal, const rgbww &rgb);
+    void setRGBWW(size_t terminal, const rgbww &rgb);
 
     void sync(size_t terminal);
     
@@ -69,7 +69,6 @@ private:
     rgbww _srgbww[terminalN];
     float pwm_limit[terminalN];
     ColorSpaceConverter colorConverter[terminalN]; 
-    CIETransferfromsRGBTransferLookup transferLookup;
 };
 
 };

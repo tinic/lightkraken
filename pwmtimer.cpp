@@ -26,6 +26,7 @@ extern "C" {
 #include "gd32f10x.h"
 }
 
+#include "./main.h"
 #include "./pwmtimer.h"
 
 namespace lightkraken {
@@ -248,6 +249,15 @@ void PwmTimer3::init() {
     timer_initpara.repetitioncounter = 0;
     timer_init(TIMER3, &timer_initpara);
 
+    timer_oc_parameter_struct timer_ocintpara;
+    timer_ocintpara.outputstate  = TIMER_CCX_ENABLE;
+    timer_ocintpara.outputnstate = TIMER_CCXN_ENABLE;
+    timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
+    timer_ocintpara.ocnpolarity  = TIMER_OCN_POLARITY_HIGH;
+    timer_ocintpara.ocidlestate  = TIMER_OC_IDLE_STATE_LOW;
+    timer_ocintpara.ocnidlestate = TIMER_OCN_IDLE_STATE_LOW;
+    timer_channel_output_config(TIMER3, TIMER_CH_2, &timer_ocintpara);
+
     timer_break_parameter_struct timer_breakpara;
     timer_breakpara.runoffstate     = TIMER_ROS_STATE_DISABLE;
     timer_breakpara.ideloffstate    = TIMER_IOS_STATE_DISABLE;
@@ -258,20 +268,11 @@ void PwmTimer3::init() {
     timer_breakpara.breakstate      = TIMER_BREAK_DISABLE;
     timer_break_config(TIMER3, &timer_breakpara);
 
-    timer_oc_parameter_struct timer_ocintpara;
-    timer_ocintpara.outputstate  = TIMER_CCX_ENABLE;
-    timer_ocintpara.outputnstate = TIMER_CCXN_ENABLE;
-    timer_ocintpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
-    timer_ocintpara.ocnpolarity  = TIMER_OCN_POLARITY_HIGH;
-    timer_ocintpara.ocidlestate  = TIMER_OC_IDLE_STATE_LOW;
-    timer_ocintpara.ocnidlestate = TIMER_OCN_IDLE_STATE_LOW;
-
-    timer_channel_output_config(TIMER3, TIMER_CH_2, &timer_ocintpara);
     timer_channel_output_fast_config(TIMER3, TIMER_CH_2, TIMER_OC_FAST_ENABLE);
+
     timer_channel_output_pulse_value_config(TIMER3, TIMER_CH_2, 0);
     timer_channel_output_mode_config(TIMER3, TIMER_CH_2, TIMER_OC_MODE_PWM0);
     timer_channel_output_shadow_config(TIMER3, TIMER_CH_2, TIMER_OC_SHADOW_DISABLE);
-    
     timer_master_slave_mode_config(TIMER3, TIMER_MASTER_SLAVE_MODE_DISABLE);
 
     timer_primary_output_config(TIMER3, ENABLE);

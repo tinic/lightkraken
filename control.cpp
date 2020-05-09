@@ -399,7 +399,7 @@ void Control::setArtnetUniverseOutputDataForDriver(size_t terminals, size_t comp
         }
     }
     for (size_t c = 0; c < terminals; c++) {
-        Driver::instance().setsRGBWWCIE(c,rgb[c]);
+        Driver::instance().setRGBWW(c,rgb[c]);
         if (!syncMode) {
             Driver::instance().sync(c);
         }
@@ -468,7 +468,7 @@ void Control::setE131UniverseOutputDataForDriver(size_t terminals, size_t compon
         }
     }
     for (size_t c = 0; c < terminals; c++) {
-        Driver::instance().setsRGBWWCIE(c,rgb[c]);
+        Driver::instance().setRGBWW(c,rgb[c]);
         if (!syncMode) {
             Driver::instance().sync(c);
         }
@@ -707,8 +707,33 @@ void Control::update() {
 	} else if (color_scheduled) {
         color_scheduled = false;
         setColor();
-        for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
-            lightkraken::Strip::get(c).transfer();
+        switch(Model::instance().outputConfig()) {
+        case Model::OUTPUT_CONFIG_DUAL_STRIP: {
+            for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
+                lightkraken::Strip::get(c).transfer();
+            }
+        } break;
+        case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
+            for (size_t c = 0; c < lightkraken::Model::stripN; c++) {
+                lightkraken::Strip::get(c).transfer();
+            }
+        } break;
+        case Model::OUTPUT_CONFIG_RGB_STRIP: {
+            for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
+                lightkraken::Strip::get(c).transfer();
+            }
+        } break;
+        case Model::OUTPUT_CONFIG_RGBW_STRIP: {
+            for (size_t c = 1; c < lightkraken::Model::stripN; c++) {
+                lightkraken::Strip::get(c).transfer();
+            }
+        } break;
+        case Model::OUTPUT_CONFIG_RGB_RGB: {
+        } break;
+        case Model::OUTPUT_CONFIG_RGBWWW: {
+        } break;
+        default: {
+        } break;
         }
     }
 
@@ -716,8 +741,28 @@ void Control::update() {
     lightkraken::SPI_2::instance().setFast(lightkraken::Strip::get(1).needsClock() == false);
     
     if (lightkraken::Model::instance().outputMode() == lightkraken::Model::MODE_MAIN_LOOP) {
-        lightkraken::SPI_2::instance().update();
-        lightkraken::SPI_0::instance().update();
+        switch(Model::instance().outputConfig()) {
+        case Model::OUTPUT_CONFIG_DUAL_STRIP: {
+            lightkraken::SPI_2::instance().update();
+            lightkraken::SPI_0::instance().update();
+        } break;
+        case Model::OUTPUT_CONFIG_RGB_DUAL_STRIP: {
+            lightkraken::SPI_2::instance().update();
+            lightkraken::SPI_0::instance().update();
+        } break;
+        case Model::OUTPUT_CONFIG_RGB_STRIP: {
+            lightkraken::SPI_2::instance().update();
+        } break;
+        case Model::OUTPUT_CONFIG_RGBW_STRIP: {
+            lightkraken::SPI_2::instance().update();
+        } break;
+        case Model::OUTPUT_CONFIG_RGB_RGB: {
+        } break;
+        case Model::OUTPUT_CONFIG_RGBWWW: {
+        } break;
+        default: {
+        } break;
+        }
     }
 }
 

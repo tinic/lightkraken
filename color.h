@@ -61,8 +61,13 @@ struct RGBColorSpace {
 
 class CIETransferfromsRGBTransferLookup {
 public:
-    void init();
+    static CIETransferfromsRGBTransferLookup &instance();
+
     uint16_t lookup[256];
+
+private:
+    void init();
+	bool initialized = false;
 };
 
 class ColorSpaceConverter {

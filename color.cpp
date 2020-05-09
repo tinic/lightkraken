@@ -32,7 +32,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string.h>
 
 namespace lightkraken {
-    
+
+CIETransferfromsRGBTransferLookup &CIETransferfromsRGBTransferLookup::instance() {
+    static CIETransferfromsRGBTransferLookup transfer;
+    if (!transfer.initialized) {
+        transfer.initialized = true;
+        transfer.init();
+    }
+    return transfer;
+}
+
 void CIETransferfromsRGBTransferLookup::init() {
     for (size_t c = 0; c<256; c++) {
         float f = float(c) * (1.0f / 255.0f);
