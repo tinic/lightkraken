@@ -43,8 +43,6 @@ static pFunction Jump_To_Application;
 static uint32_t JumpAddress;
 #endif  // #ifdef BOOTLOADER
 
-sdfdsfsdfsd
-
 int main() {
 
 #ifdef BOOTLOADER
