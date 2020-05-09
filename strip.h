@@ -45,14 +45,22 @@ namespace lightkraken {
     		INPUT_dRGBW8,
     		INPUT_sRGB8,
     		INPUT_sRGBW8,
+
+    		INPUT_dRGB16,
+    		INPUT_dRGBW16,
+    		INPUT_sRGB16,
+    		INPUT_sRGBW16,
+
             INPUT_TYPE_COUNT
     	};
 
     	enum NativeType {
     		NATIVE_RGB8,
     		NATIVE_RGBW8,
-    		NATIVE_D8R16D8G16D8B16,
-    		NATIVE_D8R16D8G16D8B16D8W16
+            
+    		NATIVE_RGB16,
+
+            NATIVE_TYPE_COUNT
     	};
 
         enum OutputType {
@@ -70,6 +78,7 @@ namespace lightkraken {
             LPD8806_RGB,
             TLS3001_RGB, // TODO
             TM1829_RGB,
+            WS2816_RGB,
             OUTPUT_TYPE_COUNT
         };
 
@@ -125,7 +134,6 @@ namespace lightkraken {
         void ws2812_alike_convert(size_t start, size_t end);
         void tls3001_alike_convert(size_t &len);
 
-		bool dither = false;
         bool transfer_flag;
         bool strip_reset = false;
         OutputType output_type = WS2812_RGB;
