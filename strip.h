@@ -129,6 +129,7 @@ namespace lightkraken {
 
         void lpd8806_rgb_alike_convert(size_t start, size_t end);
         void apa102_rgb_alike_convert(size_t start, size_t end);
+        void ws2816_alike_convert(size_t start, size_t end);
         void ws2812_alike_convert(size_t start, size_t end);
         void tls3001_alike_convert(size_t &len);
 
