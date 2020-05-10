@@ -204,6 +204,12 @@ namespace lightkraken {
 			case INPUT_dRGBW8: {
 				return 4;
 			} break;
+			case INPUT_dRGB16: {
+				return 6;
+			} break;
+			case INPUT_dRGBW16: {
+                return 8;
+            }
 		}
 		return 0;
     }
@@ -229,6 +235,7 @@ namespace lightkraken {
             case HDS107S_RGB:
             case P9813_RGB:
             case WS2812_RGB:
+            case WS2816_RGB:
             case SK6812_RGB:
             case TM1804_RGB:
             case GS8208_RGB:
@@ -493,6 +500,75 @@ namespace lightkraken {
 								buf[n + order[0]] = uint8_t(std::clamp(uint32_t(lr+uint16_t(lw)), uint32_t(0), uint32_t(limit_16bit)));
 								buf[n + order[1]] = uint8_t(std::clamp(uint32_t(lg+uint16_t(lw)), uint32_t(0), uint32_t(limit_16bit)));
 								buf[n + order[2]] = uint8_t(std::clamp(uint32_t(lb+uint16_t(lw)), uint32_t(0), uint32_t(limit_16bit)));
+							}
+						} break;
+					}
+            	} break;
+            	case INPUT_dRGB16: {
+					switch (nativeType()) {
+						default: {
+                        } break;
+						case NATIVE_RGB8: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								for (size_t d = 0; d < pixel_pad; d += 2) {
+									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d + 0]));
+								}
+							}
+						} break;
+						case NATIVE_RGBW8: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint32_t r = std::min(limit_8bit, uint32_t(data[c + 0]));
+								uint32_t g = std::min(limit_8bit, uint32_t(data[c + 2]));
+								uint32_t b = std::min(limit_8bit, uint32_t(data[c + 4]));
+								uint32_t m = std::min(r, std::min(g, b));
+								buf[n + order[0]] = r - m;
+								buf[n + order[1]] = g - m;
+								buf[n + order[2]] = b - m;
+								buf[n + order[3]] = m;
+							}
+						} break;
+						case NATIVE_RGB16: {
+							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN * sizeof(uint16_t)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								for (size_t d = 0; d < pixel_pad; d += 2) {
+									buf[n + order[d]] = std::min(limit_16bit, (uint32_t(data[c + d + 0]) << 8) | (uint32_t(data[c + d + 1]) << 0));
+								}
+							}
+						} break;
+					}
+            	} break;
+            	case INPUT_dRGBW16: {
+					switch (nativeType()) {
+						default: {
+                        } break;
+						case NATIVE_RGB8: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint32_t r = uint32_t(data[c + 0]);
+								uint32_t g = uint32_t(data[c + 2]);
+								uint32_t b = uint32_t(data[c + 4]); 
+								uint32_t w = uint32_t(data[c + 6]);
+								buf[n + order[0]] = uint8_t(std::clamp(r+w, uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[1]] = uint8_t(std::clamp(g+w, uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[2]] = uint8_t(std::clamp(b+w, uint32_t(0), uint32_t(limit_8bit)));
+							}
+						} break;
+						case NATIVE_RGBW8: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								for (size_t d = 0; d < pixel_pad; d += 2) {
+									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d + 0]));
+								}
+							}
+						} break;
+						case NATIVE_RGB16: {
+							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN * sizeof(uint16_t)]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								for (size_t d = 0; d < pixel_pad; d += 2) {
+									buf[n + order[d]] = std::min(limit_16bit, (uint32_t(data[c + d + 0]) << 8) | (uint32_t(data[c + d + 1]) << 0));
+								}
 							}
 						} break;
 					}

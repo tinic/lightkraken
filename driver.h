@@ -36,16 +36,24 @@ public:
     enum OutputTypes {
         OUTPUT_TYPE_RGB,
         OUTPUT_TYPE_RGBW,
-        OUTPUT_TYPE_RGBWWW
+        OUTPUT_TYPE_RGBWWW,
+
+        OUTPUT_TYPE_COUNT
     };
 
     enum InputTypes {
-        INPUT_TYPE_dRGB,
-        INPUT_TYPE_dRGBW,
-        INPUT_TYPE_dRGBWWW,
-        INPUT_TYPE_sRGB,
-        INPUT_TYPE_sRGBW,
-        INPUT_TYPE_sRGBWWW,
+        INPUT_TYPE_dRGB8,
+        INPUT_TYPE_dRGBW8,
+        INPUT_TYPE_dRGBWWW8,
+        INPUT_TYPE_sRGB8,
+        INPUT_TYPE_sRGBW8,
+        INPUT_TYPE_sRGBWWW8,
+
+        INPUT_TYPE_dRGB16,
+        INPUT_TYPE_dRGBW16,
+        INPUT_TYPE_dRGBWWW16,
+
+        INPUT_TYPE_COUNT
     };
 
     constexpr static size_t terminalN = 2;

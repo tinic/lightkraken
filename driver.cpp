@@ -59,8 +59,12 @@ void Driver::sync(size_t terminal) {
             return uint16_t(std::min(limit, float(in) * (1.0f / 255.0f)) * (PwmTimer::pwmPeriod));
         };
 
+        auto scale16bit = [=] (uint16_t in) {
+            return uint16_t(std::min(limit, float(in) * (1.0f / 65535.0f)) * (PwmTimer::pwmPeriod));
+        };
+
         switch(input_type) {
-        case INPUT_TYPE_dRGB: {
+        case INPUT_TYPE_dRGB8: {
             switch(output_type) {
             case OUTPUT_TYPE_RGB: {
                 ret.r = scale8bit(rgb.r);
@@ -83,7 +87,7 @@ void Driver::sync(size_t terminal) {
             } break;
             }
         } break;
-        case INPUT_TYPE_dRGBW: {
+        case INPUT_TYPE_dRGBW8: {
             switch(output_type) {
             case OUTPUT_TYPE_RGB: {
                 ret.r = scale8bit(rgb.r + rgb.w);
@@ -108,7 +112,7 @@ void Driver::sync(size_t terminal) {
             } break;
             }
         } break;
-        case INPUT_TYPE_dRGBWWW: {
+        case INPUT_TYPE_dRGBWWW8: {
             switch(output_type) {
             case OUTPUT_TYPE_RGB: {
                 ret.r = scale8bit(rgb.r + rgb.w + rgb.ww);
@@ -133,7 +137,7 @@ void Driver::sync(size_t terminal) {
             } break;
             }
         } break;
-        case INPUT_TYPE_sRGB: {
+        case INPUT_TYPE_sRGB8: {
             switch(output_type) {
             case OUTPUT_TYPE_RGB: {
                 uint32_t rp = CIETransferfromsRGBTransferLookup::instance().lookup[_srgbww[terminal].r];
@@ -159,7 +163,7 @@ void Driver::sync(size_t terminal) {
             } break;
             }
         } break;
-        case INPUT_TYPE_sRGBW: {
+        case INPUT_TYPE_sRGBW8: {
             switch(output_type) {
             case OUTPUT_TYPE_RGB: {
                 uint32_t rp = CIETransferfromsRGBTransferLookup::instance().lookup[_srgbww[terminal].r];
@@ -186,7 +190,7 @@ void Driver::sync(size_t terminal) {
             } break;
             }
         } break;
-        case INPUT_TYPE_sRGBWWW: {
+        case INPUT_TYPE_sRGBWWW8: {
             switch(output_type) {
             case OUTPUT_TYPE_RGB: {
                 uint32_t rp = CIETransferfromsRGBTransferLookup::instance().lookup[_srgbww[terminal].r];
@@ -223,6 +227,79 @@ void Driver::sync(size_t terminal) {
                 ret.b = uint16_t(bp);
                 ret.w = uint16_t(wp);
                 ret.ww = uint16_t(wwp);
+            } break;
+            }
+        } break;
+        case INPUT_TYPE_dRGB16: {
+            switch(output_type) {
+            case OUTPUT_TYPE_RGB: {
+                ret.r = scale16bit(rgb.r);
+                ret.g = scale16bit(rgb.g);
+                ret.b = scale16bit(rgb.b);
+                ret.w = 0;
+                ret.ww = 0;
+            } break;
+            case OUTPUT_TYPE_RGBWWW:
+            case OUTPUT_TYPE_RGBW: {
+                uint16_t r = scale16bit(rgb.r);
+                uint16_t g = scale16bit(rgb.g);
+                uint16_t b = scale16bit(rgb.b);
+                uint16_t m = std::min(r, std::min(g, b));
+                ret.r = r - m;
+                ret.g = g - m;
+                ret.b = b - m;
+                ret.w = m;
+                ret.ww = 0;
+            } break;
+            }
+        } break;
+        case INPUT_TYPE_dRGBW16: {
+            switch(output_type) {
+            case OUTPUT_TYPE_RGB: {
+                ret.r = scale16bit(rgb.r + rgb.w);
+                ret.g = scale16bit(rgb.g + rgb.w);
+                ret.b = scale16bit(rgb.b + rgb.w);
+                ret.w = 0;
+                ret.ww = 0;
+            } break;
+            case OUTPUT_TYPE_RGBW: {
+                ret.r = scale16bit(rgb.r);
+                ret.g = scale16bit(rgb.g);
+                ret.b = scale16bit(rgb.b);
+                ret.w = scale16bit(rgb.w);
+                ret.ww = 0;
+            } break;
+            case OUTPUT_TYPE_RGBWWW: {
+                ret.r = scale16bit(rgb.r);
+                ret.g = scale16bit(rgb.g);
+                ret.b = scale16bit(rgb.b);
+                ret.w = scale16bit(rgb.w);
+                ret.ww = 0;
+            } break;
+            }
+        } break;
+        case INPUT_TYPE_dRGBWWW16: {
+            switch(output_type) {
+            case OUTPUT_TYPE_RGB: {
+                ret.r = scale16bit(rgb.r + rgb.w + rgb.ww);
+                ret.g = scale16bit(rgb.g + rgb.w + rgb.ww);
+                ret.b = scale16bit(rgb.b + rgb.w + rgb.ww);
+                ret.w = 0;
+                ret.ww = 0;
+            } break;
+            case OUTPUT_TYPE_RGBW: {
+                ret.r = scale16bit(rgb.r);
+                ret.g = scale16bit(rgb.g);
+                ret.b = scale16bit(rgb.b);
+                ret.w = scale16bit(rgb.w + rgb.ww);
+                ret.ww = 0;
+            } break;
+            case OUTPUT_TYPE_RGBWWW: {
+                ret.r = scale16bit(rgb.r);
+                ret.g = scale16bit(rgb.g);
+                ret.b = scale16bit(rgb.b);
+                ret.w = scale16bit(rgb.w);
+                ret.ww = scale16bit(rgb.ww);
             } break;
             }
         } break;

@@ -137,16 +137,16 @@ public:
 
             sprintf(ss, "$.rgbconfig[%d].outputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.output_type = std::clamp(int(dval), int(Driver::OUTPUT_TYPE_RGB), int(Driver::OUTPUT_TYPE_RGBWWW));
+                config.output_type = std::clamp(int(dval), int(Driver::OUTPUT_TYPE_RGB), int(Driver::OUTPUT_TYPE_COUNT) - 1);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.output_type = std::clamp(int(atof(buf)), int(Driver::OUTPUT_TYPE_RGB), int(Driver::OUTPUT_TYPE_RGBWWW));
+                config.output_type = std::clamp(int(atof(buf)), int(Driver::OUTPUT_TYPE_RGB), int(Driver::OUTPUT_TYPE_COUNT) - 1);
             }
 
             sprintf(ss, "$.rgbconfig[%d].inputtype", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
-                config.input_type = std::clamp(int(dval), int(Driver::INPUT_TYPE_dRGB), int(Driver::INPUT_TYPE_sRGBWWW));
+                config.input_type = std::clamp(int(dval), int(Driver::INPUT_TYPE_dRGB8), int(Driver::INPUT_TYPE_COUNT) - 1);
             } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-                config.input_type = std::clamp(int(atof(buf)), int(Driver::INPUT_TYPE_dRGB), int(Driver::INPUT_TYPE_sRGBWWW));
+                config.input_type = std::clamp(int(atof(buf)), int(Driver::INPUT_TYPE_dRGB8), int(Driver::INPUT_TYPE_COUNT) - 1);
             }
 
             sprintf(ss, "$.rgbconfig[%d].pwmlimit", c);
