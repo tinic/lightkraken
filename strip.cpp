@@ -25,6 +25,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <algorithm>
 #include <vector>
 
+#include "./main.h"
 #include "./strip.h"
 #include "./model.h"
 #include "./color.h"
@@ -192,7 +193,7 @@ namespace lightkraken {
 		}
         return false;
     }
-    
+
     size_t Strip::getBytesPerInputPixel(InputType input_type) const {
 		switch (input_type) {
 			default:
@@ -210,6 +211,23 @@ namespace lightkraken {
 			case INPUT_dRGBW16: {
                 return 8;
             }
+		}
+		return 0;
+    }
+
+    size_t Strip::getComponentsPerInputPixel(InputType input_type) const {
+		switch (input_type) {
+			default:
+			case INPUT_dRGB16:
+			case INPUT_sRGB8: 
+			case INPUT_dRGB8: {
+				return 3;
+			} break;
+			case INPUT_dRGBW16:
+			case INPUT_sRGBW8: 
+			case INPUT_dRGBW8: {
+				return 4;
+			} break;
 		}
 		return 0;
     }
@@ -288,7 +306,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d++) {
 									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d]));
@@ -296,7 +314,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint32_t r = std::min(limit_8bit, uint32_t(data[c + 0]));
 								uint32_t g = std::min(limit_8bit, uint32_t(data[c + 1]));
@@ -309,10 +327,11 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGB16: {
-							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN * sizeof(uint16_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d++) {
-									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d])) * 256;
+									buf[(n + order[d]) * 2 + 0] = 
+									buf[(n + order[d]) * 2 + 1] = std::min(limit_8bit, uint32_t(data[c + d]));
 								}
 							}
 						} break;
@@ -323,7 +342,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint32_t r = uint32_t(data[c + 0]);
 								uint32_t g = uint32_t(data[c + 1]);
@@ -335,7 +354,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d++) {
 									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d]));
@@ -343,10 +362,11 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGB16: {
-							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN * sizeof(uint16_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d++) {
-									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d])) * 256;
+									buf[(n + order[d]) * 2 + 0] = 
+									buf[(n + order[d]) * 2 + 1] = std::min(limit_8bit, uint32_t(data[c + d]));
 								}
 							}
 						} break;
@@ -357,7 +377,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = data[c + 0];
 								uint8_t sg = data[c + 1];
@@ -381,7 +401,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = data[c + 0];
 								uint8_t sg = data[c + 1];
@@ -409,7 +429,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGB16: {
-							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN * sizeof(uint16_t)]);
+							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = data[c + 0];
 								uint8_t sg = data[c + 1];
@@ -439,7 +459,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = uint8_t(data[c + 0]);
 								uint8_t sg = uint8_t(data[c + 1]);
@@ -460,7 +480,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = uint8_t(data[c + 0]);
 								uint8_t sg = uint8_t(data[c + 1]);
@@ -482,7 +502,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGB16: {
-							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN * sizeof(uint16_t)]);
+							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint8_t sr = uint8_t(data[c + 0]);
 								uint8_t sg = uint8_t(data[c + 1]);
@@ -509,7 +529,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d += 2) {
 									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d + 0]));
@@ -517,7 +537,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint32_t r = std::min(limit_8bit, uint32_t(data[c + 0]));
 								uint32_t g = std::min(limit_8bit, uint32_t(data[c + 2]));
@@ -530,10 +550,12 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGB16: {
-							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN * sizeof(uint16_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d += 2) {
-									buf[n + order[d]] = std::min(limit_16bit, (uint32_t(data[c + d + 0]) << 8) | (uint32_t(data[c + d + 1]) << 0));
+                                    uint16_t val = std::min(limit_16bit, (uint32_t(data[c + d + 0]) << 8) | (uint32_t(data[c + d + 1]) << 0));
+									buf[(n + order[d]) * 2 + 0] = val >>   8;
+									buf[(n + order[d]) * 2 + 1] = val & 0xFF;
 								}
 							}
 						} break;
@@ -544,7 +566,7 @@ namespace lightkraken {
 						default: {
                         } break;
 						case NATIVE_RGB8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								uint32_t r = uint32_t(data[c + 0]);
 								uint32_t g = uint32_t(data[c + 2]);
@@ -556,7 +578,7 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGBW8: {
-							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN * sizeof(uint8_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d += 2) {
 									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d + 0]));
@@ -564,10 +586,12 @@ namespace lightkraken {
 							}
 						} break;
 						case NATIVE_RGB16: {
-							uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN * sizeof(uint16_t)]);
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
 							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
 								for (size_t d = 0; d < pixel_pad; d += 2) {
-									buf[n + order[d]] = std::min(limit_16bit, (uint32_t(data[c + d + 0]) << 8) | (uint32_t(data[c + d + 1]) << 0));
+                                    uint16_t val = std::min(limit_16bit, (uint32_t(data[c + d + 0]) << 8) | (uint32_t(data[c + d + 1]) << 0));
+									buf[(n + order[d]) * 2 + 0] = val >>   8;
+									buf[(n + order[d]) * 2 + 1] = val & 0xFF;
 								}
 							}
 						} break;
@@ -638,6 +662,7 @@ namespace lightkraken {
             case SK6812_RGB:
             case SK6812_RGBW:
             case WS2812_RGB:
+            case WS2816_RGB:
             case TM1804_RGB:
             case UCS1904_RGB:
             case TM1829_RGB:
@@ -662,11 +687,6 @@ namespace lightkraken {
                 apa102_rgb_alike_convert(0, std::min(out_len + ext_len, size_t(burstHeadLen)));
                 return spi_buf.data();
             } break;
-            case WS2816_RGB: {
-                len = std::min(spi_buf.size(), (bytes_len + bytesLatchLen) * 4);
-                ws2816_alike_convert(0, std::min(bytes_len + bytesLatchLen, size_t(burstHeadLen)));
-                return spi_buf.data();
-            } break;
         }
     }
 
@@ -678,6 +698,7 @@ namespace lightkraken {
             case SK6812_RGB:
             case SK6812_RGBW:
             case WS2812_RGB:
+            case WS2816_RGB:
             case TM1804_RGB:
             case UCS1904_RGB:
             case TM1829_RGB:
@@ -695,9 +716,6 @@ namespace lightkraken {
                 size_t out_len = bytes_len + bytes_len / 3;
                 size_t ext_len = 32 + ( ( bytes_len / 2 ) + 7 ) / 8;
                 apa102_rgb_alike_convert(std::min(out_len + ext_len, size_t(burstHeadLen)), (out_len + ext_len) - 1);
-            } break;
-            case WS2816_RGB: {
-                ws2816_alike_convert(std::min(bytes_len + bytesLatchLen, size_t(burstHeadLen)), (bytes_len + bytesLatchLen) - 1);
             } break;
         }
     }
@@ -736,6 +754,7 @@ namespace lightkraken {
             case SK6812_RGB:
             case SK6812_RGBW:
             case WS2812_RGB:
+            case WS2816_RGB:
             case TM1804_RGB:
             case UCS1904_RGB:
             case TM1829_RGB:
@@ -758,11 +777,6 @@ namespace lightkraken {
                 size_t ext_len = 32 + ( ( out_len / 2 ) + 7 ) / 8;
                 len = std::min(spi_buf.size(), (out_len + ext_len));
                 apa102_rgb_alike_convert(0, (out_len + ext_len) - 1);
-                return spi_buf.data();
-            } break;
-            case WS2816_RGB: {
-                len = std::min(spi_buf.size(), (bytes_len + bytesLatchLen) * 4);
-                ws2816_alike_convert(0, (bytes_len + bytesLatchLen) - 1);
                 return spi_buf.data();
             } break;
         }
@@ -829,55 +843,6 @@ namespace lightkraken {
     }
 
     __attribute__ ((hot, optimize("O3")))
-    void Strip::ws2816_alike_convert(size_t start, size_t end) {
-        uint32_t *dst = (uint32_t *)(spi_buf.data() + start * 4);
-        size_t head_len = bytesLatchLen / 2;
-        for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
-            *dst++ = 0x00;
-        }
-
-        auto convert_to_one_wire_ws2816 = [] (uint32_t *p, uint16_t v) {
-            uint32_t o0 = 0b1000'1000'1000'1000'1000'1000'1000'1000;
-            o0 |= ((1<<(15- 0)) & v) ? 0b1110'0000'0000'0000'0000'0000'0000'0000 : 0;
-            o0 |= ((1<<(15- 1)) & v) ? 0b0000'1110'0000'0000'0000'0000'0000'0000 : 0;
-            o0 |= ((1<<(15- 2)) & v) ? 0b0000'0000'1110'0000'0000'0000'0000'0000 : 0;
-            o0 |= ((1<<(15- 3)) & v) ? 0b0000'0000'0000'1110'0000'0000'0000'0000 : 0;
-            o0 |= ((1<<(15- 4)) & v) ? 0b0000'0000'0000'0000'1110'0000'0000'0000 : 0;
-            o0 |= ((1<<(15- 5)) & v) ? 0b0000'0000'0000'0000'0000'1110'0000'0000 : 0;
-            o0 |= ((1<<(15- 6)) & v) ? 0b0000'0000'0000'0000'0000'0000'1110'0000 : 0;
-            o0 |= ((1<<(15- 7)) & v) ? 0b0000'0000'0000'0000'0000'0000'0000'1110 : 0;
-            *p++ = o0;
-
-            uint32_t o1 = 0b1000'1000'1000'1000'1000'1000'1000'1000;
-            o1 |= ((1<<(15- 8)) & v) ? 0b1110'0000'0000'0000'0000'0000'0000'0000 : 0;
-            o1 |= ((1<<(15- 9)) & v) ? 0b0000'1110'0000'0000'0000'0000'0000'0000 : 0;
-            o1 |= ((1<<(15-10)) & v) ? 0b0000'0000'1110'0000'0000'0000'0000'0000 : 0;
-            o1 |= ((1<<(15-11)) & v) ? 0b0000'0000'0000'1110'0000'0000'0000'0000 : 0;
-            o1 |= ((1<<(15-12)) & v) ? 0b0000'0000'0000'0000'1110'0000'0000'0000 : 0;
-            o1 |= ((1<<(15-13)) & v) ? 0b0000'0000'0000'0000'0000'1110'0000'0000 : 0;
-            o1 |= ((1<<(15-14)) & v) ? 0b0000'0000'0000'0000'0000'0000'1110'0000 : 0;
-            o1 |= ((1<<(15-15)) & v) ? 0b0000'0000'0000'0000'0000'0000'0000'1110 : 0;
-            *p++ = o1;
-
-            return p;
-        };
-
-        switch(nativeType()) {
-        	default: {
-        	} break;
-    		case NATIVE_RGB16: {
-                uint16_t *src = reinterpret_cast<uint16_t *>(&comp_buf[std::max(start, size_t(head_len))-head_len]);
-				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + bytes_len - 1); c+=2) {
-					dst = convert_to_one_wire_ws2816(dst, *src++);
-				}
-            } break;
-		}
-        for (size_t c = std::max(start, head_len + bytes_len); c <= end; c++) {
-            *dst++ = 0x00;
-        }
-    }
-
-    __attribute__ ((hot, optimize("O3")))
     void Strip::ws2812_alike_convert(size_t start, size_t end) {
         uint32_t *dst = (uint32_t *)(spi_buf.data() + start * 4);
         size_t head_len = bytesLatchLen / 2;
@@ -895,6 +860,7 @@ namespace lightkraken {
         switch(nativeType()) {
         	default: {
         	} break;
+    		case NATIVE_RGB16:
     		case NATIVE_RGBW8:
     		case NATIVE_RGB8: {
 				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + bytes_len - 1); c++) {

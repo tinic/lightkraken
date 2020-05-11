@@ -26,6 +26,7 @@ extern "C" {
 #include "gd32f10x.h"
 }
 
+#include "./main.h"
 #include "./spi.h"
 #include "./control.h"
 #include "./perf.h"
@@ -35,23 +36,19 @@ extern "C" {
 
 __attribute__((used))
 void DMA0_Channel2_IRQHandler() {
-    {
-        lightkraken::PerfMeasure perf(lightkraken::PerfMeasure::SLOT_SPI_INTERRUPT);
-        lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_0::instance());
-    }
     if(dma_interrupt_flag_get(DMA0, DMA_CH2, DMA_INT_FLAG_FTF)) {
-        dma_interrupt_flag_clear(DMA0, DMA_CH2, DMA_INT_FLAG_FTF);   
+        dma_interrupt_flag_clear(DMA0, DMA_CH2, DMA_INT_FLAG_FTF);
+        dma_interrupt_flag_clear(DMA0, DMA_CH2, DMA_INT_FLAG_G);
+        lightkraken::SPI_0::instance().setActive(false);
     }
 }
 
 __attribute__((used))
 void DMA1_Channel1_IRQHandler() {
-    {
-        lightkraken::PerfMeasure perf(lightkraken::PerfMeasure::SLOT_SPI_INTERRUPT);
-        lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_2::instance());
-    }
-    if(dma_interrupt_flag_get(DMA1, DMA_CH1, DMA_INT_FLAG_FTF)) {
-        dma_interrupt_flag_clear(DMA1, DMA_CH1, DMA_INT_FLAG_FTF);         
+    if(dma_interrupt_flag_get(DMA1, DMA_CH1, DMA_INT_FLAG_FTF)){
+        dma_interrupt_flag_clear(DMA1, DMA_CH1, DMA_INT_FLAG_FTF);
+        dma_interrupt_flag_clear(DMA1, DMA_CH1, DMA_INT_FLAG_G);
+        lightkraken::SPI_2::instance().setActive(false);
     }
 }
 
@@ -114,14 +111,15 @@ void SPI_0::update() {
 }
 
 void SPI_0::dma_setup() {
+
     spi_disable(SPI0);
 
     gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
     gpio_bit_set(GPIOA, GPIO_PIN_10);
-    
+
     gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_5);
     gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_3);
-    
+
     spi_parameter_struct spi_init_struct;
     spi_struct_para_init(&spi_init_struct);
     spi_init_struct.trans_mode           = SPI_TRANSMODE_FULLDUPLEX;
@@ -151,12 +149,8 @@ void SPI_0::dma_setup() {
     dma_circulation_disable(DMA0, DMA_CH2);
     dma_memory_to_memory_disable(DMA0, DMA_CH2);
     
-    if (Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
-        dma_interrupt_disable(DMA0, DMA_CH2, DMA_INT_FTF);
-    } else {
-        dma_interrupt_enable(DMA0, DMA_CH2, DMA_INT_FTF);
-        nvic_irq_enable(DMA0_Channel2_IRQn, 0, 0);
-    }
+    dma_interrupt_enable(DMA0, DMA_CH2, DMA_INT_FTF);
+    nvic_irq_enable(DMA0_Channel2_IRQn, 0, 0);
 
     spi_dma_enable(SPI0, SPI_DMA_TRANSMIT);
 }
@@ -191,7 +185,7 @@ bool SPI_2::busy() const {
 void SPI_2::transfer(const uint8_t *buf, size_t len, bool wantsSCLK) {
     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
     gpio_bit_set(GPIOB, GPIO_PIN_9);
-    
+
     if (active) {
         if(busy()) {
             scheduled = true;
@@ -223,6 +217,7 @@ void SPI_2::update() {
 }
 
 void SPI_2::dma_setup() {
+
     spi_disable(SPI2);
 
     gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
@@ -260,12 +255,8 @@ void SPI_2::dma_setup() {
     dma_circulation_disable(DMA1, DMA_CH1);
     dma_memory_to_memory_disable(DMA1, DMA_CH1);
 
-    if (Model::instance().outputMode() == Model::MODE_MAIN_LOOP) {
-        dma_interrupt_disable(DMA1, DMA_CH1, DMA_INT_FTF);
-    } else {
-        dma_interrupt_enable(DMA1, DMA_CH1, DMA_INT_FTF);
-        nvic_irq_enable(DMA1_Channel1_IRQn, 0, 0);
-    }
+    dma_interrupt_enable(DMA1, DMA_CH1, DMA_INT_FTF);
+    nvic_irq_enable(DMA1_Channel1_IRQn, 0, 0);
 
     spi_dma_enable(SPI2, SPI_DMA_TRANSMIT);
 }

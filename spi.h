@@ -28,15 +28,16 @@ namespace lightkraken {
 class SPI {
 public:
 
-    void setFast(bool state) { fast = state; changed = true; }
+    void setFast(bool state) { if (fast != state) { fast = state; changed = true; } }
+    void setActive(bool state) { active = state; }
     
 protected:
 
+    bool active = false;
     bool initialized = false;
     const uint8_t *cbuf = 0;
     bool sclk = false;
     size_t clen = 0;
-    bool active = false;
     bool scheduled = false;
     bool fast = true;
     bool changed = false;

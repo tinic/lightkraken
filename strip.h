@@ -122,6 +122,7 @@ namespace lightkraken {
         void setBytesLen(size_t len);
         size_t getMaxBytesLen() const;
 	    size_t getBytesPerInputPixel(InputType input_type) const;
+	    size_t getComponentsPerInputPixel(InputType input_type) const;
 
         const uint8_t *prepareHead(size_t &len);
         void prepareTail();
@@ -129,7 +130,6 @@ namespace lightkraken {
 
         void lpd8806_rgb_alike_convert(size_t start, size_t end);
         void apa102_rgb_alike_convert(size_t start, size_t end);
-        void ws2816_alike_convert(size_t start, size_t end);
         void ws2812_alike_convert(size_t start, size_t end);
         void tls3001_alike_convert(size_t &len);
 

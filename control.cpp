@@ -695,6 +695,18 @@ void Control::setColor() {
                 }
 				lightkraken::Strip::get(c).setData(buf, len, Strip::INPUT_dRGBW8);
             } break;
+            case 6: {
+                for (size_t d = 0; d <= sizeof(buf)-6; d += 6) {
+                    buf[d + 0] = 
+                    buf[d + 1] = (Model::instance().stripConfig(c).color.r) & 0xFF;
+                    buf[d + 2] = 
+                    buf[d + 3] = (Model::instance().stripConfig(c).color.g) & 0xFF;
+                    buf[d + 4] = 
+                    buf[d + 5] = (Model::instance().stripConfig(c).color.b) & 0xFF;
+                    len += 6;
+                }
+				lightkraken::Strip::get(c).setData(buf, len, Strip::INPUT_dRGB16);
+            } break;
         }
     }
 }
