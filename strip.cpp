@@ -37,7 +37,7 @@ namespace lightkraken {
     public:
         constexpr WS2812EncodingLookupTable() : table() {
             for (uint32_t c = 0; c < 256; c++) {
-                table[c] = 0x88888888UL |
+                table[c] = 0x88888888 |
                         (((c >>  4) | (c <<  6) | (c << 16) | (c << 26)) & 0x04040404)|
                         (((c >>  1) | (c <<  9) | (c << 19) | (c << 29)) & 0x40404040);
             }
