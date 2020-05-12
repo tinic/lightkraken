@@ -382,9 +382,9 @@ namespace lightkraken {
 								uint32_t g = uint32_t(data[c + 1]);
 								uint32_t b = uint32_t(data[c + 2]); 
 								uint32_t w = uint32_t(data[c + 3]);
-								buf[n + order[0]] = uint8_t(std::clamp(r+w, uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[1]] = uint8_t(std::clamp(g+w, uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[2]] = uint8_t(std::clamp(b+w, uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[0]] = uint8_t(std::min(r+w, uint32_t(limit_8bit)));
+								buf[n + order[1]] = uint8_t(std::min(g+w, uint32_t(limit_8bit)));
+								buf[n + order[2]] = uint8_t(std::min(b+w, uint32_t(limit_8bit)));
 							}
 						} break;
 						case NATIVE_RGBW8: {
@@ -406,9 +406,9 @@ namespace lightkraken {
                                 r = (b << 8) | b;
 								uint32_t w = uint32_t(data[c + 3]);
                                 r = (w << 8) | w;
-                                r = fix_for_ws2816(uint16_t(std::clamp(r+w, uint32_t(0), uint32_t(limit_16bit))));
-                                g = fix_for_ws2816(uint16_t(std::clamp(g+w, uint32_t(0), uint32_t(limit_16bit))));
-                                b = fix_for_ws2816(uint16_t(std::clamp(b+w, uint32_t(0), uint32_t(limit_16bit))));
+                                r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
+                                g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
+                                b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
                                 buf[(n + order[0]) * 2 + 0] = r >>   8;
                                 buf[(n + order[0]) * 2 + 1] = r & 0xFF;
                                 buf[(n + order[1]) * 2 + 2] = g >>   8;
@@ -524,9 +524,9 @@ namespace lightkraken {
 									sr, sg, sb, 255,
 									lr, lg, lb);
 
-								buf[n + order[0]] = uint8_t(std::clamp(uint32_t(lr+uint16_t(lw)), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[1]] = uint8_t(std::clamp(uint32_t(lg+uint16_t(lw)), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[2]] = uint8_t(std::clamp(uint32_t(lb+uint16_t(lw)), uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[0]] = uint8_t(std::min(uint32_t(lr+uint16_t(lw)), uint32_t(limit_8bit)));
+								buf[n + order[1]] = uint8_t(std::min(uint32_t(lg+uint16_t(lw)), uint32_t(limit_8bit)));
+								buf[n + order[2]] = uint8_t(std::min(uint32_t(lb+uint16_t(lw)), uint32_t(limit_8bit)));
 							}
 						} break;
 						case NATIVE_RGBW8: {
@@ -545,10 +545,10 @@ namespace lightkraken {
 									sr, sg, sb, 255,
 									lr, lg, lb);
 
-								buf[n + order[0]] = uint8_t(std::clamp(uint32_t(lr), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[1]] = uint8_t(std::clamp(uint32_t(lg), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[2]] = uint8_t(std::clamp(uint32_t(lb), uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[3]] = uint8_t(std::clamp(uint32_t(lw), uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[0]] = uint8_t(std::min(uint32_t(lr), uint32_t(limit_8bit)));
+								buf[n + order[1]] = uint8_t(std::min(uint32_t(lg), uint32_t(limit_8bit)));
+								buf[n + order[2]] = uint8_t(std::min(uint32_t(lb), uint32_t(limit_8bit)));
+								buf[n + order[3]] = uint8_t(std::min(uint32_t(lw), uint32_t(limit_8bit)));
 							}
 						} break;
 						case NATIVE_RGB16: {
@@ -583,7 +583,44 @@ namespace lightkraken {
 						} break;
 					}
             	} break;
-            	case INPUT_dRGB16LSB:
+            	case INPUT_dRGB16LSB: {
+					switch (nativeType()) {
+						default: {
+                        } break;
+						case NATIVE_RGB8: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								for (size_t d = 0; d < pixel_pad; d++) {
+									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d * 2 + 1]));
+								}
+							}
+						} break;
+						case NATIVE_RGBW8: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint32_t r = std::min(limit_8bit, uint32_t(data[c + 1]));
+								uint32_t g = std::min(limit_8bit, uint32_t(data[c + 3]));
+								uint32_t b = std::min(limit_8bit, uint32_t(data[c + 5]));
+								uint32_t m = std::min(r, std::min(g, b));
+								buf[n + order[0]] = r - m;
+								buf[n + order[1]] = g - m;
+								buf[n + order[2]] = b - m;
+								buf[n + order[3]] = m;
+							}
+						} break;
+						case NATIVE_RGB16: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								for (size_t d = 0; d < pixel_pad; d++) {
+                                    uint16_t val = fix_for_ws2816(uint16_t(std::min(limit_16bit, (uint32_t(data[c + d * 2 + 1]) << 8) | 
+                                                                                                 (uint32_t(data[c + d * 2 + 0]) << 0))));
+									buf[(n + order[d]) * 2 + 0] = val >>   8;
+									buf[(n + order[d]) * 2 + 1] = val & 0xFF;
+								}
+							}
+						} break;
+					}
+            	} break;
             	case INPUT_dRGB16MSB: {
 					switch (nativeType()) {
 						default: {
@@ -622,7 +659,54 @@ namespace lightkraken {
 						} break;
 					}
             	} break;
-            	case INPUT_dRGBW16LSB:
+            	case INPUT_dRGBW16LSB: {
+					switch (nativeType()) {
+						default: {
+                        } break;
+						case NATIVE_RGB8: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint32_t r = uint32_t(data[c + 1]);
+								uint32_t g = uint32_t(data[c + 3]);
+								uint32_t b = uint32_t(data[c + 5]); 
+								uint32_t w = uint32_t(data[c + 7]);
+								buf[n + order[0]] = uint8_t(std::min(r+w, uint32_t(limit_8bit)));
+								buf[n + order[1]] = uint8_t(std::min(g+w, uint32_t(limit_8bit)));
+								buf[n + order[2]] = uint8_t(std::min(b+w, uint32_t(limit_8bit)));
+							}
+						} break;
+						case NATIVE_RGBW8: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								for (size_t d = 0; d < pixel_pad; d++) {
+									buf[n + order[d]] = std::min(limit_8bit, uint32_t(data[c + d * 2 + 1]));
+								}
+							}
+						} break;
+						case NATIVE_RGB16: {
+							uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+							for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+								uint32_t r = (uint32_t(data[c + 0 * 2 + 1]) << 8) | 
+                                             (uint32_t(data[c + 0 * 2 + 0]) << 0);
+								uint32_t g = (uint32_t(data[c + 1 * 2 + 3]) << 8) | 
+                                             (uint32_t(data[c + 1 * 2 + 2]) << 0);
+								uint32_t b = (uint32_t(data[c + 2 * 2 + 5]) << 8) | 
+                                             (uint32_t(data[c + 2 * 2 + 4]) << 0);
+								uint32_t w = (uint32_t(data[c + 3 * 2 + 7]) << 8) | 
+                                             (uint32_t(data[c + 3 * 2 + 6]) << 0);
+                                r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
+                                g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
+                                b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
+                                buf[(n + order[0]) * 2 + 0] = r >>   8;
+                                buf[(n + order[0]) * 2 + 1] = r & 0xFF;
+                                buf[(n + order[1]) * 2 + 2] = g >>   8;
+                                buf[(n + order[1]) * 2 + 3] = g & 0xFF;
+                                buf[(n + order[2]) * 2 + 4] = b >>   8;
+                                buf[(n + order[2]) * 2 + 5] = b & 0xFF;
+							}
+						} break;
+					}
+            	} break;
             	case INPUT_dRGBW16MSB: {
 					switch (nativeType()) {
 						default: {
@@ -634,9 +718,9 @@ namespace lightkraken {
 								uint32_t g = uint32_t(data[c + 2]);
 								uint32_t b = uint32_t(data[c + 4]); 
 								uint32_t w = uint32_t(data[c + 6]);
-								buf[n + order[0]] = uint8_t(std::clamp(r+w, uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[1]] = uint8_t(std::clamp(g+w, uint32_t(0), uint32_t(limit_8bit)));
-								buf[n + order[2]] = uint8_t(std::clamp(b+w, uint32_t(0), uint32_t(limit_8bit)));
+								buf[n + order[0]] = uint8_t(std::min(r+w, uint32_t(limit_8bit)));
+								buf[n + order[1]] = uint8_t(std::min(g+w, uint32_t(limit_8bit)));
+								buf[n + order[2]] = uint8_t(std::min(b+w, uint32_t(limit_8bit)));
 							}
 						} break;
 						case NATIVE_RGBW8: {
@@ -658,9 +742,9 @@ namespace lightkraken {
                                              (uint32_t(data[c + 2 * 2 + 5]) << 0);
 								uint32_t w = (uint32_t(data[c + 3 * 2 + 6]) << 8) | 
                                              (uint32_t(data[c + 3 * 2 + 7]) << 0);
-                                r = fix_for_ws2816(uint16_t(std::clamp(r+w, uint32_t(0), uint32_t(limit_16bit))));
-                                g = fix_for_ws2816(uint16_t(std::clamp(g+w, uint32_t(0), uint32_t(limit_16bit))));
-                                b = fix_for_ws2816(uint16_t(std::clamp(b+w, uint32_t(0), uint32_t(limit_16bit))));
+                                r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
+                                g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
+                                b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
                                 buf[(n + order[0]) * 2 + 0] = r >>   8;
                                 buf[(n + order[0]) * 2 + 1] = r & 0xFF;
                                 buf[(n + order[1]) * 2 + 2] = g >>   8;
