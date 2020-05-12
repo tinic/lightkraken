@@ -46,8 +46,8 @@ namespace lightkraken {
     		INPUT_sRGB8,
     		INPUT_sRGBW8,
 
-    		INPUT_dRGB16,
-    		INPUT_dRGBW16,
+    		INPUT_dRGB16MSB,
+    		INPUT_dRGBW16MSB,
 
             INPUT_TYPE_COUNT
     	};

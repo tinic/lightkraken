@@ -705,7 +705,7 @@ void Control::setColor() {
                     buf[d + 5] = (Model::instance().stripConfig(c).color.b) & 0xFF;
                     len += 6;
                 }
-				lightkraken::Strip::get(c).setData(buf, len, Strip::INPUT_dRGB16);
+				lightkraken::Strip::get(c).setData(buf, len, Strip::INPUT_dRGB16MSB);
             } break;
         }
     }
