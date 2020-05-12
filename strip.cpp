@@ -33,6 +33,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace lightkraken { 
 
+    class WS2812EncodingLookupTable {
+    public:
+        constexpr WS2812EncodingLookupTable() : table() {
+            for (uint32_t c = 0; c < 256; c++) {
+                table[c] = 0x88888888UL |
+                        (((c >>  4) | (c <<  6) | (c << 16) | (c << 26)) & 0x04040404)|
+                        (((c >>  1) | (c <<  9) | (c << 19) | (c << 29)) & 0x40404040);
+            }
+        }
+        uint32_t table[256];
+    };
+
     static ColorSpaceConverter converter;
 
     class manchester_bit_buf {
@@ -1008,21 +1020,15 @@ namespace lightkraken {
             *dst++ = 0x00;
         }
         
-        auto convert_to_one_wire_ws2812 = [] (uint32_t *ptr, uint32_t p) {
-            *ptr++ = 0x88888888UL |
-                    (((p >>  4) | (p <<  6) | (p << 16) | (p << 26)) & 0x04040404)|
-                    (((p >>  1) | (p <<  9) | (p << 19) | (p << 29)) & 0x40404040);
-            return ptr;
-        };
-
         switch(nativeType()) {
         	default: {
         	} break;
     		case NATIVE_RGB16:
     		case NATIVE_RGBW8:
     		case NATIVE_RGB8: {
+                static constexpr WS2812EncodingLookupTable lookup;
 				for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + bytes_len - 1); c++) {
-					dst = convert_to_one_wire_ws2812(dst, comp_buf[c-head_len]);
+					*dst++ = lookup.table[comp_buf[c-head_len]];
 				}
 			} break;
 		}
