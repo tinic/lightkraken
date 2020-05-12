@@ -333,7 +333,7 @@ namespace lightkraken {
             const uint32_t limit_8bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 255.f);
             const uint32_t limit_16bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 65535.f);
 			const size_t input_size = getBytesPerInputPixel(input_type);
-			const size_t pixel_pad = std::min(input_size, order.size() * getComponentBytes(input_type));
+			const size_t pixel_pad = std::min(getComponentsPerInputPixel(input_type), order.size());
 			const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size() * getComponentBytes(input_type); 
 
             auto fix_for_ws2816 = [=] (const uint16_t v) {
