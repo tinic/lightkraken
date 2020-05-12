@@ -48,6 +48,8 @@ namespace lightkraken {
 
     		INPUT_dRGB16MSB,
     		INPUT_dRGBW16MSB,
+    		INPUT_dRGB16LSB,
+    		INPUT_dRGBW16LSB,
 
             INPUT_TYPE_COUNT
     	};
@@ -123,6 +125,7 @@ namespace lightkraken {
         size_t getMaxBytesLen() const;
 	    size_t getBytesPerInputPixel(InputType input_type) const;
 	    size_t getComponentsPerInputPixel(InputType input_type) const;
+	    size_t getComponentBytes(InputType input_type) const;
 
         const uint8_t *prepareHead(size_t &len);
         void prepareTail();

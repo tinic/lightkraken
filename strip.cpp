@@ -205,9 +205,11 @@ namespace lightkraken {
 			case INPUT_dRGBW8: {
 				return 4;
 			} break;
+			case INPUT_dRGB16LSB: 
 			case INPUT_dRGB16MSB: {
 				return 6;
 			} break;
+			case INPUT_dRGBW16LSB:
 			case INPUT_dRGBW16MSB: {
                 return 8;
             }
@@ -218,11 +220,13 @@ namespace lightkraken {
     size_t Strip::getComponentsPerInputPixel(InputType input_type) const {
 		switch (input_type) {
 			default:
+			case INPUT_dRGB16LSB:
 			case INPUT_dRGB16MSB:
 			case INPUT_sRGB8: 
 			case INPUT_dRGB8: {
 				return 3;
 			} break;
+			case INPUT_dRGBW16LSB:
 			case INPUT_dRGBW16MSB:
 			case INPUT_sRGBW8: 
 			case INPUT_dRGBW8: {
@@ -232,11 +236,30 @@ namespace lightkraken {
 		return 0;
     }
 
+    size_t Strip::getComponentBytes(InputType input_type) const {
+		switch (input_type) {
+			default:
+			case INPUT_dRGBW16LSB:
+			case INPUT_dRGBW16MSB:
+			case INPUT_dRGB16LSB:
+			case INPUT_dRGB16MSB: {
+				return 2;
+			} break;
+			case INPUT_sRGB8: 
+			case INPUT_dRGB8: 
+			case INPUT_sRGBW8: 
+			case INPUT_dRGBW8: {
+				return 1;
+			} break;
+		}
+		return 0;
+    }
+
     void Strip::setData(const uint8_t *data, size_t len, InputType input_type) {
 
         auto transfer = [=] (const std::vector<int> &order) {
 			const size_t input_size = getBytesPerInputPixel(input_type);
-            const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size(); 
+            const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size() * getComponentBytes(input_type); 
             size_t left = len;
             const uint8_t *ptr = data;
             for (size_t c = 0; c <= ((len - 1) / input_pad); c++) {
@@ -283,6 +306,7 @@ namespace lightkraken {
     }
     
     void Strip::setUniverseData(size_t uniN, const uint8_t *data, size_t len, InputType input_type) {
+
         PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
 
         if (uniN >= lightkraken::Model::universeN) {
@@ -297,8 +321,8 @@ namespace lightkraken {
             const uint32_t limit_8bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 255.f);
             const uint32_t limit_16bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 65535.f);
 			const size_t input_size = getBytesPerInputPixel(input_type);
-			const size_t pixel_pad = std::min(input_size, order.size());
-			const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size(); 
+			const size_t pixel_pad = std::min(input_size, order.size() * getComponentBytes(input_type));
+			const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size() * getComponentBytes(input_type); 
 
             auto fix_for_ws2816 = [=] (const uint16_t v) {
                 if (output_type == WS2816_RGB) {
@@ -559,6 +583,7 @@ namespace lightkraken {
 						} break;
 					}
             	} break;
+            	case INPUT_dRGB16LSB:
             	case INPUT_dRGB16MSB: {
 					switch (nativeType()) {
 						default: {
@@ -597,6 +622,7 @@ namespace lightkraken {
 						} break;
 					}
             	} break;
+            	case INPUT_dRGBW16LSB:
             	case INPUT_dRGBW16MSB: {
 					switch (nativeType()) {
 						default: {
