@@ -120,12 +120,6 @@ public:
             IP4_ADDR(Model::instance().ip4Gateway(), ipbits[0], ipbits[1], ipbits[2], ipbits[3]);
         }
 
-        if (mjson_get_number(post_buf, post_len, "$.outputmode", &dval) > 0) {
-            Model::instance().setOutputMode(Model::OutputMode(int(dval)));
-        } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
-            Model::instance().setOutputMode(Model::OutputMode(int(atof(buf))));
-        }
-
         if (mjson_get_number(post_buf, post_len, "$.outputconfig", &dval) > 0) {
             Model::instance().setOutputConfig(Model::OutputConfig(int(dval)));
         } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
@@ -579,11 +573,6 @@ public:
         addString("\"outputconfig\":%d",int(Model::instance().outputConfig())); 
     }
 
-    void addOutputMode() {
-        handleDelimiter();
-        addString("\"outputmode\":%d",int(Model::instance().outputMode())); 
-    }
-
     void addAnalogConfig() {
         handleDelimiter();
         addString("\"rgbconfig\":["); 
@@ -897,7 +886,6 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             response.addIPv4Address();
             response.addIPv4Netmask();
             response.addIPv4Gateway();
-            response.addOutputMode();
             response.addOutputConfig();
             response.addAnalogConfig();
             response.addStripConfig();

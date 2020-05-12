@@ -37,7 +37,7 @@ private:
     uint32_t model_version;
 
 public:
-    static constexpr uint32_t currentModelVersion = 0x1ed50001;
+    static constexpr uint32_t currentModelVersion = 0x1ed50002;
 
     static constexpr size_t stripN = 2;
     static constexpr size_t analogN = 2;
@@ -82,11 +82,6 @@ public:
     	TEST_PATTERN_RAINBOW,
     };
 
-    enum OutputMode {
-        MODE_MAIN_LOOP,
-        MODE_INTERRUPT	
-    };
-
     enum OutputConfig {
         OUTPUT_CONFIG_DUAL_STRIP, 	    // channel0: strip      channel1: strip
         OUTPUT_CONFIG_RGB_STRIP, 	    // channel0: strip 	    channel1: rgb
@@ -127,9 +122,6 @@ public:
     OutputConfig outputConfig() const { return output_config; }
     void setOutputConfig(OutputConfig outputConfig);
 
-    OutputMode outputMode() const { return output_mode; }
-    void setOutputMode(OutputMode outputMode);
-    
     uint16_t artnetStrip(int32_t strip, int32_t dmx512Index) const { 
         strip %= stripN;
         dmx512Index %= universeN;
@@ -159,7 +151,6 @@ private:
     ip_addr_t ip4_gateway;
     
     OutputConfig output_config;
-    OutputMode output_mode;
 
     bool burst_mode;
     

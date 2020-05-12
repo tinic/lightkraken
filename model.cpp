@@ -135,7 +135,6 @@ void Model::defaults() {
     receive_broadcast = false;
 
     output_config = OUTPUT_CONFIG_DUAL_STRIP;
-    output_mode = MODE_MAIN_LOOP;
 
     burst_mode = true;
 
@@ -200,12 +199,7 @@ void Model::apply() {
 
     Control::instance().setColor();
 
-    if (output_mode == MODE_INTERRUPT) {
-        lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_0::instance());
-        lightkraken::Control::instance().syncFromInterrupt(lightkraken::SPI_2::instance());
-    } else {
-        lightkraken::Control::instance().sync();
-    }
+    lightkraken::Control::instance().sync();
 }
 
 void Model::setTag(const char *str) { 
@@ -230,10 +224,6 @@ void Model::init() {
 
 void Model::setOutputConfig(OutputConfig outputConfig) {
     output_config = std::clamp(outputConfig, OUTPUT_CONFIG_DUAL_STRIP, OUTPUT_CONFIG_RGBWWW);
-}
-
-void Model::setOutputMode(OutputMode outputMode) {
-    output_mode = std::clamp(outputMode, MODE_MAIN_LOOP, MODE_INTERRUPT);
 }
 
 Model &Model::instance() {

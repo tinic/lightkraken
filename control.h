@@ -38,7 +38,6 @@ public:
     void setE131UniverseOutputData(uint16_t universe, const uint8_t *data, size_t len, bool nodriver = false);
 
     void sync();
-    void syncFromInterrupt(const SPI &spi);
     void update();
 
     bool testMode() const { return test_mode; }
