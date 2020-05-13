@@ -144,6 +144,8 @@ namespace lightkraken {
         float glob_illum = 1.0f;
         std::array<uint8_t, bytesMaxLen> comp_buf;
         std::array<uint8_t, spiMaxLen> spi_buf;
+        static bool ws2812_lut_init;
+        static std::array<uint32_t, 256> ws2812_lut;
     };
 
 }

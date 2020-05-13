@@ -35,18 +35,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace lightkraken { 
 
-    class WS2812EncodingLookupTable {
-    public:
-        constexpr WS2812EncodingLookupTable() : table() {
-            for (uint32_t c = 0; c < 256; c++) {
-                table[c] = 0x88888888 |
-                        (((c >>  4) | (c <<  6) | (c << 16) | (c << 26)) & 0x04040404)|
-                        (((c >>  1) | (c <<  9) | (c << 19) | (c << 29)) & 0x40404040);
-            }
-        }
-        uint32_t table[256];
-    };
-
     static ColorSpaceConverter converter;
 
     class manchester_bit_buf {
@@ -105,6 +93,9 @@ namespace lightkraken {
         return strips[index % lightkraken::Model::stripN];
     }
 
+    bool Strip::ws2812_lut_init = false;
+    std::array<uint32_t, 256> Strip::ws2812_lut;
+
     void Strip::init() {
         comp_buf.fill(0);
         spi_buf.fill(0);
@@ -112,6 +103,19 @@ namespace lightkraken {
         RGBColorSpace rgbSpace;
         rgbSpace.setsRGB();
         converter.setRGBColorSpace(rgbSpace);
+        if (!ws2812_lut_init) {
+            ws2812_lut_init = true;
+            auto make_ws2812_table = [] () constexpr -> std::array<uint32_t, 256> {
+                std::array<uint32_t, 256> table = { 0 };
+                for (uint32_t c = 0; c < 256; c++) {
+                    table[c] = 0x88888888 |
+                            (((c >>  4) | (c <<  6) | (c << 16) | (c << 26)) & 0x04040404)|
+                            (((c >>  1) | (c <<  9) | (c << 19) | (c << 29)) & 0x40404040);
+                }
+                return table;
+            };
+            ws2812_lut = make_ws2812_table();
+        }
     }
 
     void Strip::setRGBColorSpace(const RGBColorSpace &colorSpace) {
@@ -1073,12 +1077,10 @@ namespace lightkraken {
             case NATIVE_RGB16:
             case NATIVE_RGBW8:
             case NATIVE_RGB8: {
-                static constexpr WS2812EncodingLookupTable lookup;
                 const uint8_t *src = &comp_buf[std::max(start, size_t(head_len))-head_len];
                 const size_t len = (std::min(end, head_len + bytes_len - 1) - std::max(start, size_t(head_len)));
-                const uint32_t *lut = lookup.table;
                 for (size_t c = 0; c <= len; c++) {
-                    dst[c] = lut[src[c]];
+                    dst[c] = ws2812_lut[src[c]];
                 }
                 dst += len;
             } break;
