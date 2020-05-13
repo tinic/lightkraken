@@ -175,6 +175,22 @@ void EthernetIf::low_level_init(struct netif *netif, uint32_t mac_addr) {
     enet_enable();
 }
 
+__attribute__ ((hot, flatten, optimize("O3"), optimize("unroll-loops")))
+static void memcpy_fast_aligned(uint8_t *dst, const uint8_t *src, size_t len) {
+    size_t len4 = len / sizeof(uint32_t);
+    size_t len1 = len - len4 * sizeof(uint32_t);
+    const uint32_t *src32 = reinterpret_cast<const uint32_t *>(src);
+    uint32_t *dst32 = reinterpret_cast<uint32_t *>(dst);
+    for (size_t c = 0; c < len4; c++) {
+        dst32[c] = src32[c];
+    }
+    const uint8_t *src8 = src + len4 * sizeof(uint32_t);
+    uint8_t *dst8 = dst + len4 * sizeof(uint32_t);
+    for (size_t c = 0; c < len1; c++) {
+        dst8[c] = src8[c];
+    }
+}
+
 err_t EthernetIf::low_level_output(struct netif *netif, struct pbuf *p) {
     (void)netif;
     
@@ -184,7 +200,7 @@ err_t EthernetIf::low_level_output(struct netif *netif, struct pbuf *p) {
     
     int32_t framelength = 0;
     for(struct pbuf *q = p; q != NULL; q = q->next){ 
-        memcpy((uint8_t *)&buffer[framelength], q->payload, q->len);
+        memcpy_fast_aligned((uint8_t *)&buffer[framelength], (const uint8_t *)q->payload, q->len);
         framelength = framelength + q->len;
     }
     
@@ -203,7 +219,7 @@ struct pbuf *EthernetIf::low_level_input(struct netif *netif) {
     if (p != NULL){
         int32_t l = 0;
         for (struct pbuf *q = p; q != NULL; q = q->next){ 
-            memcpy((uint8_t *)q->payload, (u8_t*)&buffer[l], q->len);
+            memcpy_fast_aligned((uint8_t *)q->payload, (uint8_t*)&buffer[l], q->len);
             l = l + q->len;
         }    
     }
