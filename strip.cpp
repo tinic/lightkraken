@@ -999,7 +999,7 @@ namespace lightkraken {
         }
     }
 
-    __attribute__ ((hot, optimize("O3")))
+    __attribute__ ((hot, flatten, optimize("O3")))
     void Strip::lpd8806_rgb_alike_convert(size_t start, size_t end) {
         uint8_t *dst = spi_buf.data() + start;
         *dst++ = 0x00;
@@ -1015,7 +1015,7 @@ namespace lightkraken {
         }
     }
 
-    __attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
+    __attribute__ ((hot, flatten, optimize("O3"), optimize("unroll-loops")))
     void Strip::apa102_rgb_alike_convert(size_t start, size_t end) {
 
         // Align to 4 bytes
@@ -1059,7 +1059,7 @@ namespace lightkraken {
         }
     }
 
-    __attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
+    __attribute__ ((hot, flatten, optimize("O3"), optimize("unroll-loops")))
     void Strip::ws2812_alike_convert(const size_t start, const size_t end) {
         uint32_t *dst = (uint32_t *)(spi_buf.data() + start * 4);
         size_t head_len = bytesLatchLen / 2;
@@ -1086,7 +1086,7 @@ namespace lightkraken {
         }
     }
     
-    __attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
+    __attribute__ ((hot, flatten, optimize("O3"), optimize("unroll-loops")))
     void Strip::tls3001_alike_convert(size_t &len) {
         uint8_t *dst = spi_buf.data();
         uint32_t reset = 0b11111111'11111110'10000000'00000000; // 19 bits
