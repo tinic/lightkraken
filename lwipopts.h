@@ -46,6 +46,18 @@ OF SUCH DAMAGE.
 
 #define LWIP_TCPIP_CORE_LOCKING 0						 /* no threading */
 
+__attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
+static inline void memcpy_inlined(void *dst, const void *src, size_t len) {
+    uint8_t *d = (uint8_t *)(dst);
+    const uint8_t *s = (const uint8_t *)(src);
+    for (size_t c = 0; c < len; c++) {
+        d[c] = s[c];
+    }
+}
+
+#define MEMCPY(dst,src,len)             memcpy_inlined(dst,src,len)
+#define SMEMCPY(dst,src,len)            memcpy_inlined(dst,src,len)
+
 #define SYS_LIGHTWEIGHT_PROT    0                        /* SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection 
                                                             for certain critical regions during buffer allocation,
                                                             deallocation and memory allocation and deallocation */                                                            
