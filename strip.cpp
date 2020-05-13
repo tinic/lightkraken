@@ -31,6 +31,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "./color.h"
 #include "./perf.h"
 
+#define __assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
+
 namespace lightkraken { 
 
     class WS2812EncodingLookupTable {
@@ -317,7 +319,13 @@ namespace lightkraken {
         }
     }
 
+
+    __attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
     void Strip::setUniverseData(const size_t uniN, const uint8_t *data, const size_t len, const InputType input_type) {
+
+        __assume(uniN < Model::universeN);
+        __assume(len <= 512);
+        __assume(input_type < INPUT_TYPE_COUNT);
 
         PerfMeasure perf(PerfMeasure::SLOT_STRIP_COPY);
 
@@ -335,6 +343,16 @@ namespace lightkraken {
             const size_t input_size = getBytesPerInputPixel(input_type);
             const size_t pixel_pad = std::min(getComponentsPerInputPixel(input_type), order.size());
             const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size() * getComponentBytes(input_type); 
+
+            __assume(limit_8bit <= 255);
+            __assume(limit_16bit <= 65535);
+
+            __assume(input_size > 0);
+            __assume(pixel_pad > 0);
+            __assume(input_size <= 8);
+            __assume(pixel_pad <= 4);
+            __assume(input_pad > 0);
+            __assume(input_pad < dmxMaxLen);
 
             auto fix_for_ws2816 = [=] (const uint16_t v) { return (v < 384) ? uint16_t((uint32_t(v) * uint32_t(0xAAAAAA)) >> 24) : v; };
 
@@ -981,7 +999,7 @@ namespace lightkraken {
         }
     }
 
-    __attribute__ ((hot, optimize("O3")))
+    __attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
     void Strip::apa102_rgb_alike_convert(size_t start, size_t end) {
 
         // Align to 4 bytes
@@ -1025,7 +1043,7 @@ namespace lightkraken {
         }
     }
 
-    __attribute__ ((hot, optimize("O3")))
+    __attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
     void Strip::ws2812_alike_convert(const size_t start, const size_t end) {
         uint32_t *dst = (uint32_t *)(spi_buf.data() + start * 4);
         size_t head_len = bytesLatchLen / 2;
@@ -1052,7 +1070,7 @@ namespace lightkraken {
         }
     }
     
-    __attribute__ ((hot, optimize("O3")))
+    __attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
     void Strip::tls3001_alike_convert(size_t &len) {
         uint8_t *dst = spi_buf.data();
         uint32_t reset = 0b11111111'11111110'10000000'00000000; // 19 bits
