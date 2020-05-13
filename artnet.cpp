@@ -160,18 +160,11 @@ ArtNetPacket::Opcode ArtNetPacket::maybeValid(const uint8_t *buf, size_t len) {
 }
 
 __attribute__ ((hot, flatten, optimize("O3"), optimize("unroll-loops")))
-static void memcpy_fast_aligned(uint8_t *dst, const uint8_t *src, size_t len) {
-    size_t len4 = len / sizeof(uint32_t);
-    size_t len1 = len - len4 * sizeof(uint32_t);
-    const uint32_t *src32 = reinterpret_cast<const uint32_t *>(src);
-    uint32_t *dst32 = reinterpret_cast<uint32_t *>(dst);
-    for (size_t c = 0; c < len4; c++) {
-        dst32[c] = src32[c];
-    }
-    const uint8_t *src8 = src + len4 * sizeof(uint32_t);
-    uint8_t *dst8 = dst + len4 * sizeof(uint32_t);
-    for (size_t c = 0; c < len1; c++) {
-        dst8[c] = src8[c];
+static void memcpy_fast_aligned(uint8_t * dst, const uint8_t *src, size_t len) {
+    uint8_t *d = (uint8_t *)__builtin_assume_aligned (dst, 4);
+    const uint8_t *s = (const uint8_t *)__builtin_assume_aligned (src, 4);
+    for (size_t c = 0; c < len; c++) {
+        d[c] = s[c];
     }
 }
 
