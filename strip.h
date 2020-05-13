@@ -104,8 +104,8 @@ namespace lightkraken {
 
 	    NativeType nativeType() const;
 
-        void setUniverseData(size_t N, const uint8_t *data, size_t len, InputType input_type);
-        void setData(const uint8_t *data, size_t len, InputType input_type);
+        void setUniverseData(const size_t N, const uint8_t *data, const size_t len, const InputType input_type);
+        void setData(const uint8_t *data, const size_t len, const InputType input_type);
         bool isUniverseActive(size_t uniN, InputType input_type) const;
 
         void transfer();
