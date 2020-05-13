@@ -391,17 +391,12 @@ namespace lightkraken {
                             if (output_type == WS2816_RGB) {
                                 uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 3, n += 3) {
-                                    uint32_t r = uint32_t(data[c + 0]); r = (r << 8) | r;
-                                    uint32_t g = uint32_t(data[c + 1]); g = (g << 8) | g;
-                                    uint32_t b = uint32_t(data[c + 2]); b = (b << 8) | b;
+                                    auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); v = (v << 8) | v; return v; };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    r = fix_for_ws2816(uint16_t(std::min(r, uint32_t(limit_16bit))));
-                                    g = fix_for_ws2816(uint16_t(std::min(g, uint32_t(limit_16bit))));
-                                    b = fix_for_ws2816(uint16_t(std::min(b, uint32_t(limit_16bit))));
-
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 0) * 2]) = __builtin_bswap16(uint16_t(g));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 1) * 2]) = __builtin_bswap16(uint16_t(r));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 2) * 2]) = __builtin_bswap16(uint16_t(b));
+                                    write_buf(0, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(1)))));
+                                    write_buf(1, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(0)))));
+                                    write_buf(2, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(2)))));
                                 }
                                 return;
                             }
@@ -419,9 +414,10 @@ namespace lightkraken {
                                 uint32_t g = uint32_t(data[c + 1]);
                                 uint32_t b = uint32_t(data[c + 2]); 
                                 uint32_t w = uint32_t(data[c + 3]);
-                                buf[n + order[0]] = uint8_t(std::min(r+w, uint32_t(limit_8bit)));
-                                buf[n + order[1]] = uint8_t(std::min(g+w, uint32_t(limit_8bit)));
-                                buf[n + order[2]] = uint8_t(std::min(b+w, uint32_t(limit_8bit)));
+
+                                buf[n + order[0]] = uint8_t(std::min(r+w, limit_8bit));
+                                buf[n + order[1]] = uint8_t(std::min(g+w, limit_8bit));
+                                buf[n + order[2]] = uint8_t(std::min(b+w, limit_8bit));
                             }
                         } break;
                         case NATIVE_RGBW8: {
@@ -436,18 +432,21 @@ namespace lightkraken {
                             if (output_type == WS2816_RGB) {
                                 uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 4, n += 3) {
-                                    uint32_t r = uint32_t(data[c + 0]); r = (r << 8) | r;
-                                    uint32_t g = uint32_t(data[c + 1]); g = (g << 8) | g;
-                                    uint32_t b = uint32_t(data[c + 2]); b = (b << 8) | b;
-                                    uint32_t w = uint32_t(data[c + 3]); w = (w << 8) | w;
+                                    auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); v = (v << 8) | v; return v; };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
-                                    g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
-                                    b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
+                                    uint32_t r = read_buf(0);
+                                    uint32_t g = read_buf(1);
+                                    uint32_t b = read_buf(2);
+                                    uint32_t w = read_buf(3);
 
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 0) * 2]) = __builtin_bswap16(uint16_t(g));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 1) * 2]) = __builtin_bswap16(uint16_t(r));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 2) * 2]) = __builtin_bswap16(uint16_t(b));
+                                    r = fix_for_ws2816(uint16_t(std::min(limit_16bit, r+w)));
+                                    g = fix_for_ws2816(uint16_t(std::min(limit_16bit, g+w)));
+                                    b = fix_for_ws2816(uint16_t(std::min(limit_16bit, b+w)));
+
+                                    write_buf(0, g);
+                                    write_buf(1, r);
+                                    write_buf(2, b);
                                 }
                                 return;
                             }
@@ -514,6 +513,8 @@ namespace lightkraken {
                             if (output_type == WS2816_RGB) {
                                 uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 3, n += 3) {
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
                                     uint8_t sr = data[c + 0];
                                     uint8_t sg = data[c + 1];
                                     uint8_t sb = data[c + 2];
@@ -530,9 +531,9 @@ namespace lightkraken {
                                     lg = fix_for_ws2816(std::min(uint16_t(limit_16bit), lg));
                                     lb = fix_for_ws2816(std::min(uint16_t(limit_16bit), lb));
 
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 0) * 2]) = __builtin_bswap16(uint16_t(lg));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 1) * 2]) = __builtin_bswap16(uint16_t(lr));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 2) * 2]) = __builtin_bswap16(uint16_t(lb));
+                                    write_buf(0, lg);
+                                    write_buf(1, lr);
+                                    write_buf(2, lb);
                                 }
                                 return;
                             }
@@ -559,9 +560,9 @@ namespace lightkraken {
                                     sr, sg, sb, 255,
                                     lr, lg, lb);
 
-                                buf[n + order[0]] = uint8_t(std::min(uint32_t(lr+uint16_t(lw)), uint32_t(limit_8bit)));
-                                buf[n + order[1]] = uint8_t(std::min(uint32_t(lg+uint16_t(lw)), uint32_t(limit_8bit)));
-                                buf[n + order[2]] = uint8_t(std::min(uint32_t(lb+uint16_t(lw)), uint32_t(limit_8bit)));
+                                buf[n + order[0]] = uint8_t(std::min(uint32_t(lr+uint16_t(lw)), limit_8bit));
+                                buf[n + order[1]] = uint8_t(std::min(uint32_t(lg+uint16_t(lw)), limit_8bit));
+                                buf[n + order[2]] = uint8_t(std::min(uint32_t(lb+uint16_t(lw)), limit_8bit));
                             }
                         } break;
                         case NATIVE_RGBW8: {
@@ -580,16 +581,18 @@ namespace lightkraken {
                                     sr, sg, sb, 255,
                                     lr, lg, lb);
 
-                                buf[n + order[0]] = uint8_t(std::min(uint32_t(lr), uint32_t(limit_8bit)));
-                                buf[n + order[1]] = uint8_t(std::min(uint32_t(lg), uint32_t(limit_8bit)));
-                                buf[n + order[2]] = uint8_t(std::min(uint32_t(lb), uint32_t(limit_8bit)));
-                                buf[n + order[3]] = uint8_t(std::min(uint32_t(lw), uint32_t(limit_8bit)));
+                                buf[n + order[0]] = uint8_t(std::min(uint32_t(lr), limit_8bit));
+                                buf[n + order[1]] = uint8_t(std::min(uint32_t(lg), limit_8bit));
+                                buf[n + order[2]] = uint8_t(std::min(uint32_t(lb), limit_8bit));
+                                buf[n + order[3]] = uint8_t(std::min(uint32_t(lw), limit_8bit));
                             }
                         } break;
                         case NATIVE_RGB16: {
                             if (output_type == WS2816_RGB) {
                                 uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 4, n += 3) {
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
                                     uint8_t sr = uint8_t(data[c + 0]);
                                     uint8_t sg = uint8_t(data[c + 1]);
                                     uint8_t sb = uint8_t(data[c + 2]); 
@@ -605,13 +608,13 @@ namespace lightkraken {
 
                                     lw = (lw << 8) | lw;
 
-                                    lr = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lr) + uint32_t(lw)));
-                                    lg = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lg) + uint32_t(lw)));
-                                    lb = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lb) + uint32_t(lw)));
+                                    lr = fix_for_ws2816(std::min(limit_8bit, uint32_t(lr) + uint32_t(lw)));
+                                    lg = fix_for_ws2816(std::min(limit_8bit, uint32_t(lg) + uint32_t(lw)));
+                                    lb = fix_for_ws2816(std::min(limit_8bit, uint32_t(lb) + uint32_t(lw)));
 
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 0) * 2]) = __builtin_bswap16(uint16_t(lg));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 1) * 2]) = __builtin_bswap16(uint16_t(lr));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 2) * 2]) = __builtin_bswap16(uint16_t(lb));
+                                    write_buf(0, lg);
+                                    write_buf(1, lr);
+                                    write_buf(2, lb);
                                 }
                                 return;
                             }
@@ -633,31 +636,31 @@ namespace lightkraken {
                         case NATIVE_RGBW8: {
                             uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                             for (size_t c = 0, n = 0; c < pixel_loop_n; c += 6, n += 4) {
-                                uint32_t r = std::min(limit_8bit, uint32_t(data[c + 1]));
-                                uint32_t g = std::min(limit_8bit, uint32_t(data[c + 3]));
-                                uint32_t b = std::min(limit_8bit, uint32_t(data[c + 5]));
+                                auto read_buf = [=] (const size_t i) { return uint32_t(data[c + i*2 + 1]); };
+                                auto write_buf = [=] (const size_t i, const uint8_t p) { buf[n + order[i]] = p; };
+
+                                uint32_t r = std::min(limit_8bit, read_buf(0));
+                                uint32_t g = std::min(limit_8bit, read_buf(1));
+                                uint32_t b = std::min(limit_8bit, read_buf(2));
+
                                 uint32_t m = std::min(r, std::min(g, b));
-                                buf[n + order[0]] = r - m;
-                                buf[n + order[1]] = g - m;
-                                buf[n + order[2]] = b - m;
-                                buf[n + order[3]] = m;
+
+                                write_buf(0, r - m);
+                                write_buf(1, g - m);
+                                write_buf(2, b - m);
+                                write_buf(3, m);
                             }
                         } break;
                         case NATIVE_RGB16: {
                             if (output_type == WS2816_RGB) {
                                 uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 6, n += 3) {
-                                    uint32_t r = *reinterpret_cast<const uint16_t *>(&data[c+0]);
-                                    uint32_t g = *reinterpret_cast<const uint16_t *>(&data[c+2]);
-                                    uint32_t b = *reinterpret_cast<const uint16_t *>(&data[c+4]);
+                                    auto read_buf = [=] (const size_t i) { return uint32_t(*reinterpret_cast<const uint16_t *>(&data[c+i*2])); };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    r  = fix_for_ws2816(std::min(limit_16bit, r));
-                                    g  = fix_for_ws2816(std::min(limit_16bit, g));
-                                    b  = fix_for_ws2816(std::min(limit_16bit, b));
-
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 0) * 2]) = __builtin_bswap16(uint16_t(g));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 1) * 2]) = __builtin_bswap16(uint16_t(r));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 2) * 2]) = __builtin_bswap16(uint16_t(b));
+                                    write_buf(0, fix_for_ws2816(std::min(limit_16bit, read_buf(1))));
+                                    write_buf(1, fix_for_ws2816(std::min(limit_16bit, read_buf(0))));
+                                    write_buf(2, fix_for_ws2816(std::min(limit_16bit, read_buf(2))));
                                 }
                                 return;
                             }
@@ -679,31 +682,31 @@ namespace lightkraken {
                         case NATIVE_RGBW8: {
                             uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                             for (size_t c = 0, n = 0; c < pixel_loop_n; c += 6, n += 4) {
-                                uint32_t r = std::min(limit_8bit, uint32_t(data[c + 0]));
-                                uint32_t g = std::min(limit_8bit, uint32_t(data[c + 2]));
-                                uint32_t b = std::min(limit_8bit, uint32_t(data[c + 4]));
+                                auto read_buf = [=] (const size_t i) { return uint32_t(data[c + i*2]); };
+                                auto write_buf = [=] (const size_t i, const uint8_t p) { buf[n + order[i]] = p; };
+
+                                uint32_t r = std::min(limit_8bit, read_buf(0));
+                                uint32_t g = std::min(limit_8bit, read_buf(1));
+                                uint32_t b = std::min(limit_8bit, read_buf(2));
+
                                 uint32_t m = std::min(r, std::min(g, b));
-                                buf[n + order[0]] = r - m;
-                                buf[n + order[1]] = g - m;
-                                buf[n + order[2]] = b - m;
-                                buf[n + order[3]] = m;
+
+                                write_buf(0, r - m);
+                                write_buf(1, g - m);
+                                write_buf(2, b - m);
+                                write_buf(3, m);
                             }
                         } break;
                         case NATIVE_RGB16: {
                             if (output_type == WS2816_RGB) {
                                 uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 6, n += 3) {
-                                    uint32_t r = __builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+0]));
-                                    uint32_t g = __builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+2]));
-                                    uint32_t b = __builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+4]));
+                                    auto read_buf = [=] (const size_t i) { return uint32_t(__builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+i*2]))); };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    r  = fix_for_ws2816(std::min(limit_16bit, r));
-                                    g  = fix_for_ws2816(std::min(limit_16bit, g));
-                                    b  = fix_for_ws2816(std::min(limit_16bit, b));
-
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 0) * 2]) = __builtin_bswap16(uint16_t(g));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 1) * 2]) = __builtin_bswap16(uint16_t(r));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 2) * 2]) = __builtin_bswap16(uint16_t(b));
+                                    write_buf(0, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(1)))));
+                                    write_buf(1, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(0)))));
+                                    write_buf(2, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(2)))));
                                 }
                                 return;
                             }
@@ -717,13 +720,17 @@ namespace lightkraken {
                         case NATIVE_RGB8: {
                             uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                             for (size_t c = 0, n = 0; c < pixel_loop_n; c += 8, n += 3) {
-                                uint32_t r = uint32_t(data[c + 1]);
-                                uint32_t g = uint32_t(data[c + 3]);
-                                uint32_t b = uint32_t(data[c + 5]); 
-                                uint32_t w = uint32_t(data[c + 7]);
-                                buf[n + order[0]] = uint8_t(std::min(r+w, uint32_t(limit_8bit)));
-                                buf[n + order[1]] = uint8_t(std::min(g+w, uint32_t(limit_8bit)));
-                                buf[n + order[2]] = uint8_t(std::min(b+w, uint32_t(limit_8bit)));
+                                auto read_buf = [=] (const size_t i) { return uint32_t(*reinterpret_cast<const uint16_t *>(&data[c+i*2+1])); };
+                                auto write_buf = [=] (const size_t i, const uint8_t p) {buf[n + order[i]] = p; };
+
+                                uint32_t r = read_buf(0);
+                                uint32_t g = read_buf(1);
+                                uint32_t b = read_buf(2);
+                                uint32_t w = read_buf(3);
+
+                                write_buf(0, uint8_t(std::min(limit_8bit, r+w)));
+                                write_buf(1, uint8_t(std::min(limit_8bit, g+w)));
+                                write_buf(2, uint8_t(std::min(limit_8bit, b+w)));
                             }
                         } break;
                         case NATIVE_RGBW8: {
@@ -738,18 +745,17 @@ namespace lightkraken {
                             if (output_type == WS2816_RGB) {
                                 uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 8, n += 3) {
-                                    uint32_t r = *reinterpret_cast<const uint16_t *>(&data[c+0]);
-                                    uint32_t g = *reinterpret_cast<const uint16_t *>(&data[c+2]);
-                                    uint32_t b = *reinterpret_cast<const uint16_t *>(&data[c+4]);
-                                    uint32_t w = *reinterpret_cast<const uint16_t *>(&data[c+6]);
+                                    auto read_buf = [=] (const size_t i) { return uint32_t(*reinterpret_cast<const uint16_t *>(&data[c+i*2])); };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
-                                    g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
-                                    b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
+                                    uint32_t r = read_buf(0);
+                                    uint32_t g = read_buf(1);
+                                    uint32_t b = read_buf(2);
+                                    uint32_t w = read_buf(3);
 
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 0) * 2]) = __builtin_bswap16(uint16_t(g));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 1) * 2]) = __builtin_bswap16(uint16_t(r));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 2) * 2]) = __builtin_bswap16(uint16_t(b));
+                                    write_buf(0, fix_for_ws2816(uint16_t(std::min(limit_16bit, g+w))));
+                                    write_buf(1, fix_for_ws2816(uint16_t(std::min(limit_16bit, r+w))));
+                                    write_buf(2, fix_for_ws2816(uint16_t(std::min(limit_16bit, b+w))));
                                 }
                                 return;
                             }
@@ -763,13 +769,16 @@ namespace lightkraken {
                         case NATIVE_RGB8: {
                             uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                             for (size_t c = 0, n = 0; c < pixel_loop_n; c += 8, n += 3) {
-                                uint32_t r = uint32_t(data[c + 0]);
-                                uint32_t g = uint32_t(data[c + 2]);
-                                uint32_t b = uint32_t(data[c + 4]); 
-                                uint32_t w = uint32_t(data[c + 6]);
-                                buf[n + order[0]] = uint8_t(std::min(r+w, uint32_t(limit_8bit)));
-                                buf[n + order[1]] = uint8_t(std::min(g+w, uint32_t(limit_8bit)));
-                                buf[n + order[2]] = uint8_t(std::min(b+w, uint32_t(limit_8bit)));
+                                auto read_buf = [=] (const size_t i) { return uint32_t(*reinterpret_cast<const uint16_t *>(&data[c+i*2+0])); };
+
+                                uint32_t r = read_buf(0);
+                                uint32_t g = read_buf(1);
+                                uint32_t b = read_buf(2);
+                                uint32_t w = read_buf(3);
+
+                                buf[n + order[0]] = uint8_t(std::min(limit_8bit, r+w));
+                                buf[n + order[1]] = uint8_t(std::min(limit_8bit, g+w));
+                                buf[n + order[2]] = uint8_t(std::min(limit_8bit, b+w));
                             }
                         } break;
                         case NATIVE_RGBW8: {
@@ -784,18 +793,21 @@ namespace lightkraken {
                             if (output_type == WS2816_RGB) {
                                 uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 8, n += 3) {
-                                    uint32_t r = __builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+0]));
-                                    uint32_t g = __builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+2]));
-                                    uint32_t b = __builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+4]));
-                                    uint32_t w = __builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+6]));
+                                    auto read_buf = [=] (const size_t i) { return uint32_t(__builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+i*2]))); };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
-                                    g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
-                                    b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
+                                    uint32_t r = read_buf(0);
+                                    uint32_t g = read_buf(1);
+                                    uint32_t b = read_buf(2);
+                                    uint32_t w = read_buf(3);
+
+                                    r = fix_for_ws2816(uint16_t(std::min(limit_16bit, r+w)));
+                                    g = fix_for_ws2816(uint16_t(std::min(limit_16bit, g+w)));
+                                    b = fix_for_ws2816(uint16_t(std::min(limit_16bit, b+w)));
                                     
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 0) * 2]) = __builtin_bswap16(uint16_t(g));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 1) * 2]) = __builtin_bswap16(uint16_t(r));
-                                    *reinterpret_cast<uint16_t *>(&buf[(n + 2) * 2]) = __builtin_bswap16(uint16_t(b));
+                                    write_buf(0, g);
+                                    write_buf(1, r);
+                                    write_buf(2, b);
                                 }
                                 return;
                             }
