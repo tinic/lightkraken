@@ -337,7 +337,7 @@ namespace lightkraken {
             const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size() * getComponentBytes(input_type); 
 
             auto fix_for_ws2816 = [=] (const uint16_t v) {
-                if (output_type == WS2816_RGB && v < 384) {
+                if (v < 384) {
                    return uint16_t((uint32_t(v)*uint32_t(0xAAAAAA))>>24);
                 }
                 return uint16_t(v);
@@ -371,14 +371,23 @@ namespace lightkraken {
                             }
                         } break;
                         case NATIVE_RGB16: {
-                            uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
-                            for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-                                for (size_t d = 0; d < pixel_pad; d++) {
-                                    uint16_t v = uint16_t(std::min(limit_8bit, uint32_t(data[c + d])));
-                                    v = fix_for_ws2816((v << 8) | v);
-                                    buf[(n + order[d]) * 2 + 0] = v >> 8;
-                                    buf[(n + order[d]) * 2 + 1] = v & 0xFF;
+                            if (output_type == WS2816_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+                                    uint16_t r = uint16_t(std::min(limit_8bit, uint32_t(data[c + 0])));
+                                    uint16_t g = uint16_t(std::min(limit_8bit, uint32_t(data[c + 1])));
+                                    uint16_t b = uint16_t(std::min(limit_8bit, uint32_t(data[c + 2])));
+                                    r = fix_for_ws2816((r << 8) | r);
+                                    g = fix_for_ws2816((g << 8) | g);
+                                    b = fix_for_ws2816((b << 8) | b);
+                                    buf[(n + 1) * 2 + 0] = r >> 8;
+                                    buf[(n + 1) * 2 + 1] = r & 0xFF;
+                                    buf[(n + 0) * 2 + 0] = g >> 8;
+                                    buf[(n + 0) * 2 + 1] = g & 0xFF;
+                                    buf[(n + 2) * 2 + 0] = b >> 8;
+                                    buf[(n + 2) * 2 + 1] = b & 0xFF;
                                 }
+                                return;
                             }
                         } break;
                     }
@@ -408,21 +417,24 @@ namespace lightkraken {
                             }
                         } break;
                         case NATIVE_RGB16: {
-                            uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
-                            for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-                                uint32_t r = uint32_t(data[c + 0]); r = (r << 8) | r;
-                                uint32_t g = uint32_t(data[c + 1]); r = (g << 8) | g;
-                                uint32_t b = uint32_t(data[c + 2]); r = (b << 8) | b;
-                                uint32_t w = uint32_t(data[c + 3]); r = (w << 8) | w;
-                                r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
-                                g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
-                                b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
-                                buf[(n + order[0]) * 2 + 0] = r >>   8;
-                                buf[(n + order[0]) * 2 + 1] = r & 0xFF;
-                                buf[(n + order[1]) * 2 + 2] = g >>   8;
-                                buf[(n + order[1]) * 2 + 3] = g & 0xFF;
-                                buf[(n + order[2]) * 2 + 4] = b >>   8;
-                                buf[(n + order[2]) * 2 + 5] = b & 0xFF;
+                            if (output_type == WS2816_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+                                    uint32_t r = uint32_t(data[c + 0]); r = (r << 8) | r;
+                                    uint32_t g = uint32_t(data[c + 1]); r = (g << 8) | g;
+                                    uint32_t b = uint32_t(data[c + 2]); r = (b << 8) | b;
+                                    uint32_t w = uint32_t(data[c + 3]); r = (w << 8) | w;
+                                    r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
+                                    g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
+                                    b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
+                                    buf[(n + 1) * 2 + 0] = r >>   8;
+                                    buf[(n + 1) * 2 + 1] = r & 0xFF;
+                                    buf[(n + 0) * 2 + 2] = g >>   8;
+                                    buf[(n + 0) * 2 + 3] = g & 0xFF;
+                                    buf[(n + 2) * 2 + 4] = b >>   8;
+                                    buf[(n + 2) * 2 + 5] = b & 0xFF;
+                                }
+                                return;
                             }
                         } break;
                     }
@@ -484,30 +496,33 @@ namespace lightkraken {
                             }
                         } break;
                         case NATIVE_RGB16: {
-                            uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
-                            for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-                                uint8_t sr = data[c + 0];
-                                uint8_t sg = data[c + 1];
-                                uint8_t sb = data[c + 2];
+                            if (output_type == WS2816_RGB) {
+                                uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+                                    uint8_t sr = data[c + 0];
+                                    uint8_t sg = data[c + 1];
+                                    uint8_t sb = data[c + 2];
 
-                                uint16_t lr = 0;
-                                uint16_t lg = 0;
-                                uint16_t lb = 0;
-    
-                                converter.sRGB8toLEDPWM(
-                                    sr, sg, sb, 65535,
-                                    lr, lg, lb);
+                                    uint16_t lr = 0;
+                                    uint16_t lg = 0;
+                                    uint16_t lb = 0;
+        
+                                    converter.sRGB8toLEDPWM(
+                                        sr, sg, sb, 65535,
+                                        lr, lg, lb);
 
-                                lr = fix_for_ws2816(std::min(uint16_t(limit_16bit), lr));
-                                lg = fix_for_ws2816(std::min(uint16_t(limit_16bit), lg));
-                                lb = fix_for_ws2816(std::min(uint16_t(limit_16bit), lb));
+                                    lr = fix_for_ws2816(std::min(uint16_t(limit_16bit), lr));
+                                    lg = fix_for_ws2816(std::min(uint16_t(limit_16bit), lg));
+                                    lb = fix_for_ws2816(std::min(uint16_t(limit_16bit), lb));
 
-                                buf[(n + order[0]) * 2 + 0] = lr >>   8;
-                                buf[(n + order[0]) * 2 + 1] = lr & 0xFF;
-                                buf[(n + order[1]) * 2 + 2] = lg >>   8;
-                                buf[(n + order[1]) * 2 + 3] = lg & 0xFF;
-                                buf[(n + order[2]) * 2 + 4] = lb >>   8;
-                                buf[(n + order[2]) * 2 + 5] = lb & 0xFF;
+                                    buf[(n + 1) * 2 + 0] = lr >>   8;
+                                    buf[(n + 1) * 2 + 1] = lr & 0xFF;
+                                    buf[(n + 0) * 2 + 0] = lg >>   8;
+                                    buf[(n + 0) * 2 + 1] = lg & 0xFF;
+                                    buf[(n + 2) * 2 + 0] = lb >>   8;
+                                    buf[(n + 2) * 2 + 1] = lb & 0xFF;
+                                }
+                                return;
                             }
                         } break;
                     }
@@ -560,33 +575,36 @@ namespace lightkraken {
                             }
                         } break;
                         case NATIVE_RGB16: {
-                            uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
-                            for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-                                uint8_t sr = uint8_t(data[c + 0]);
-                                uint8_t sg = uint8_t(data[c + 1]);
-                                uint8_t sb = uint8_t(data[c + 2]); 
-                                uint8_t lw = uint8_t(data[c + 3]);
+                            if (output_type == WS2816_RGB) {
+                                uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+                                    uint8_t sr = uint8_t(data[c + 0]);
+                                    uint8_t sg = uint8_t(data[c + 1]);
+                                    uint8_t sb = uint8_t(data[c + 2]); 
+                                    uint8_t lw = uint8_t(data[c + 3]);
 
-                                uint16_t lr = 0;
-                                uint16_t lg = 0;
-                                uint16_t lb = 0;
-    
-                                converter.sRGB8toLEDPWM(
-                                    sr, sg, sb, 65535,
-                                    lr, lg, lb);
+                                    uint16_t lr = 0;
+                                    uint16_t lg = 0;
+                                    uint16_t lb = 0;
+        
+                                    converter.sRGB8toLEDPWM(
+                                        sr, sg, sb, 65535,
+                                        lr, lg, lb);
 
-                                lw = (lw << 8) | lw;
+                                    lw = (lw << 8) | lw;
 
-                                lr = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lr) + uint32_t(lw)));
-                                lg = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lg) + uint32_t(lw)));
-                                lb = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lb) + uint32_t(lw)));
+                                    lr = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lr) + uint32_t(lw)));
+                                    lg = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lg) + uint32_t(lw)));
+                                    lb = fix_for_ws2816(std::min(uint32_t(limit_16bit), uint32_t(lb) + uint32_t(lw)));
 
-                                buf[(n + order[0]) * 2 + 0] = lr >>   8;
-                                buf[(n + order[0]) * 2 + 1] = lr & 0xFF;
-                                buf[(n + order[1]) * 2 + 2] = lg >>   8;
-                                buf[(n + order[1]) * 2 + 3] = lg & 0xFF;
-                                buf[(n + order[2]) * 2 + 4] = lb >>   8;
-                                buf[(n + order[2]) * 2 + 5] = lb & 0xFF;
+                                    buf[(n + 1) * 2 + 0] = lr >>   8;
+                                    buf[(n + 1) * 2 + 1] = lr & 0xFF;
+                                    buf[(n + 0) * 2 + 0] = lg >>   8;
+                                    buf[(n + 0) * 2 + 1] = lg & 0xFF;
+                                    buf[(n + 2) * 2 + 0] = lb >>   8;
+                                    buf[(n + 2) * 2 + 1] = lb & 0xFF;
+                                }
+                                return;
                             }
                         } break;
                     }
@@ -626,26 +644,17 @@ namespace lightkraken {
                                                                                 (uint32_t(data[c + 2]) << 0)));
                                     uint16_t b = uint16_t(std::min(limit_16bit, (uint32_t(data[c + 5]) << 8) | 
                                                                                 (uint32_t(data[c + 4]) << 0)));
-                                    if (r < 384) r = uint16_t((uint32_t(r)*uint32_t(0xAAAAAA))>>24);
-                                    if (g < 384) g = uint16_t((uint32_t(g)*uint32_t(0xAAAAAA))>>24);
-                                    if (b < 384) b = uint16_t((uint32_t(b)*uint32_t(0xAAAAAA))>>24);
-                                    buf[(n + 1) * 2 + 1] = r >>   8;
-                                    buf[(n + 1) * 2 + 0] = r & 0xFF;
-                                    buf[(n + 0) * 2 + 1] = g >>   8;
-                                    buf[(n + 0) * 2 + 0] = g & 0xFF;
-                                    buf[(n + 2) * 2 + 1] = b >>   8;
-                                    buf[(n + 2) * 2 + 0] = b & 0xFF;
+                                    r  = fix_for_ws2816(r);
+                                    g  = fix_for_ws2816(g);
+                                    b  = fix_for_ws2816(b);
+                                    buf[(n + 1) * 2 + 0] = r >>   8;
+                                    buf[(n + 1) * 2 + 1] = r & 0xFF;
+                                    buf[(n + 0) * 2 + 0] = g >>   8;
+                                    buf[(n + 0) * 2 + 1] = g & 0xFF;
+                                    buf[(n + 2) * 2 + 0] = b >>   8;
+                                    buf[(n + 2) * 2 + 1] = b & 0xFF;
                                 }
                                 return;
-                            }
-                            uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
-                            for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-                                for (size_t d = 0; d < pixel_pad; d++) {
-                                    uint16_t val = uint16_t(std::min(limit_16bit, (uint32_t(data[c + d * 2 + 1]) << 8) | 
-                                                                                  (uint32_t(data[c + d * 2 + 0]) << 0)));
-                                    buf[(n + order[d]) * 2 + 0] = val >>   8;
-                                    buf[(n + order[d]) * 2 + 1] = val & 0xFF;
-                                }
                             }
                         } break;
                     }
@@ -685,9 +694,9 @@ namespace lightkraken {
                                                                                 (uint32_t(data[c + 3]) << 0)));
                                     uint16_t b = uint16_t(std::min(limit_16bit, (uint32_t(data[c + 4]) << 8) | 
                                                                                 (uint32_t(data[c + 5]) << 0)));
-                                    if (r < 384) r = uint16_t((uint32_t(r)*uint32_t(0xAAAAAA))>>24);
-                                    if (g < 384) g = uint16_t((uint32_t(g)*uint32_t(0xAAAAAA))>>24);
-                                    if (b < 384) b = uint16_t((uint32_t(b)*uint32_t(0xAAAAAA))>>24);
+                                    r  = fix_for_ws2816(r);
+                                    g  = fix_for_ws2816(g);
+                                    b  = fix_for_ws2816(b);
                                     buf[(n + 1) * 2 + 0] = r >>   8;
                                     buf[(n + 1) * 2 + 1] = r & 0xFF;
                                     buf[(n + 0) * 2 + 0] = g >>   8;
@@ -696,15 +705,6 @@ namespace lightkraken {
                                     buf[(n + 2) * 2 + 1] = b & 0xFF;
                                 }
                                 return;
-                            }
-                            uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
-                            for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-                                for (size_t d = 0; d < pixel_pad; d++) {
-                                    uint16_t val = uint16_t(std::min(limit_16bit, (uint32_t(data[c + d * 2 + 0]) << 8) | 
-                                                                                  (uint32_t(data[c + d * 2 + 1]) << 0)));
-                                    buf[(n + order[d]) * 2 + 0] = val >>   8;
-                                    buf[(n + order[d]) * 2 + 1] = val & 0xFF;
-                                }
                             }
                         } break;
                     }
@@ -734,25 +734,28 @@ namespace lightkraken {
                             }
                         } break;
                         case NATIVE_RGB16: {
-                            uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
-                            for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-                                uint32_t r = (uint32_t(data[c + 0 * 2 + 1]) << 8) | 
-                                             (uint32_t(data[c + 0 * 2 + 0]) << 0);
-                                uint32_t g = (uint32_t(data[c + 1 * 2 + 3]) << 8) | 
-                                             (uint32_t(data[c + 1 * 2 + 2]) << 0);
-                                uint32_t b = (uint32_t(data[c + 2 * 2 + 5]) << 8) | 
-                                             (uint32_t(data[c + 2 * 2 + 4]) << 0);
-                                uint32_t w = (uint32_t(data[c + 3 * 2 + 7]) << 8) | 
-                                             (uint32_t(data[c + 3 * 2 + 6]) << 0);
-                                r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
-                                g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
-                                b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
-                                buf[(n + order[0]) * 2 + 0] = r >>   8;
-                                buf[(n + order[0]) * 2 + 1] = r & 0xFF;
-                                buf[(n + order[1]) * 2 + 2] = g >>   8;
-                                buf[(n + order[1]) * 2 + 3] = g & 0xFF;
-                                buf[(n + order[2]) * 2 + 4] = b >>   8;
-                                buf[(n + order[2]) * 2 + 5] = b & 0xFF;
+                            if (output_type == WS2816_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+                                    uint32_t r = (uint32_t(data[c + 1]) << 8) | 
+                                                 (uint32_t(data[c + 0]) << 0);
+                                    uint32_t g = (uint32_t(data[c + 3]) << 8) | 
+                                                 (uint32_t(data[c + 2]) << 0);
+                                    uint32_t b = (uint32_t(data[c + 5]) << 8) | 
+                                                 (uint32_t(data[c + 4]) << 0);
+                                    uint32_t w = (uint32_t(data[c + 7]) << 8) | 
+                                                 (uint32_t(data[c + 6]) << 0);
+                                    r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
+                                    g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
+                                    b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
+                                    buf[(n + 1) * 2 + 0] = r >>   8;
+                                    buf[(n + 1) * 2 + 1] = r & 0xFF;
+                                    buf[(n + 0) * 2 + 0] = g >>   8;
+                                    buf[(n + 0) * 2 + 1] = g & 0xFF;
+                                    buf[(n + 2) * 2 + 0] = b >>   8;
+                                    buf[(n + 2) * 2 + 1] = b & 0xFF;
+                                }
+                                return;
                             }
                         } break;
                     }
@@ -782,25 +785,28 @@ namespace lightkraken {
                             }
                         } break;
                         case NATIVE_RGB16: {
-                            uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
-                            for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
-                                uint32_t r = (uint32_t(data[c + 0 * 2 + 0]) << 8) | 
-                                             (uint32_t(data[c + 0 * 2 + 1]) << 0);
-                                uint32_t g = (uint32_t(data[c + 1 * 2 + 2]) << 8) | 
-                                             (uint32_t(data[c + 1 * 2 + 3]) << 0);
-                                uint32_t b = (uint32_t(data[c + 2 * 2 + 4]) << 8) | 
-                                             (uint32_t(data[c + 2 * 2 + 5]) << 0);
-                                uint32_t w = (uint32_t(data[c + 3 * 2 + 6]) << 8) | 
-                                             (uint32_t(data[c + 3 * 2 + 7]) << 0);
-                                r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
-                                g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
-                                b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
-                                buf[(n + order[0]) * 2 + 0] = r >>   8;
-                                buf[(n + order[0]) * 2 + 1] = r & 0xFF;
-                                buf[(n + order[1]) * 2 + 2] = g >>   8;
-                                buf[(n + order[1]) * 2 + 3] = g & 0xFF;
-                                buf[(n + order[2]) * 2 + 4] = b >>   8;
-                                buf[(n + order[2]) * 2 + 5] = b & 0xFF;
+                            if (output_type == WS2816_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < std::min(len, input_pad); c += input_size, n += order.size()) {
+                                    uint32_t r = (uint32_t(data[c + 0]) << 8) | 
+                                                 (uint32_t(data[c + 1]) << 0);
+                                    uint32_t g = (uint32_t(data[c + 2]) << 8) | 
+                                                 (uint32_t(data[c + 3]) << 0);
+                                    uint32_t b = (uint32_t(data[c + 4]) << 8) | 
+                                                 (uint32_t(data[c + 5]) << 0);
+                                    uint32_t w = (uint32_t(data[c + 6]) << 8) | 
+                                                 (uint32_t(data[c + 7]) << 0);
+                                    r = fix_for_ws2816(uint16_t(std::min(r+w, uint32_t(limit_16bit))));
+                                    g = fix_for_ws2816(uint16_t(std::min(g+w, uint32_t(limit_16bit))));
+                                    b = fix_for_ws2816(uint16_t(std::min(b+w, uint32_t(limit_16bit))));
+                                    buf[(n + 1) * 2 + 0] = r >>   8;
+                                    buf[(n + 1) * 2 + 1] = r & 0xFF;
+                                    buf[(n + 0) * 2 + 0] = g >>   8;
+                                    buf[(n + 0) * 2 + 1] = g & 0xFF;
+                                    buf[(n + 2) * 2 + 0] = b >>   8;
+                                    buf[(n + 2) * 2 + 1] = b & 0xFF;
+                                }
+                                return;
                             }
                         } break;
                     }
