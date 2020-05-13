@@ -51,7 +51,7 @@ PerfMeasure::~PerfMeasure() {
 
 void PerfMeasure::print() {
     (void)slotNames;
-#if 0
+#if 1
     static int32_t counter = 0;
     printf("== %04d ===============\n", int(counter++));
     for (int32_t c = 0; c < SLOT_COUNT ; c++) {
