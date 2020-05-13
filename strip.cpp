@@ -1075,10 +1075,12 @@ namespace lightkraken {
             case NATIVE_RGB8: {
                 static constexpr WS2812EncodingLookupTable lookup;
                 const uint8_t *src = &comp_buf[std::max(start, size_t(head_len))-head_len];
-                size_t len = (std::min(end, head_len + bytes_len - 1) - std::max(start, size_t(head_len)));
+                const size_t len = (std::min(end, head_len + bytes_len - 1) - std::max(start, size_t(head_len)));
+                const uint32_t *lut = lookup.table;
                 for (size_t c = 0; c <= len; c++) {
-                    *dst++ = lookup.table[*src++];
+                    dst[c] = lut[src[c]];
                 }
+                dst += len;
             } break;
         }
         for (size_t c = std::max(start, head_len + bytes_len); c <= end; c++) {
