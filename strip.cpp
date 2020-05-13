@@ -114,6 +114,7 @@ namespace lightkraken {
                 }
                 return table;
             };
+            // Make a RAM copy; gets us a slight perf improvement
             ws2812_lut = make_ws2812_table();
         }
     }
