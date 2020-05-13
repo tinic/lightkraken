@@ -6,6 +6,8 @@
 #include "./systick.h"
 #include "./perf.h"
 
+extern "C" uint32_t SystemCoreClock;
+
 namespace lightkraken {
 
 static const char *slotNames[] = {
@@ -58,7 +60,8 @@ void PerfMeasure::print() {
         uint64_t max_time = slots[c].max;
         uint64_t last_time = slots[c].last;
         uint64_t count = slots[c].count;
-        printf("%s: last(%012d) avg(%012d) min(%012d) max(%012d) count(%012d)\n", slotNames[c], int(last_time), int(avg_time), int(min_time), int(max_time), int(count));
+        uint64_t last_time_ns = (uint64_t(last_time) * 1000000) / uint64_t(SystemCoreClock);
+        printf("%s: last(%09d, %09dus) avg(%09d) min(%09d) max(%09d) count(%09d)\n", slotNames[c], int(last_time), int(last_time_ns), int(avg_time), int(min_time), int(max_time), int(count));
     }
 #endif  // #if 0
 }
