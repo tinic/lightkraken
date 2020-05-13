@@ -1026,7 +1026,7 @@ namespace lightkraken {
     }
 
     __attribute__ ((hot, optimize("O3")))
-    void Strip::ws2812_alike_convert(size_t start, size_t end) {
+    void Strip::ws2812_alike_convert(const size_t start, const size_t end) {
         uint32_t *dst = (uint32_t *)(spi_buf.data() + start * 4);
         size_t head_len = bytesLatchLen / 2;
         for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
@@ -1040,8 +1040,10 @@ namespace lightkraken {
             case NATIVE_RGBW8:
             case NATIVE_RGB8: {
                 static constexpr WS2812EncodingLookupTable lookup;
-                for (size_t c = std::max(start, size_t(head_len)); c <= std::min(end, head_len + bytes_len - 1); c++) {
-                    *dst++ = lookup.table[comp_buf[c-head_len]];
+                const uint8_t *src = &comp_buf[std::max(start, size_t(head_len))-head_len];
+                size_t len = (std::min(end, head_len + bytes_len - 1) - std::max(start, size_t(head_len)));
+                for (size_t c = 0; c <= len; c++) {
+                    *dst++ = lookup.table[*src++];
                 }
             } break;
         }
