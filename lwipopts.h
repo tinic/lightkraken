@@ -46,8 +46,8 @@ OF SUCH DAMAGE.
 
 #define LWIP_TCPIP_CORE_LOCKING 0						 /* no threading */
 
-__attribute__ ((hot, optimize("O3"), optimize("unroll-loops")))
-static inline void memcpy_inlined(void *dst, const void *src, size_t len) {
+__attribute__ ((hot, optimize("O3")))
+static inline __attribute__((always_inline)) void memcpy_inlined(void *dst, const void *src, size_t len) {
     uint8_t *d = (uint8_t *)(dst);
     const uint8_t *s = (const uint8_t *)(src);
     for (size_t c = 0; c < len; c++) {
