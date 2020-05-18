@@ -250,7 +250,7 @@ namespace lightkraken {
             case INPUT_sRGBW8: 
             case INPUT_dRGBW8: {
                 return 4;
-            } break;
+            } break;        
         }
         return 0;
     }
@@ -341,7 +341,7 @@ namespace lightkraken {
         if (!isUniverseActive(uniN, input_type)) {
             return;
         }
-        
+
         auto transfer = [=] (const std::vector<int> &order) {
             const uint32_t limit_8bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 255.f);
             const uint32_t limit_16bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 65535.f);
@@ -925,7 +925,7 @@ namespace lightkraken {
             case UCS1904_RGB:
             case TM1829_RGB:
             case GS8208_RGB: {
-                ws2812_alike_convert(std::min(bytes_len + bytesLatchLen, size_t(burstHeadLen)), (bytes_len + bytesLatchLen) - 1);
+                ws2812_alike_convert(std::min(bytes_len + bytesLatchLen, size_t(burstHeadLen)), bytes_len + bytesLatchLen);
             } break;
             case LPD8806_RGB: {
                 lpd8806_rgb_alike_convert(std::min(bytes_len + 1, size_t(burstHeadLen)), (bytes_len + 1) - 1);
@@ -982,7 +982,7 @@ namespace lightkraken {
             case TM1829_RGB:
             case GS8208_RGB: {
                 len = std::min(spi_buf.size(), (bytes_len + bytesLatchLen) * 4);
-                ws2812_alike_convert(0, (bytes_len + bytesLatchLen) - 1);
+                ws2812_alike_convert(0, bytes_len + bytesLatchLen);
                 return spi_buf.data();
             } break;
             case LPD8806_RGB: {
@@ -1068,7 +1068,7 @@ namespace lightkraken {
     void Strip::ws2812_alike_convert(const size_t start, const size_t end) {
         uint32_t *dst = (uint32_t *)(spi_buf.data() + start * 4);
         size_t head_len = bytesLatchLen / 2;
-        for (size_t c = start; c <= std::min(end, size_t(head_len - 1)); c++) {
+        for (size_t c = start; c < std::min(end, size_t(head_len)); c++) {
             *dst++ = 0x00;
         }
         
@@ -1079,7 +1079,7 @@ namespace lightkraken {
             case NATIVE_RGBW8:
             case NATIVE_RGB8: {
                 const uint8_t *src = &comp_buf[std::max(start, size_t(head_len))-head_len];
-                const size_t len = (std::min(end, head_len + bytes_len - 1) - std::max(start, size_t(head_len)));
+                const size_t len = std::min(end, head_len + bytes_len) - std::max(start, size_t(head_len));
                 for (size_t c = 0; c <= len; c++) {
                     dst[c] = ws2812_lut[src[c]];
                 }

@@ -55,8 +55,8 @@ static inline __attribute__((always_inline)) void memcpy_inlined(void *dst, cons
     }
 }
 
-#define MEMCPY(dst,src,len)             memcpy_inlined(dst,src,len)
-#define SMEMCPY(dst,src,len)            memcpy_inlined(dst,src,len)
+#define MEMCPY(dst,src,len)             __builtin_memcpy(dst,src,len)
+#define SMEMCPY(dst,src,len)            __builtin_memcpy(dst,src,len)
 
 #define SYS_LIGHTWEIGHT_PROT    0                        /* SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection 
                                                             for certain critical regions during buffer allocation,
