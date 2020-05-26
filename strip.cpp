@@ -363,7 +363,7 @@ namespace lightkraken {
             __assume(input_pad > 0);
             __assume(input_pad < dmxMaxLen);
 
-            auto fix_for_ws2816 = [=] (const uint16_t v) { return (v < 384) ? uint16_t((uint32_t(v) * uint32_t(0xAAAAAA)) >> 24) : v; };
+            auto fix_for_ws2816b = [=] (const uint16_t v) { return (v < 448) ? ( ( v * 255 ) / 448 ) : v; };
 
             switch (input_type) {
                 default:
@@ -399,9 +399,9 @@ namespace lightkraken {
                                     auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); v = (v << 8) | v; return v; };
                                     auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    write_buf(0, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(1)))));
-                                    write_buf(1, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(0)))));
-                                    write_buf(2, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(2)))));
+                                    write_buf(0, fix_for_ws2816b(uint16_t(std::min(limit_16bit, read_buf(1)))));
+                                    write_buf(1, fix_for_ws2816b(uint16_t(std::min(limit_16bit, read_buf(0)))));
+                                    write_buf(2, fix_for_ws2816b(uint16_t(std::min(limit_16bit, read_buf(2)))));
                                 }
                                 return;
                             }
@@ -445,9 +445,9 @@ namespace lightkraken {
                                     uint32_t b = read_buf(2);
                                     uint32_t w = read_buf(3);
 
-                                    r = fix_for_ws2816(uint16_t(std::min(limit_16bit, r+w)));
-                                    g = fix_for_ws2816(uint16_t(std::min(limit_16bit, g+w)));
-                                    b = fix_for_ws2816(uint16_t(std::min(limit_16bit, b+w)));
+                                    r = fix_for_ws2816b(uint16_t(std::min(limit_16bit, r+w)));
+                                    g = fix_for_ws2816b(uint16_t(std::min(limit_16bit, g+w)));
+                                    b = fix_for_ws2816b(uint16_t(std::min(limit_16bit, b+w)));
 
                                     write_buf(0, g);
                                     write_buf(1, r);
@@ -532,9 +532,9 @@ namespace lightkraken {
                                         sr, sg, sb, 65535,
                                         lr, lg, lb);
 
-                                    lr = fix_for_ws2816(std::min(uint16_t(limit_16bit), lr));
-                                    lg = fix_for_ws2816(std::min(uint16_t(limit_16bit), lg));
-                                    lb = fix_for_ws2816(std::min(uint16_t(limit_16bit), lb));
+                                    lr = fix_for_ws2816b(std::min(uint16_t(limit_16bit), lr));
+                                    lg = fix_for_ws2816b(std::min(uint16_t(limit_16bit), lg));
+                                    lb = fix_for_ws2816b(std::min(uint16_t(limit_16bit), lb));
 
                                     write_buf(0, lg);
                                     write_buf(1, lr);
@@ -613,9 +613,9 @@ namespace lightkraken {
 
                                     lw = (lw << 8) | lw;
 
-                                    lr = fix_for_ws2816(std::min(limit_8bit, uint32_t(lr) + uint32_t(lw)));
-                                    lg = fix_for_ws2816(std::min(limit_8bit, uint32_t(lg) + uint32_t(lw)));
-                                    lb = fix_for_ws2816(std::min(limit_8bit, uint32_t(lb) + uint32_t(lw)));
+                                    lr = fix_for_ws2816b(std::min(limit_8bit, uint32_t(lr) + uint32_t(lw)));
+                                    lg = fix_for_ws2816b(std::min(limit_8bit, uint32_t(lg) + uint32_t(lw)));
+                                    lb = fix_for_ws2816b(std::min(limit_8bit, uint32_t(lb) + uint32_t(lw)));
 
                                     write_buf(0, lg);
                                     write_buf(1, lr);
@@ -663,9 +663,9 @@ namespace lightkraken {
                                     auto read_buf = [=] (const size_t i) { return uint32_t(*reinterpret_cast<const uint16_t *>(&data[c+i*2])); };
                                     auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    write_buf(0, fix_for_ws2816(std::min(limit_16bit, read_buf(1))));
-                                    write_buf(1, fix_for_ws2816(std::min(limit_16bit, read_buf(0))));
-                                    write_buf(2, fix_for_ws2816(std::min(limit_16bit, read_buf(2))));
+                                    write_buf(0, fix_for_ws2816b(std::min(limit_16bit, read_buf(1))));
+                                    write_buf(1, fix_for_ws2816b(std::min(limit_16bit, read_buf(0))));
+                                    write_buf(2, fix_for_ws2816b(std::min(limit_16bit, read_buf(2))));
                                 }
                                 return;
                             }
@@ -709,9 +709,9 @@ namespace lightkraken {
                                     auto read_buf = [=] (const size_t i) { return uint32_t(__builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+i*2]))); };
                                     auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    write_buf(0, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(1)))));
-                                    write_buf(1, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(0)))));
-                                    write_buf(2, fix_for_ws2816(uint16_t(std::min(limit_16bit, read_buf(2)))));
+                                    write_buf(0, fix_for_ws2816b(uint16_t(std::min(limit_16bit, read_buf(1)))));
+                                    write_buf(1, fix_for_ws2816b(uint16_t(std::min(limit_16bit, read_buf(0)))));
+                                    write_buf(2, fix_for_ws2816b(uint16_t(std::min(limit_16bit, read_buf(2)))));
                                 }
                                 return;
                             }
@@ -758,9 +758,9 @@ namespace lightkraken {
                                     uint32_t b = read_buf(2);
                                     uint32_t w = read_buf(3);
 
-                                    write_buf(0, fix_for_ws2816(uint16_t(std::min(limit_16bit, g+w))));
-                                    write_buf(1, fix_for_ws2816(uint16_t(std::min(limit_16bit, r+w))));
-                                    write_buf(2, fix_for_ws2816(uint16_t(std::min(limit_16bit, b+w))));
+                                    write_buf(0, fix_for_ws2816b(uint16_t(std::min(limit_16bit, g+w))));
+                                    write_buf(1, fix_for_ws2816b(uint16_t(std::min(limit_16bit, r+w))));
+                                    write_buf(2, fix_for_ws2816b(uint16_t(std::min(limit_16bit, b+w))));
                                 }
                                 return;
                             }
@@ -806,9 +806,9 @@ namespace lightkraken {
                                     uint32_t b = read_buf(2);
                                     uint32_t w = read_buf(3);
 
-                                    r = fix_for_ws2816(uint16_t(std::min(limit_16bit, r+w)));
-                                    g = fix_for_ws2816(uint16_t(std::min(limit_16bit, g+w)));
-                                    b = fix_for_ws2816(uint16_t(std::min(limit_16bit, b+w)));
+                                    r = fix_for_ws2816b(uint16_t(std::min(limit_16bit, r+w)));
+                                    g = fix_for_ws2816b(uint16_t(std::min(limit_16bit, g+w)));
+                                    b = fix_for_ws2816b(uint16_t(std::min(limit_16bit, b+w)));
                                     
                                     write_buf(0, g);
                                     write_buf(1, r);
