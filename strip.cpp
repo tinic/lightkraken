@@ -33,6 +33,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define __assume(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
 
+static constexpr size_t ws2816b_error_extent_n = 438;
+static constexpr std::array<uint16_t, ws2816b_error_extent_n> make_ws2816b_error_lut() {
+    std::array<uint16_t, ws2816b_error_extent_n> lut = { 0 };
+    for (size_t c = 0; c < lut.size(); c++) {
+        lut[c] = ( c * 255 ) / lut.size();
+    }
+    return lut;
+};
+
 namespace lightkraken { 
 
     static ColorSpaceConverter converter;
@@ -363,7 +372,15 @@ namespace lightkraken {
             __assume(input_pad > 0);
             __assume(input_pad < dmxMaxLen);
 
-            auto fix_for_ws2816b = [=] (const uint16_t v) { return (v < 448) ? ( ( v * 255 ) / 448 ) : v; };
+
+
+            auto fix_for_ws2816b = [=] (const uint16_t v) { 
+                static constexpr auto lut = make_ws2816b_error_lut();
+                if (v < lut.size()) {
+                    return lut[v];
+                }
+                return v;
+            };
 
             switch (input_type) {
                 default:
