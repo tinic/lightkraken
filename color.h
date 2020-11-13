@@ -46,6 +46,10 @@ namespace lightkraken {
 
 struct RGBColorSpace {
 
+    RGBColorSpace() {
+        setsRGB();
+    }
+
     void setsRGB() {
         xw = 0.31271f; yw = 0.32902f; // D65 white point
         xr = 0.64000f; yr = 0.33000f;

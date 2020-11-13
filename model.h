@@ -46,6 +46,12 @@ public:
     static constexpr size_t maxUniverses = stripN * universeN + analogN * analogCompN;
 
     struct AnalogConfig {
+        AnalogConfig() :
+            output_type(0),
+            input_type(0),
+            pwm_limit(0),
+            components{0} {
+        }
         uint32_t output_type;
         uint32_t input_type;
         float pwm_limit;
@@ -64,6 +70,15 @@ public:
     };
     
     struct StripConfig {
+        StripConfig() :
+            output_type(0),
+            input_type(0),
+            comp_limit(0),
+            glob_illum(0),
+            len(0),
+            artnet{0},
+            e131{0} {
+        }
         uint32_t output_type;
         uint32_t input_type;
         float comp_limit;
