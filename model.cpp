@@ -142,8 +142,10 @@ void Model::defaults() {
 
     int32_t artnetcounter = 0;
     int32_t e131counter = 1;
+
+
+    memset(strip_config, 0, sizeof(strip_config));
     for (size_t c = 0; c < stripN; c++) {
-        strip_config[c] = StripConfig();
         strip_config[c].output_type = Strip::GS8208_RGB;
         strip_config[c].input_type = Strip::INPUT_dRGB8;
         strip_config[c].comp_limit = 1.0f;
@@ -160,8 +162,8 @@ void Model::defaults() {
     }
 
     int32_t counter = 1;
+    memset(analog_config, 0, sizeof(analog_config));
     for (size_t c = 0; c < analogN; c++) {
-        analog_config[c] = AnalogConfig();
         analog_config[c].rgbSpace.setsRGB();
         analog_config[c].pwm_limit = 1.0f;
         for (size_t d = 0; d < analogCompN; d++) {
