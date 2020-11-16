@@ -44,6 +44,8 @@ endif(BOOTLOADER)
 
 project(${PRJ_NAME} C CXX ASM)
 
+message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
+
 set(ARM_ARCH cortex-m3)
 set(GD32ARCH GD32F10X_CL)
 set(GD32MCU GD32F107RC)
