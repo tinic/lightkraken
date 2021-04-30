@@ -35,11 +35,9 @@ extern "C" {
 #include "./netconf.h"
 #include "./perf.h"
 
-namespace lightkraken {
+#include "version.h"
 
-static constexpr int32_t build_number = 
-#include "./build_number.h"
-;
+namespace lightkraken {
 
 static ArtSyncWatchDog syncWatchDog;
 
@@ -236,7 +234,7 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
     reply.ipAddress[2] = ip4_addr3(&NetConf::instance().netInterface()->ip_addr);
     reply.ipAddress[3] = ip4_addr4(&NetConf::instance().netInterface()->ip_addr);
     reply.portNumber = 6454;
-    reply.versionInfo = build_number;
+    reply.versionInfo = GIT_REV_COUNT;
     reply.netSwitch = (universe >> 8) & 0xFF;
     reply.subSwitch = (universe >> 0) & 0xFF;
     reply.oem = 0x1ed5;

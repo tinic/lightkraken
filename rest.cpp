@@ -46,9 +46,7 @@ extern "C" {
 #include "./strip.h"
 #include "./control.h"
 
-const int32_t build_number = 
-#include "./build_number.h"
-;
+#include "version.h"
 
 #if LWIP_HTTPD_SUPPORT_REST
 
@@ -511,7 +509,7 @@ public:
 
     void addBuildNumber() {
         handleDelimiter();
-        addString("\"buildnumber\":\"Rev %d (%s %s)\"", int(build_number), __DATE__, __TIME__); 
+        addString("\"buildnumber\":\"Rev %d (%s %s)\"", int(GIT_REV_COUNT), __DATE__, __TIME__); 
     }
 
     void addHostname() {
