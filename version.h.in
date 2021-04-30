@@ -1,0 +1,8 @@
+#ifndef VERSION_H_
+#define VERSION_H_
+
+#define GIT_SHORT_SHA "@GIT_SHORT_SHA@"
+#define GIT_REV_COUNT @GIT_REV_COUNT@
+#define GIT_COMMIT_DATE "@GIT_COMMIT_DATE@"
+
+#endif  // #ifndef VERSION_H_
