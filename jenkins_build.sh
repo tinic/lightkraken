@@ -17,7 +17,7 @@ arm-none-eabi-objdump > build/lightkraken_bootloaded.dump.txt -D build/lightkrak
 arm-none-eabi-objdump > build/lightkraken_bootloader.annotated.txt -S build/lightkraken_bootloader.elf 
 arm-none-eabi-objdump > build/lightkraken_bootloaded.annotated.txt -S build/lightkraken_bootloaded.elf 
 
-buildnumber=$(cat build_number.h)
+buildnumber=$(git rev-list HEAD --count)
 
 zip -j build.zip build/lightkraken_bootloader.bin build/lightkraken_bootloaded.bin
 github-release delete --tag latest || true
