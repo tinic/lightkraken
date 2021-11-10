@@ -42,8 +42,8 @@ namespace lightkraken {
 
         enum StartupMode {
             STARTUP_MODE_COLOR,
-            STARTUP_MODE_TRACER,
             STARTUP_MODE_RAINBOW,
+            STARTUP_MODE_TRACER,
             STARTUP_MODE_SOLID_TRACER,
 
             STARTUP_MODE_COUNT
