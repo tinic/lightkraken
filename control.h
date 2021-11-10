@@ -40,8 +40,9 @@ public:
     void sync();
     void update();
 
-    bool testMode() const { return test_mode; }
-    void setTestMode(bool state) { test_mode = state; }
+    bool inStartup() const { return in_startup; }
+    void setStartup() { in_startup = true; } 
+    void clearStartup() { in_startup = false; }
 
     void setEnableSyncMode(bool state) { syncMode = state; }
     bool syncModeEnabled() const { return syncMode; }
@@ -55,14 +56,15 @@ public:
     void scheduleColor() { color_scheduled = true; }
 
     void setColor();
-    void testPattern();
+    void startupModePattern();
 
 private:
 
-    bool test_mode = false;
+    bool in_startup = true;
     bool color_scheduled = false;
     bool data_received = false;
     bool syncMode = false;
+    void setColor(size_t strip, size_t index, const rgb8 &color);
     void setArtnetUniverseOutputDataForDriver(size_t channels, size_t components, uint16_t uni, const uint8_t *data, size_t len);
     void setE131UniverseOutputDataForDriver(size_t channels, size_t components, uint16_t uni, const uint8_t *data, size_t len);
     bool initialized = false;

@@ -260,6 +260,13 @@ public:
                 config.input_type = std::clamp(int(atof(buf)), 0, int(Strip::INPUT_TYPE_COUNT) - 1);
             }
 
+            sprintf(ss, "$.stripconfig[%d].startupmode", c);
+            if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
+                config.startup_mode = std::clamp(int(dval), 0, int(Strip::STARTUP_MODE_COUNT) - 1);
+            } else if (mjson_get_string(post_buf, post_len, ss, buf, sizeof(buf))) {
+                config.startup_mode = std::clamp(int(atof(buf)), 0, int(Strip::STARTUP_MODE_COUNT) - 1);
+            }
+
             sprintf(ss, "$.stripconfig[%d].complimit", c);
             if (mjson_get_number(post_buf, post_len, ss, &dval) > 0) {
                 config.comp_limit = std::clamp(float(dval) * (1.0f/100.0f), 0.0f, 1.0f);
@@ -389,6 +396,7 @@ public:
         Model::instance().save();
         Systick::instance().scheduleApply();
         sACNPacket::joinNetworks();
+        Control::instance().setStartup();
     }
     
 private:
@@ -618,6 +626,7 @@ public:
             addString("{");
             addString("\"outputtype\":%d,",int(s.output_type)); 
             addString("\"inputtype\":%d,",int(s.input_type)); 
+            addString("\"startupmode\":%d,",int(s.startup_mode)); 
             addString("\"complimit\":%s,", ftos(s.comp_limit * 100.0f)); 
             addString("\"globillum\":%s,", ftos(s.glob_illum * 100.0f)); 
             addString("\"length\":%d,",int(s.len)); 
@@ -701,8 +710,6 @@ public:
         MethodPostBootLoader,
         MethodPostResetConfig,
         MethodPostReset,
-        MethodPostTestMode,
-        MethodDeleteTestMode,
     };
 
     constexpr static size_t maxConnections = MEMP_NUM_TCP_PCB;
@@ -803,9 +810,6 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
             } else if (strcmp(url, "/resetconfig") == 0) {
                 info->method = ConnectionManager::MethodPostResetConfig;
                 return ERR_OK;
-            } else if (strcmp(url, "/testmode") == 0) {
-                info->method = ConnectionManager::MethodPostTestMode;
-                return ERR_OK;
             }
         } break;
         case REST_METHOD_PUT: {
@@ -813,10 +817,6 @@ err_t httpd_rest_begin(void *handle, rest_method_t method, const char *url, cons
         case REST_METHOD_PATCH: {
         } break;
         case REST_METHOD_DELETE: {
-            if (strcmp(url, "/testmode") == 0) {
-                info->method = ConnectionManager::MethodDeleteTestMode;
-                return ERR_OK;
-            }
         } break;
         case REST_METHOD_NONE: {
         } break;
@@ -837,8 +837,6 @@ err_t httpd_rest_receive_data(void *handle, struct pbuf *p) {
         } break;
         default:
         case ConnectionManager::MethodNone:
-        case ConnectionManager::MethodPostTestMode:
-        case ConnectionManager::MethodDeleteTestMode:
         case ConnectionManager::MethodPostReset:
         case ConnectionManager::MethodPostResetConfig:
         case ConnectionManager::MethodPostBootLoader:
@@ -937,28 +935,6 @@ err_t httpd_rest_finished(void *handle, const char **data, u16_t *dataLen) {
             *data = response.finish(*dataLen);
 
             ConnectionManager::instance().end(handle);
-            return ERR_OK;
-        } break;
-        case ConnectionManager::MethodPostTestMode: {
-            ConnectionManager::instance().end(handle);
-
-            Control::instance().setTestMode(true);
-
-            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
-            response.beginOKResponse();
-            *data = response.finish(*dataLen);
-
-            return ERR_OK;
-        } break;
-        case ConnectionManager::MethodDeleteTestMode: {
-            ConnectionManager::instance().end(handle);
-            
-            Control::instance().setTestMode(false);
-
-            HTTPResponseBuilder &response = HTTPResponseBuilder::instance();
-            response.beginOKResponse();
-            *data = response.finish(*dataLen);
-
             return ERR_OK;
         } break;
         case ConnectionManager::MethodNone: {

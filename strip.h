@@ -40,6 +40,15 @@ namespace lightkraken {
             int8_t   error;
         } __attribute__((packed));
 
+        enum StartupMode {
+            STARTUP_MODE_COLOR,
+            STARTUP_MODE_TRACER,
+            STARTUP_MODE_RAINBOW,
+            STARTUP_MODE_SOLID_TRACER,
+
+            STARTUP_MODE_COUNT
+        };
+
     	enum InputType {
     		INPUT_dRGB8,
     		INPUT_dRGBW8,
@@ -93,6 +102,7 @@ namespace lightkraken {
         bool needsClock() const;
 
         void setStripType(OutputType type) { output_type = type; }
+        void setStartupMode(StartupMode type) { startup_mode = type; }
         void setRGBColorSpace(const RGBColorSpace &colorSpace);
         void setCompLimit(float value) { comp_limit = value; };
         void setGlobIllum(float value) { glob_illum = value; };
@@ -138,6 +148,7 @@ namespace lightkraken {
 
         bool transfer_flag;
         bool strip_reset = false;
+        StartupMode startup_mode = STARTUP_MODE_COLOR;
         OutputType output_type = WS2812_RGB;
         size_t bytes_len = 0;
         float comp_limit = 1.0f;

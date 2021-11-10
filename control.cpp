@@ -290,9 +290,7 @@ void Control::interateAllActiveArtnetUniverses(std::function<void (uint16_t univ
 }
 
 void Control::setArtnetUniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
-	if (testMode()) {
-		return;
-	}
+    clearStartup();
 
     rgbww rgb[Driver::terminalN];
     for (size_t c = 0; c < terminals; c++) {
@@ -359,9 +357,7 @@ void Control::setArtnetUniverseOutputDataForDriver(size_t terminals, size_t comp
 }
 
 void Control::setE131UniverseOutputDataForDriver(size_t terminals, size_t components, uint16_t uni, const uint8_t *data, size_t len) {
-	if (testMode()) {
-		return;
-	}
+    clearStartup();
 
     rgbww rgb[Driver::terminalN];
     for (size_t c = 0; c < terminals; c++) {
@@ -429,9 +425,7 @@ void Control::setE131UniverseOutputDataForDriver(size_t terminals, size_t compon
 
 
 void Control::setArtnetUniverseOutputData(uint16_t uni, const uint8_t *data, size_t len, bool nodriver) {
-	if (testMode()) {
-		return;
-	}
+    clearStartup();
 
     PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
     switch(Model::instance().outputConfig()) {
@@ -526,9 +520,7 @@ void Control::setArtnetUniverseOutputData(uint16_t uni, const uint8_t *data, siz
 }
 
 void Control::setE131UniverseOutputData(uint16_t uni, const uint8_t *data, size_t len, bool nodriver) {
-	if (testMode()) {
-		return;
-	}
+    clearStartup();
 
     PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
     switch(Model::instance().outputConfig()) {
@@ -663,10 +655,9 @@ void Control::setColor() {
     }
 }
 
-
 void Control::update() {
-	if (testMode()) {
-		testPattern();
+	if (inStartup()) {
+		startupModePattern();
 		sync();
 	} else if (color_scheduled) {
         color_scheduled = false;
@@ -747,63 +738,180 @@ void Control::init() {
     DEBUG_PRINTF(("Control up.\n"));
 }
 
-void Control::testPattern() {
+void Control::startupModePattern() {
     PerfMeasure perf(PerfMeasure::SLOT_SET_DATA);
-
 	auto effect = [=] (size_t strip) {
-		switch (Model::instance().testPattern()) {
-			case Model::TEST_PATTERN_SOLID: {	
-				setColor();
+		switch (Model::instance().stripConfig(strip).startup_mode) {
+			case Strip::STARTUP_MODE_COLOR: {	
+				uint8_t buf[Strip::bytesMaxLen];
+				size_t l = lightkraken::Strip::get(strip).getPixelLen();
+                size_t cpp = lightkraken::Strip::get(strip).getBytesPerPixel();
+				for (size_t c = 0; c < l; c++) {
+                    switch(cpp) {
+                        case 3: {
+                            buf[c*3+0] = Model::instance().stripConfig(strip).color.r;
+                            buf[c*3+1] = Model::instance().stripConfig(strip).color.g;
+                            buf[c*3+2] = Model::instance().stripConfig(strip).color.b;
+                        } break;
+                        case 4: {
+                            buf[c*4+0] = Model::instance().stripConfig(strip).color.r;
+                            buf[c*4+1] = Model::instance().stripConfig(strip).color.g;
+                            buf[c*4+2] = Model::instance().stripConfig(strip).color.b;
+                            buf[c*4+3] = Model::instance().stripConfig(strip).color.x;
+                        } break;
+                        case 6: {
+                            buf[c*6 + 0] = 
+                            buf[c*6 + 1] = (Model::instance().stripConfig(strip).color.r) & 0xFF;
+                            buf[c*6 + 2] = 
+                            buf[c*6 + 3] = (Model::instance().stripConfig(strip).color.g) & 0xFF;
+                            buf[c*6 + 4] = 
+                            buf[c*6 + 5] = (Model::instance().stripConfig(strip).color.b) & 0xFF;
+                        } break;
+                    }
+                }
 			} break;
-			case Model::TEST_PATTERN_RAINBOW: {	
+			case Strip::STARTUP_MODE_RAINBOW: {	
 				uint8_t buf[Strip::bytesMaxLen];
 				float h = 1.0f - fmod( Systick::instance().systemTime() / 10000.f, 1.0f);
 				size_t l = lightkraken::Strip::get(strip).getPixelLen();
+                size_t cpp = lightkraken::Strip::get(strip).getBytesPerPixel();
 				for (size_t c = 0; c < l; c++) {
 					hsv col_hsv(fmod(h + c * (1.0f / 255.0f), 1.0f), 1.0f, 1.0f);
 					rgb col_rgb(col_hsv);
 					rgb8 col_rgb8(col_rgb);
-					buf[c*3+0] = col_rgb8.red();
-					buf[c*3+1] = col_rgb8.green();
-					buf[c*3+2] = col_rgb8.blue();
+                    switch(cpp) {
+                        case 3: {
+                            buf[c*3+0] = col_rgb8.red();
+                            buf[c*3+1] = col_rgb8.green();
+                            buf[c*3+2] = col_rgb8.blue();
+                        } break;
+                        case 4: {
+                            buf[c*4+0] = col_rgb8.red();
+                            buf[c*4+1] = col_rgb8.green();
+                            buf[c*4+2] = col_rgb8.blue();
+                            buf[c*4+3] = 0;
+                        } break;
+                        case 6: {
+                            buf[c*6 + 0] = 
+                            buf[c*6 + 1] = col_rgb8.red();
+                            buf[c*6 + 2] = 
+                            buf[c*6 + 3] = col_rgb8.green();
+                            buf[c*6 + 4] = 
+                            buf[c*6 + 5] = col_rgb8.blue();
+                        } break;
+                    }
 				}
-				lightkraken::Strip::get(strip).setData(buf, l * 3, Strip::INPUT_dRGB8);
+				lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8);
 			} break;
-			case Model::TEST_PATTERN_TRACER: {	
+			case Strip::STARTUP_MODE_TRACER: {	
 				uint8_t buf[Strip::bytesMaxLen];
 				float h = 1.0f - fmod( Systick::instance().systemTime() / 5000.f, 1.0f);
 				size_t l = lightkraken::Strip::get(strip).getPixelLen();
+                size_t cpp = lightkraken::Strip::get(strip).getBytesPerPixel();
 				for (size_t c = 0; c < l; c++) {
 					size_t i = std::clamp(size_t(l * fmod(h + (c / float(l)), 1.0f)), size_t(0), l);
 					if (i == 0) {
-						buf[c*3+0] = 0xFF;
-						buf[c*3+1] = 0xFF;
-						buf[c*3+2] = 0xFF;
+                        switch(cpp) {
+                            case 3: {
+                                buf[c*3+0] = 0xFF;
+                                buf[c*3+1] = 0xFF;
+                                buf[c*3+2] = 0xFF;
+                            } break;
+                            case 4: {
+                                buf[c*4+0] = 0xFF;
+                                buf[c*4+1] = 0xFF;
+                                buf[c*4+2] = 0xFF;
+                                buf[c*4+3] = 0xFF;
+                            } break;
+                            case 6: {
+                                buf[c*6+0] = 0xFF;
+                                buf[c*6+1] = 0xFF;
+                                buf[c*6+2] = 0xFF;
+                                buf[c*6+4] = 0xFF;
+                                buf[c*6+5] = 0xFF;
+                                buf[c*6+6] = 0xFF;
+                            } break;
+                        }
 					} else {
-						buf[c*3+0] = 0x00;
-						buf[c*3+1] = 0x00;
-						buf[c*3+2] = 0x00;
+                        switch(cpp) {
+                            case 3: {
+                                buf[c*3+0] = 0x00;
+                                buf[c*3+1] = 0x00;
+                                buf[c*3+2] = 0x00;
+                            } break;
+                            case 4: {
+                                buf[c*4+0] = 0x00;
+                                buf[c*4+1] = 0x00;
+                                buf[c*4+2] = 0x00;
+                                buf[c*4+3] = 0x00;
+                            } break;
+                            case 6: {
+                                buf[c*6+0] = 0x00;
+                                buf[c*6+1] = 0x00;
+                                buf[c*6+2] = 0x00;
+                                buf[c*6+3] = 0x00;
+                                buf[c*6+4] = 0x00;
+                                buf[c*6+5] = 0x00;
+                            } break;
+                        }
 					}
 				}
-				lightkraken::Strip::get(strip).setData(buf, l * 3, Strip::INPUT_dRGB8);
+				lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8);
 			} break;
-			case Model::TEST_PATTERN_SOLID_TRACER: {	
+			case Strip::STARTUP_MODE_SOLID_TRACER: {	
 				uint8_t buf[Strip::bytesMaxLen];
 				float h = 1.0f - fmod( Systick::instance().systemTime() / 5000.f, 1.0f);
 				size_t l = lightkraken::Strip::get(strip).getPixelLen() + 1;
+                size_t cpp = lightkraken::Strip::get(strip).getBytesPerPixel();
 				for (size_t c = 0; c < l; c++) {
 					size_t i = std::clamp(size_t(l * fmod(h + (c / float(l)), 1.0f)), size_t(0), l);
 					if (c < i) {
-						buf[c*3+0] = 0xFF;
-						buf[c*3+1] = 0xFF;
-						buf[c*3+2] = 0xFF;
+                        switch(cpp) {
+                            case 3: {
+                                buf[c*3+0] = 0xFF;
+                                buf[c*3+1] = 0xFF;
+                                buf[c*3+2] = 0xFF;
+                            } break;
+                            case 4: {
+                                buf[c*4+0] = 0xFF;
+                                buf[c*4+1] = 0xFF;
+                                buf[c*4+2] = 0xFF;
+                                buf[c*4+3] = 0xFF;
+                            } break;
+                            case 6: {
+                                buf[c*6+0] = 0xFF;
+                                buf[c*6+1] = 0xFF;
+                                buf[c*6+2] = 0xFF;
+                                buf[c*6+4] = 0xFF;
+                                buf[c*6+5] = 0xFF;
+                                buf[c*6+6] = 0xFF;
+                            } break;
+                        }
 					} else {
-						buf[c*3+0] = 0x00;
-						buf[c*3+1] = 0x00;
-						buf[c*3+2] = 0x00;
+                        switch(cpp) {
+                            case 3: {
+                                buf[c*3+0] = 0x00;
+                                buf[c*3+1] = 0x00;
+                                buf[c*3+2] = 0x00;
+                            } break;
+                            case 4: {
+                                buf[c*4+0] = 0x00;
+                                buf[c*4+1] = 0x00;
+                                buf[c*4+2] = 0x00;
+                                buf[c*4+3] = 0x00;
+                            } break;
+                            case 6: {
+                                buf[c*6+0] = 0x00;
+                                buf[c*6+1] = 0x00;
+                                buf[c*6+2] = 0x00;
+                                buf[c*6+3] = 0x00;
+                                buf[c*6+4] = 0x00;
+                                buf[c*6+5] = 0x00;
+                            } break;
+                        }
 					}
 				}
-				lightkraken::Strip::get(strip).setData(buf, l * 3, Strip::INPUT_dRGB8);
+				lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8);
 			} break;
 		}
 	};
@@ -824,8 +932,7 @@ void Control::testPattern() {
 	default: {
 	} break;
 	} 
+    
 }
-
-
 
 }  // namespace lightkraken {

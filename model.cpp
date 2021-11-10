@@ -138,14 +138,12 @@ void Model::defaults() {
 
     burst_mode = true;
 
-	test_pattern = TEST_PATTERN_RAINBOW;
-
     int32_t artnetcounter = 0;
     int32_t e131counter = 1;
 
-
     memset((void *)&strip_config, 0, sizeof(strip_config));
     for (size_t c = 0; c < stripN; c++) {
+        strip_config[c].startup_mode = Strip::STARTUP_MODE_COLOR;
         strip_config[c].output_type = Strip::GS8208_RGB;
         strip_config[c].input_type = Strip::INPUT_dRGB8;
         strip_config[c].comp_limit = 1.0f;
@@ -181,6 +179,7 @@ void Model::apply() {
     for (size_t c = 0; c < stripN; c++) {
     strip_config[c].rgbSpace.setsRGB();
         lightkraken::Strip::get(c).setStripType(Strip::OutputType(strip_config[c].output_type));
+        lightkraken::Strip::get(c).setStartupMode(Strip::StartupMode(strip_config[c].startup_mode));
         lightkraken::Strip::get(c).setPixelLen(strip_config[c].len);
         lightkraken::Strip::get(c).setRGBColorSpace(strip_config[c].rgbSpace);
         lightkraken::Strip::get(c).setCompLimit(strip_config[c].comp_limit);
