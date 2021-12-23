@@ -1,4 +1,10 @@
 {
+    "cmake.configureSettings": {
+        "CMAKE_TOOLCHAIN_FILE": "../arm-gcc-toolchain.cmake",
+        "TESTING" : false,
+        "BOOTLOADED" : true,
+        "CMAKE_BUILD_TYPE" : "Release"
+    },
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
     "cmake.ignoreKitEnv": true,

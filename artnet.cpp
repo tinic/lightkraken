@@ -255,11 +255,11 @@ void ArtNetPacket::sendArtPollReply(const ip_addr_t *from, uint16_t universe) {
     
     strncpy((char *)reply.shortName, short_hostname, 17);
     if (strlen(Model::instance().tag())) {
-        snprintf((char *)reply.longName, 63, "%s - %s",
+        snprintf((char *)reply.longName, 63, "%.16s - %.16s",
             NetConf::instance().netInterface()->hostname,
             Model::instance().tag());
     } else {
-        snprintf((char *)reply.longName, 63, "%s",
+        snprintf((char *)reply.longName, 63, "%.16s",
             NetConf::instance().netInterface()->hostname);
     }
     memcpy(reply.macAddress, NetConf::instance().netInterface()->hwaddr, 6);
