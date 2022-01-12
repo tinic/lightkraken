@@ -333,7 +333,7 @@ namespace lightkraken {
                 transfer(order);
             } break;
             case WS2801_RGB: {
-                const std::vector<int> order = { 0, 1, 2 };
+                const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
             } break;
         }
@@ -878,7 +878,7 @@ namespace lightkraken {
                 transfer(order);
             } break;
             case WS2801_RGB: {
-                const std::vector<int> order = { 0, 1, 2 };
+                const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
             } break;
         }
