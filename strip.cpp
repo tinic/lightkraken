@@ -1070,8 +1070,8 @@ namespace lightkraken {
             } break;
             case NATIVE_RGBW8:
             case NATIVE_RGB8: {
-                for (size_t c = std::max(start, size_t(1)); c <= std::min(end, 1 + bytes_len - 1); c++) {
-                    *dst++ = comp_buf[c-1];
+                for (size_t c = start; c <= std::min(end, bytes_len - 1); c++) {
+                    *dst++ = comp_buf[c];
                 }
             } break;
         }
