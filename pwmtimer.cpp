@@ -92,6 +92,7 @@ void PwmTimer0::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_disable(TIMER0);
         gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_10);
+        gpio_bit_reset(GPIOA, GPIO_PIN_10);
     } else {
         if (pulse > TIMER_CAR(TIMER0)-1) {
             pulse = TIMER_CAR(TIMER0)-1;
@@ -152,6 +153,7 @@ void PwmTimer1::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_disable(TIMER1);
         gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_0);
+        gpio_bit_reset(GPIOA, GPIO_PIN_0);
     } else {
         if (pulse > TIMER_CAR(TIMER1)-1) {
             pulse = TIMER_CAR(TIMER1)-1;
@@ -214,6 +216,7 @@ void PwmTimer2::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_disable(TIMER2);
         gpio_init(GPIOC, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
+        gpio_bit_reset(GPIOC, GPIO_PIN_7);
     } else {
         if (pulse > TIMER_CAR(TIMER2)-1) {
             pulse = TIMER_CAR(TIMER2)-1;
@@ -285,6 +288,7 @@ void PwmTimer3::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_disable(TIMER3);
         gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);
+        gpio_bit_reset(GPIOB, GPIO_PIN_8);
     } else {
         if (pulse > TIMER_CAR(TIMER3)-1) {
             pulse = TIMER_CAR(TIMER3)-1;
@@ -327,10 +331,13 @@ void PwmTimer5::init() {
 void PwmTimer5::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_channel_output_mode_config(TIMER3, TIMER_CH_1, TIMER_OC_MODE_LOW);
+        gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
+        gpio_bit_reset(GPIOB, GPIO_PIN_7);
     } else {
         if (pulse > TIMER_CAR(TIMER3)-1) {
             pulse = TIMER_CAR(TIMER3)-1;
         }
+        gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
         timer_channel_output_mode_config(TIMER3, TIMER_CH_1, TIMER_OC_MODE_PWM0);
         timer_channel_output_pulse_value_config(TIMER3, TIMER_CH_1, pulse);
         timer_enable(TIMER3);
@@ -368,10 +375,13 @@ void PwmTimer6::init() {
 void PwmTimer6::setPulse(uint16_t pulse) {
     if (pulse < 2) {
         timer_channel_output_mode_config(TIMER3, TIMER_CH_3, TIMER_OC_MODE_LOW);
+        gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
+        gpio_bit_reset(GPIOB, GPIO_PIN_9);
     } else {
         if (pulse > TIMER_CAR(TIMER3)-1) {
             pulse = TIMER_CAR(TIMER3)-1;
         }
+        gpio_init(GPIOB, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_9);
         timer_channel_output_mode_config(TIMER3, TIMER_CH_3, TIMER_OC_MODE_PWM0);
         timer_channel_output_pulse_value_config(TIMER3, TIMER_CH_3, pulse);
         timer_enable(TIMER3);
