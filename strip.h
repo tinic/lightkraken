@@ -88,6 +88,7 @@ namespace lightkraken {
             TLS3001_RGB, // TODO
             TM1829_RGB,
             WS2816_RGB,
+            WS2801_RGB,
             OUTPUT_TYPE_COUNT
         };
 
@@ -142,6 +143,7 @@ namespace lightkraken {
         const uint8_t *prepare(size_t &len);
 
         void lpd8806_rgb_alike_convert(size_t start, size_t end);
+        void ws2801_rgb_alike_convert(size_t start, size_t end);
         void apa102_rgb_alike_convert(size_t start, size_t end);
         void ws2812_alike_convert(const size_t start, const size_t end);
         void tls3001_alike_convert(size_t &len);

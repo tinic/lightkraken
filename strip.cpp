@@ -149,7 +149,8 @@ namespace lightkraken {
             case HDS107S_RGB:
             case P9813_RGB:
             case TM1829_RGB:
-            case APA102_RGB: {
+            case APA102_RGB:            
+            case WS2801_RGB: {
                 return 3;
             } break;
             case WS2816_RGB: {
@@ -175,7 +176,8 @@ namespace lightkraken {
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
-            case APA102_RGB: {
+            case APA102_RGB: 
+            case WS2801_RGB: {
                 return NATIVE_RGB8;
             } break;
             case WS2816_RGB: {
@@ -328,6 +330,10 @@ namespace lightkraken {
             } break;
             case LPD8806_RGB: {
                 const std::vector<int> order = { 2, 0, 1 };
+                transfer(order);
+            } break;
+            case WS2801_RGB: {
+                const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
             } break;
         }
@@ -871,6 +877,10 @@ namespace lightkraken {
                 const std::vector<int> order = { 2, 0, 1 };
                 transfer(order);
             } break;
+            case WS2801_RGB: {
+                const std::vector<int> order = { 1, 0, 2 };
+                transfer(order);
+            } break;
         }
     }
 
@@ -915,6 +925,11 @@ namespace lightkraken {
                 lpd8806_rgb_alike_convert(0, std::min(bytes_len + 1, size_t(burstHeadLen)));
                 return spi_buf.data();
             } break;
+            case WS2801_RGB: {
+                len = std::min(spi_buf.size(), bytes_len);
+                ws2801_rgb_alike_convert(0, std::min(bytes_len, size_t(burstHeadLen)));
+                return spi_buf.data();
+            } break;
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
@@ -947,6 +962,9 @@ namespace lightkraken {
             case LPD8806_RGB: {
                 lpd8806_rgb_alike_convert(std::min(bytes_len + 1, size_t(burstHeadLen)), (bytes_len + 1) - 1);
             } break;
+            case WS2801_RGB: {
+                ws2801_rgb_alike_convert(std::min(bytes_len, size_t(burstHeadLen)), bytes_len - 1);
+            } break;
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
@@ -973,6 +991,8 @@ namespace lightkraken {
             case GS8208_RGB: {
                 return false;
             } break;
+            case LPD8806_RGB:
+            case WS2801_RGB:
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
@@ -1007,6 +1027,11 @@ namespace lightkraken {
                 lpd8806_rgb_alike_convert(0, (bytes_len + 3) - 1);
                 return spi_buf.data();
             } break;
+            case WS2801_RGB: {
+                len = std::min(spi_buf.size(), (bytes_len + 3));
+                ws2801_rgb_alike_convert(0, (bytes_len + 3));
+                return spi_buf.data();
+            } break;
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
@@ -1032,6 +1057,21 @@ namespace lightkraken {
             case NATIVE_RGB8: {
                 for (size_t c = std::max(start, size_t(1)); c <= std::min(end, 1 + bytes_len - 1); c++) {
                     *dst++ = 0x80 | (comp_buf[c-1] >> 1);
+                }
+            } break;
+        }
+    }
+
+    __attribute__ ((hot, flatten, optimize("O3")))
+    void Strip::ws2801_rgb_alike_convert(size_t start, size_t end) {
+        uint8_t *dst = spi_buf.data() + start;
+        switch(nativeType()) {
+            default: {
+            } break;
+            case NATIVE_RGBW8:
+            case NATIVE_RGB8: {
+                for (size_t c = start; c <= std::min(end, bytes_len - 1); c++) {
+                    *dst++ = comp_buf[c];
                 }
             } break;
         }
