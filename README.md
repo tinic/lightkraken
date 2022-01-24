@@ -39,5 +39,5 @@ rm -r *
 cp -R ../../lightkraken-ui/dist/* ./
 cd ..
 gcc -I lwip-ajax/src/include/ -I ./ -I GD32F10x_lwip/ lwip-ajax/src/apps/http/makefsdata/makefsdata.c -o makefsdata
-makefsdata -defl
+./makefsdata -defl
 ```
