@@ -24,7 +24,7 @@ Output files will be in the build/ folder. The correct file to flash from the bo
 # Build instructions for the Web UI, this will update fsdata.c with the new compressed JS/HTML/CSS data
 
 ```
-sudo apt install git npm
+sudo apt install build-essential git npm
 git clone https://github.com/tinic/lightkraken-ui.git
 cd lightkraken-ui
 npm install
