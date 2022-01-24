@@ -40,6 +40,7 @@ OF SUCH DAMAGE.
 #define LWIPOPTS_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define HTTPC_CLIENT_AGENT      "LG/1.0"
 #define HTTPD_SERVER_AGENT      "LG/1.0"
