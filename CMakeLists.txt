@@ -24,6 +24,9 @@ if(NOT BOOTLOADER AND NOT BOOTLOADED)
 	message(FATAL_ERROR "You must set either BOOTLOADER or BOOTLOADED. See build_release_all.sh for a valid cmake setup.")
 endif()
 
+set(CMAKE_C_COMPILER_WORKS 1 CACHE INTERNAL "")
+set(CMAKE_CXX_COMPILER_WORKS 1 CACHE INTERNAL "")
+
 # Boot loader
 if(BOOTLOADER)
 	set(PRJ_NAME lightkraken_bootloader)

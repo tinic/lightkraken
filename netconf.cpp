@@ -117,6 +117,9 @@ void NetConf::init() {
 
     if (netif_is_link_up(&netif)) {
         DEBUG_PRINTF(("ENET link is up.\n"));
+        DEBUG_PRINTF(("IP address: %d.%d.%d.%d\n", ip4_addr1(&address), ip4_addr2(&address), ip4_addr3(&address),ip4_addr4(&address)));
+        DEBUG_PRINTF(("Subnet mask: %d.%d.%d.%d\n", ip4_addr1(&netmask), ip4_addr2(&netmask), ip4_addr3(&netmask),ip4_addr4(&netmask)));
+        DEBUG_PRINTF(("Gateway: %d.%d.%d.%d\n", ip4_addr1(&gateway), ip4_addr2(&gateway), ip4_addr3(&gateway),ip4_addr4(&gateway)));
         netif_set_up(&netif);
     } else {
         netif_set_down(&netif);
