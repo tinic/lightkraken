@@ -1136,8 +1136,8 @@ namespace lightkraken {
             case NATIVE_RGBW8:
             case NATIVE_RGB8: {
                 const uint8_t *src = &comp_buf[std::max(start, size_t(head_len))-head_len];
-                const size_t len = std::min(end, head_len + bytes_len) - std::max(start, size_t(head_len));
-                for (size_t c = 0; c <= len; c++) {
+                const int32_t len = int32_t(std::min(end, head_len + bytes_len)) - int32_t(std::max(start, size_t(head_len)));
+                for (int32_t c = 0; c <= len; c++) {
                     dst[c] = ws2812_lut[src[c]];
                 }
                 dst += len;
