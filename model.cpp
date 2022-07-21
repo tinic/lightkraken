@@ -45,6 +45,7 @@ void EXTI1_IRQHandler(void) {
 			if ((now - start_time) > 10000 &&
 			    (now - start_time) < 20000) {
 			    lightkraken::Model::instance().reset();
+                DEBUG_PRINTF(("Configuration reset.\n"));
 				NVIC_SystemReset();
 			}
 			start_time = ~uint32_t(0);
@@ -210,10 +211,11 @@ void Model::setTag(const char *str) {
 
 void Model::init() {
     rcu_periph_clock_enable(RCU_GPIOB);
-    gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
+    rcu_periph_clock_enable(RCU_AF);
 
-	nvic_irq_enable(EXTI1_IRQn, 2U, 1U);
-	gpio_exti_source_select(GPIO_EVENT_PORT_GPIOB, GPIO_EVENT_PIN_1);
+    gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
+	nvic_irq_enable(EXTI1_IRQn, 2U, 0U);
+	gpio_exti_source_select(GPIO_PORT_SOURCE_GPIOB, GPIO_PIN_SOURCE_1);
 	exti_init(EXTI_1, EXTI_INTERRUPT, EXTI_TRIG_BOTH);
     exti_interrupt_flag_clear(EXTI_1);
 
