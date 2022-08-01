@@ -89,6 +89,7 @@ namespace lightkraken {
             TM1829_RGB,
             WS2816_RGB,
             WS2801_RGB,
+            HD108_RGB,
             OUTPUT_TYPE_COUNT
         };
 

@@ -153,6 +153,7 @@ namespace lightkraken {
             case WS2801_RGB: {
                 return 3;
             } break;
+            case HD108_RGB:
             case WS2816_RGB: {
                 return 6;
             } break;
@@ -180,6 +181,7 @@ namespace lightkraken {
             case WS2801_RGB: {
                 return NATIVE_RGB8;
             } break;
+            case HD108_RGB:
             case WS2816_RGB: {
                 return NATIVE_RGB16;
             } break;
@@ -310,6 +312,7 @@ namespace lightkraken {
             case SK6812_RGB:
             case TM1804_RGB:
             case GS8208_RGB:
+            case HD108_RGB:
             case UCS1904_RGB: {
                 const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
@@ -428,6 +431,18 @@ namespace lightkraken {
                                 }
                                 return;
                             }
+                            if (output_type == HD108_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < pixel_loop_n; c += 3, n += 3) {
+                                    auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); v = (v << 8) | v; return v; };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
+                                    write_buf(0, uint16_t(std::min(limit_16bit, read_buf(1))));
+                                    write_buf(1, uint16_t(std::min(limit_16bit, read_buf(0))));
+                                    write_buf(2, uint16_t(std::min(limit_16bit, read_buf(2))));
+                                }
+                                return;
+                            }
                         } break;
                     }
                 } break;
@@ -471,6 +486,27 @@ namespace lightkraken {
                                     r = fix_for_ws2816b(uint16_t(std::min(limit_16bit, r+w)));
                                     g = fix_for_ws2816b(uint16_t(std::min(limit_16bit, g+w)));
                                     b = fix_for_ws2816b(uint16_t(std::min(limit_16bit, b+w)));
+
+                                    write_buf(0, g);
+                                    write_buf(1, r);
+                                    write_buf(2, b);
+                                }
+                                return;
+                            }
+                            if (output_type == HD108_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < pixel_loop_n; c += 4, n += 3) {
+                                    auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); v = (v << 8) | v; return v; };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
+                                    uint32_t r = read_buf(0);
+                                    uint32_t g = read_buf(1);
+                                    uint32_t b = read_buf(2);
+                                    uint32_t w = read_buf(3);
+
+                                    r = uint16_t(std::min(limit_16bit, r+w));
+                                    g = uint16_t(std::min(limit_16bit, g+w));
+                                    b = uint16_t(std::min(limit_16bit, b+w));
 
                                     write_buf(0, g);
                                     write_buf(1, r);
@@ -565,6 +601,33 @@ namespace lightkraken {
                                 }
                                 return;
                             }
+                            if (output_type == HD108_RGB) {
+                                uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < pixel_loop_n; c += 3, n += 3) {
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
+                                    uint8_t sr = data[c + 0];
+                                    uint8_t sg = data[c + 1];
+                                    uint8_t sb = data[c + 2];
+
+                                    uint16_t lr = 0;
+                                    uint16_t lg = 0;
+                                    uint16_t lb = 0;
+        
+                                    converter.sRGB8toLEDPWM(
+                                        sr, sg, sb, 65535,
+                                        lr, lg, lb);
+
+                                    lr = std::min(uint16_t(limit_16bit), lr);
+                                    lg = std::min(uint16_t(limit_16bit), lg);
+                                    lb = std::min(uint16_t(limit_16bit), lb);
+
+                                    write_buf(0, lg);
+                                    write_buf(1, lr);
+                                    write_buf(2, lb);
+                                }
+                                return;
+                            }
                         } break;
                     }
                 } break;
@@ -646,6 +709,36 @@ namespace lightkraken {
                                 }
                                 return;
                             }
+                            if (output_type == HD108_RGB) {
+                                uint16_t *buf = reinterpret_cast<uint16_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < pixel_loop_n; c += 4, n += 3) {
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
+                                    uint8_t sr = uint8_t(data[c + 0]);
+                                    uint8_t sg = uint8_t(data[c + 1]);
+                                    uint8_t sb = uint8_t(data[c + 2]); 
+                                    uint8_t lw = uint8_t(data[c + 3]);
+
+                                    uint16_t lr = 0;
+                                    uint16_t lg = 0;
+                                    uint16_t lb = 0;
+        
+                                    converter.sRGB8toLEDPWM(
+                                        sr, sg, sb, 65535,
+                                        lr, lg, lb);
+
+                                    lw = (lw << 8) | lw;
+
+                                    lr = std::min(limit_8bit, uint32_t(lr) + uint32_t(lw));
+                                    lg = std::min(limit_8bit, uint32_t(lg) + uint32_t(lw));
+                                    lb = std::min(limit_8bit, uint32_t(lb) + uint32_t(lw));
+
+                                    write_buf(0, lg);
+                                    write_buf(1, lr);
+                                    write_buf(2, lb);
+                                }
+                                return;
+                            }
                         } break;
                     }
                 } break;
@@ -689,6 +782,18 @@ namespace lightkraken {
                                     write_buf(0, fix_for_ws2816b(std::min(limit_16bit, read_buf(1))));
                                     write_buf(1, fix_for_ws2816b(std::min(limit_16bit, read_buf(0))));
                                     write_buf(2, fix_for_ws2816b(std::min(limit_16bit, read_buf(2))));
+                                }
+                                return;
+                            }
+                            if (output_type == HD108_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < pixel_loop_n; c += 6, n += 3) {
+                                    auto read_buf = [=] (const size_t i) { return uint32_t(*reinterpret_cast<const uint16_t *>(&data[c+i*2])); };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
+                                    write_buf(0, std::min(limit_16bit, read_buf(1)));
+                                    write_buf(1, std::min(limit_16bit, read_buf(0)));
+                                    write_buf(2, std::min(limit_16bit, read_buf(2)));
                                 }
                                 return;
                             }
@@ -738,6 +843,18 @@ namespace lightkraken {
                                 }
                                 return;
                             }
+                            if (output_type == HD108_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < pixel_loop_n; c += 6, n += 3) {
+                                    auto read_buf = [=] (const size_t i) { return uint32_t(__builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+i*2]))); };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
+                                    write_buf(0, uint16_t(std::min(limit_16bit, read_buf(1))));
+                                    write_buf(1, uint16_t(std::min(limit_16bit, read_buf(0))));
+                                    write_buf(2, uint16_t(std::min(limit_16bit, read_buf(2))));
+                                }
+                                return;
+                            }
                         } break;
                     }
                 } break;
@@ -784,6 +901,23 @@ namespace lightkraken {
                                     write_buf(0, fix_for_ws2816b(uint16_t(std::min(limit_16bit, g+w))));
                                     write_buf(1, fix_for_ws2816b(uint16_t(std::min(limit_16bit, r+w))));
                                     write_buf(2, fix_for_ws2816b(uint16_t(std::min(limit_16bit, b+w))));
+                                }
+                                return;
+                            }
+                            if (output_type == HD108_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < pixel_loop_n; c += 8, n += 3) {
+                                    auto read_buf = [=] (const size_t i) { return uint32_t(*reinterpret_cast<const uint16_t *>(&data[c+i*2])); };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
+                                    uint32_t r = read_buf(0);
+                                    uint32_t g = read_buf(1);
+                                    uint32_t b = read_buf(2);
+                                    uint32_t w = read_buf(3);
+
+                                    write_buf(0, uint16_t(std::min(limit_16bit, g+w)));
+                                    write_buf(1, uint16_t(std::min(limit_16bit, r+w)));
+                                    write_buf(2, uint16_t(std::min(limit_16bit, b+w)));
                                 }
                                 return;
                             }
@@ -839,6 +973,27 @@ namespace lightkraken {
                                 }
                                 return;
                             }
+                            if (output_type == HD108_RGB) {
+                                uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
+                                for (size_t c = 0, n = 0; c < pixel_loop_n; c += 8, n += 3) {
+                                    auto read_buf = [=] (const size_t i) { return uint32_t(__builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+i*2]))); };
+                                    auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
+
+                                    uint32_t r = read_buf(0);
+                                    uint32_t g = read_buf(1);
+                                    uint32_t b = read_buf(2);
+                                    uint32_t w = read_buf(3);
+
+                                    r = uint16_t(std::min(limit_16bit, r+w));
+                                    g = uint16_t(std::min(limit_16bit, g+w));
+                                    b = uint16_t(std::min(limit_16bit, b+w));
+                                    
+                                    write_buf(0, g);
+                                    write_buf(1, r);
+                                    write_buf(2, b);
+                                }
+                                return;
+                            }
                         } break;
                     }
                 } break;
@@ -855,6 +1010,7 @@ namespace lightkraken {
             case SK6812_RGB:
             case TM1804_RGB:
             case GS8208_RGB:
+            case HD108_RGB:
             case UCS1904_RGB: {
                 const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
@@ -930,6 +1086,7 @@ namespace lightkraken {
                 ws2801_rgb_alike_convert(0, std::min(bytes_len, size_t(burstHeadLen)));
                 return spi_buf.data();
             } break;
+            case HD108_RGB:
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
@@ -965,6 +1122,7 @@ namespace lightkraken {
             case WS2801_RGB: {
                 ws2801_rgb_alike_convert(std::min(bytes_len, size_t(burstHeadLen)), bytes_len - 1);
             } break;
+            case HD108_RGB:
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
@@ -991,6 +1149,7 @@ namespace lightkraken {
             case GS8208_RGB: {
                 return false;
             } break;
+            case HD108_RGB:
             case LPD8806_RGB:
             case WS2801_RGB:
             case SK9822_RGB:
@@ -1032,6 +1191,7 @@ namespace lightkraken {
                 ws2801_rgb_alike_convert(0, (bytes_len + 3));
                 return spi_buf.data();
             } break;
+            case HD108_RGB:
             case SK9822_RGB:
             case HDS107S_RGB:
             case P9813_RGB:
@@ -1101,6 +1261,18 @@ namespace lightkraken {
         
         switch(nativeType()) {
             default: {
+            } break;
+            case NATIVE_RGB16: {
+                uint8_t illum = 0b11100000 | uint8_t(float(0x1f) * std::clamp(glob_illum, 0.0f, 1.0f));
+                for (size_t c = loop_start; c <= loop_end; c += 4, offset += 6) {
+                    *dst++ = illum;
+                    *dst++ = comp_buf[offset+0];
+                    *dst++ = comp_buf[offset+1];
+                    *dst++ = comp_buf[offset+2];
+                    *dst++ = comp_buf[offset+3];
+                    *dst++ = comp_buf[offset+4];
+                    *dst++ = comp_buf[offset+5];
+                }
             } break;
             case NATIVE_RGB8: {
                 uint8_t illum = 0b11100000 | uint8_t(float(0x1f) * std::clamp(glob_illum, 0.0f, 1.0f));
