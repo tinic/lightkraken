@@ -312,7 +312,6 @@ namespace lightkraken {
             case SK6812_RGB:
             case TM1804_RGB:
             case GS8208_RGB:
-            case HD108_RGB:
             case UCS1904_RGB: {
                 const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
@@ -323,6 +322,7 @@ namespace lightkraken {
                 const std::vector<int> order = { 2, 1, 0 };
                 transfer(order);
             } break;
+            case HD108_RGB:
             case TLS3001_RGB: {
                 const std::vector<int> order = { 0, 1, 2 };
                 transfer(order);
@@ -437,8 +437,8 @@ namespace lightkraken {
                                     auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); v = (v << 8) | v; return v; };
                                     auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    write_buf(0, uint16_t(std::min(limit_16bit, read_buf(1))));
-                                    write_buf(1, uint16_t(std::min(limit_16bit, read_buf(0))));
+                                    write_buf(0, uint16_t(std::min(limit_16bit, read_buf(0))));
+                                    write_buf(1, uint16_t(std::min(limit_16bit, read_buf(1))));
                                     write_buf(2, uint16_t(std::min(limit_16bit, read_buf(2))));
                                 }
                                 return;
@@ -508,8 +508,8 @@ namespace lightkraken {
                                     g = uint16_t(std::min(limit_16bit, g+w));
                                     b = uint16_t(std::min(limit_16bit, b+w));
 
-                                    write_buf(0, g);
-                                    write_buf(1, r);
+                                    write_buf(0, r);
+                                    write_buf(1, g);
                                     write_buf(2, b);
                                 }
                                 return;
@@ -622,8 +622,8 @@ namespace lightkraken {
                                     lg = std::min(uint16_t(limit_16bit), lg);
                                     lb = std::min(uint16_t(limit_16bit), lb);
 
-                                    write_buf(0, lg);
-                                    write_buf(1, lr);
+                                    write_buf(0, lr);
+                                    write_buf(1, lg);
                                     write_buf(2, lb);
                                 }
                                 return;
@@ -733,8 +733,8 @@ namespace lightkraken {
                                     lg = std::min(limit_8bit, uint32_t(lg) + uint32_t(lw));
                                     lb = std::min(limit_8bit, uint32_t(lb) + uint32_t(lw));
 
-                                    write_buf(0, lg);
-                                    write_buf(1, lr);
+                                    write_buf(0, lr);
+                                    write_buf(1, lg);
                                     write_buf(2, lb);
                                 }
                                 return;
@@ -791,8 +791,8 @@ namespace lightkraken {
                                     auto read_buf = [=] (const size_t i) { return uint32_t(*reinterpret_cast<const uint16_t *>(&data[c+i*2])); };
                                     auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    write_buf(0, std::min(limit_16bit, read_buf(1)));
-                                    write_buf(1, std::min(limit_16bit, read_buf(0)));
+                                    write_buf(0, std::min(limit_16bit, read_buf(0)));
+                                    write_buf(1, std::min(limit_16bit, read_buf(1)));
                                     write_buf(2, std::min(limit_16bit, read_buf(2)));
                                 }
                                 return;
@@ -849,8 +849,8 @@ namespace lightkraken {
                                     auto read_buf = [=] (const size_t i) { return uint32_t(__builtin_bswap16(*reinterpret_cast<const uint16_t *>(&data[c+i*2]))); };
                                     auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    write_buf(0, uint16_t(std::min(limit_16bit, read_buf(1))));
-                                    write_buf(1, uint16_t(std::min(limit_16bit, read_buf(0))));
+                                    write_buf(0, uint16_t(std::min(limit_16bit, read_buf(0))));
+                                    write_buf(1, uint16_t(std::min(limit_16bit, read_buf(1))));
                                     write_buf(2, uint16_t(std::min(limit_16bit, read_buf(2))));
                                 }
                                 return;
@@ -915,8 +915,8 @@ namespace lightkraken {
                                     uint32_t b = read_buf(2);
                                     uint32_t w = read_buf(3);
 
-                                    write_buf(0, uint16_t(std::min(limit_16bit, g+w)));
-                                    write_buf(1, uint16_t(std::min(limit_16bit, r+w)));
+                                    write_buf(0, uint16_t(std::min(limit_16bit, r+w)));
+                                    write_buf(1, uint16_t(std::min(limit_16bit, g+w)));
                                     write_buf(2, uint16_t(std::min(limit_16bit, b+w)));
                                 }
                                 return;
@@ -988,8 +988,8 @@ namespace lightkraken {
                                     g = uint16_t(std::min(limit_16bit, g+w));
                                     b = uint16_t(std::min(limit_16bit, b+w));
                                     
-                                    write_buf(0, g);
-                                    write_buf(1, r);
+                                    write_buf(0, r);
+                                    write_buf(1, g);
                                     write_buf(2, b);
                                 }
                                 return;
@@ -1010,7 +1010,6 @@ namespace lightkraken {
             case SK6812_RGB:
             case TM1804_RGB:
             case GS8208_RGB:
-            case HD108_RGB:
             case UCS1904_RGB: {
                 const std::vector<int> order = { 1, 0, 2 };
                 transfer(order);
@@ -1021,6 +1020,7 @@ namespace lightkraken {
                 const std::vector<int> order = { 2, 1, 0 };
                 transfer(order);
             } break;
+            case HD108_RGB:
             case TLS3001_RGB: {
                 const std::vector<int> order = { 0, 1, 2 };
                 transfer(order);

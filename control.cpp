@@ -769,6 +769,12 @@ void Control::startupModePattern() {
                         } break;
                     }
                 }
+                switch(cpp) {
+                    default:
+                    case 3: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8); break;
+                    case 4: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGBW8); break;
+                    case 6: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB16MSB); break;
+                }
 			} break;
 			case Strip::STARTUP_MODE_RAINBOW: {	
 				uint8_t buf[Strip::bytesMaxLen];
@@ -801,7 +807,12 @@ void Control::startupModePattern() {
                         } break;
                     }
 				}
-				lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8);
+                switch(cpp) {
+                    default:
+                    case 3: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8); break;
+                    case 4: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGBW8); break;
+                    case 6: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB16MSB); break;
+                }
 			} break;
 			case Strip::STARTUP_MODE_TRACER: {	
 				uint8_t buf[Strip::bytesMaxLen];
@@ -856,7 +867,12 @@ void Control::startupModePattern() {
                         }
 					}
 				}
-				lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8);
+                switch(cpp) {
+                    default:
+                    case 3: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8); break;
+                    case 4: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGBW8); break;
+                    case 6: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB16MSB); break;
+                }
 			} break;
 			case Strip::STARTUP_MODE_SOLID_TRACER: {	
 				uint8_t buf[Strip::bytesMaxLen];
@@ -911,7 +927,12 @@ void Control::startupModePattern() {
                         }
 					}
 				}
-				lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8);
+                switch(cpp) {
+                    default:
+                    case 3: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB8); break;
+                    case 4: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGBW8); break;
+                    case 6: lightkraken::Strip::get(strip).setData(buf, l * cpp, Strip::INPUT_dRGB16MSB); break;
+                }
 			} break;
 		}
 	};
