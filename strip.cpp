@@ -1263,9 +1263,11 @@ namespace lightkraken {
             default: {
             } break;
             case NATIVE_RGB16: {
-                uint8_t illum = 0b11100000 | uint8_t(float(0x1f) * std::clamp(glob_illum, 0.0f, 1.0f));
+                uint8_t illum5 = uint8_t(float(0x1f) * std::clamp(glob_illum, 0.0f, 1.0f));
+                uint16_t illum16 = 0b1000'0000'0000'0000 | (illum5 << 10) | (illum5 << 5) | illum5;
                 for (size_t c = loop_start; c <= loop_end; c += 4, offset += 6) {
-                    *dst++ = illum;
+                    *dst++ = illum16 >> 8;
+                    *dst++ = illum16 & 0xFF;
                     *dst++ = comp_buf[offset+0];
                     *dst++ = comp_buf[offset+1];
                     *dst++ = comp_buf[offset+2];
