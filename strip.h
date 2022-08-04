@@ -160,6 +160,8 @@ namespace lightkraken {
         std::array<uint8_t, spiMaxLen> spi_buf;
         static bool ws2812_lut_init;
         static std::array<uint32_t, 256> ws2812_lut;
+        static bool hd108_lut_init;
+        static std::array<std::array<uint16_t, 256>, 3> hd108_lut;
     };
 
 }

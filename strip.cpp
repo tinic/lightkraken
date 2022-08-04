@@ -24,6 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string.h>
 #include <algorithm>
 #include <vector>
+#include <cmath>
 
 #include "./main.h"
 #include "./strip.h"
@@ -104,6 +105,8 @@ namespace lightkraken {
 
     bool Strip::ws2812_lut_init = false;
     std::array<uint32_t, 256> Strip::ws2812_lut;
+    bool Strip::hd108_lut_init = false;
+    std::array<std::array<uint16_t, 256>, 3> Strip::hd108_lut;
 
     void Strip::init() {
         comp_buf.fill(0);
@@ -125,6 +128,37 @@ namespace lightkraken {
             };
             // Make a RAM copy; gets us a slight perf improvement
             ws2812_lut = make_ws2812_table();
+        }
+        if (!hd108_lut_init) {
+            hd108_lut_init = true;
+            auto make_hd108_table = [] () constexpr -> std::array<std::array<uint16_t, 256>, 3> {
+                std::array<std::array<uint16_t, 256>, 3> lut {};
+                double r_const = 1.000;
+                double g_const = 0.760;
+                double b_const = 0.550;
+
+                double ga_const =  exp(-g_const) - 1.0;
+                double gai_const = + 1.0 / ga_const;
+                double gbi_const = - 1.0 / g_const;
+
+                double ba_const =  exp(-b_const) - 1.0;
+                double bai_const = + 1.0 / ba_const;
+                double bbi_const = - 1.0 / b_const;
+
+                for (size_t d = 0; d < 256; d++) {
+                    double t = double(d) / 255.0;
+                    double v = sin(t) * 0.5 + 0.5;
+                    // R
+                    lut[0][d] =  uint16_t(v * 65535.0 * r_const);
+                    // G
+                    lut[1][d] =  uint16_t((log((v + gai_const) * ga_const) * gbi_const) * 65535.0);
+                    // B
+                    lut[2][d] =  uint16_t((log((v + bai_const) * ba_const) * bbi_const) * 65535.0);
+                }
+                return lut;
+            };
+            // Make a RAM copy; gets us a slight perf improvement
+            hd108_lut = make_hd108_table();
         }
     }
 
@@ -434,12 +468,16 @@ namespace lightkraken {
                             if (output_type == HD108_RGB) {
                                 uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 3, n += 3) {
-                                    auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); v = (v << 8) | v; return v; };
+                                    auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); return v; };
                                     auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
-                                    write_buf(0, uint16_t(std::min(limit_16bit, read_buf(0))));
-                                    write_buf(1, uint16_t(std::min(limit_16bit, read_buf(1))));
-                                    write_buf(2, uint16_t(std::min(limit_16bit, read_buf(2))));
+                                    uint32_t r = hd108_lut[0][read_buf(0)];
+                                    uint32_t g = hd108_lut[1][read_buf(1)];
+                                    uint32_t b = hd108_lut[2][read_buf(2)];
+
+                                    write_buf(0, uint16_t(std::min(limit_16bit, r)));
+                                    write_buf(1, uint16_t(std::min(limit_16bit, g)));
+                                    write_buf(2, uint16_t(std::min(limit_16bit, b)));
                                 }
                                 return;
                             }
@@ -496,7 +534,7 @@ namespace lightkraken {
                             if (output_type == HD108_RGB) {
                                 uint8_t *buf = reinterpret_cast<uint8_t *>(&comp_buf[input_pad * uniN]);
                                 for (size_t c = 0, n = 0; c < pixel_loop_n; c += 4, n += 3) {
-                                    auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); v = (v << 8) | v; return v; };
+                                    auto read_buf = [=] (const size_t i) { uint32_t v = uint32_t(data[c + i]); return v; };
                                     auto write_buf = [=] (const size_t i, const uint16_t p) { *reinterpret_cast<uint16_t *>(&buf[(n+i)*2]) = __builtin_bswap16(uint16_t(p)); };
 
                                     uint32_t r = read_buf(0);
@@ -504,9 +542,13 @@ namespace lightkraken {
                                     uint32_t b = read_buf(2);
                                     uint32_t w = read_buf(3);
 
-                                    r = uint16_t(std::min(limit_16bit, r+w));
-                                    g = uint16_t(std::min(limit_16bit, g+w));
-                                    b = uint16_t(std::min(limit_16bit, b+w));
+                                    r = uint8_t(std::min(limit_8bit, r+w));
+                                    g = uint8_t(std::min(limit_8bit, g+w));
+                                    b = uint8_t(std::min(limit_8bit, b+w));
+
+                                    r = hd108_lut[0][r];
+                                    g = hd108_lut[1][g];
+                                    b = hd108_lut[2][b];
 
                                     write_buf(0, r);
                                     write_buf(1, g);
@@ -613,10 +655,12 @@ namespace lightkraken {
                                     uint16_t lr = 0;
                                     uint16_t lg = 0;
                                     uint16_t lb = 0;
-        
+
                                     converter.sRGB8toLEDPWM(
                                         sr, sg, sb, 65535,
                                         lr, lg, lb);
+
+                                    // TODO: HD108 lut
 
                                     lr = std::min(uint16_t(limit_16bit), lr);
                                     lg = std::min(uint16_t(limit_16bit), lg);
@@ -728,6 +772,8 @@ namespace lightkraken {
                                         lr, lg, lb);
 
                                     lw = (lw << 8) | lw;
+
+                                    // TODO: HD108 lut
 
                                     lr = std::min(limit_8bit, uint32_t(lr) + uint32_t(lw));
                                     lg = std::min(limit_8bit, uint32_t(lg) + uint32_t(lw));
