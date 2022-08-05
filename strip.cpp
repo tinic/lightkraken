@@ -147,13 +147,12 @@ namespace lightkraken {
 
                 for (size_t d = 0; d < 256; d++) {
                     double t = double(d) / 255.0;
-                    double v = sin(t) * 0.5 + 0.5;
                     // R
-                    lut[0][d] =  uint16_t(v * 65535.0 * r_const);
+                    lut[0][d] =  uint16_t(t * 65535.0 * r_const);
                     // G
-                    lut[1][d] =  uint16_t((log((v + gai_const) * ga_const) * gbi_const) * 65535.0);
+                    lut[1][d] =  uint16_t((log((t + gai_const) * ga_const) * gbi_const) * 65535.0);
                     // B
-                    lut[2][d] =  uint16_t((log((v + bai_const) * ba_const) * bbi_const) * 65535.0);
+                    lut[2][d] =  uint16_t((log((t + bai_const) * ba_const) * bbi_const) * 65535.0);
                 }
                 return lut;
             };
