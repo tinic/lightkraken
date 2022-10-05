@@ -8,9 +8,9 @@ git submodule update
 
 ./build_release_all.sh
 
-if [[ $? -ne 0 ]] ; then
-  exit 1
-fi
+#if [[ $? -ne 0 ]] ; then
+#  exit 1
+#fi
 
 arm-none-eabi-objdump > build/lightkraken_bootloader.dump.txt -D build/lightkraken_bootloader.elf 
 arm-none-eabi-objdump > build/lightkraken_bootloaded.dump.txt -D build/lightkraken_bootloaded.elf 
