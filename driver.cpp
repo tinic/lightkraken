@@ -49,7 +49,7 @@ void Driver::setRGBWW(size_t terminal, const rgbww &rgb) {
 }
 
 void Driver::sync(size_t terminal) {
-    auto convert = [=] (const rgbww &rgb) {
+    auto convert = [=, this] (const rgbww &rgb) {
         rgbww ret;
         float limit = Model::instance().analogConfig(terminal).pwm_limit;
         auto input_type = Model::instance().analogConfig(terminal).input_type;

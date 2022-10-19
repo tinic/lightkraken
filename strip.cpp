@@ -322,7 +322,7 @@ namespace lightkraken {
 
     void Strip::setData(const uint8_t *data, const size_t len, const InputType input_type) {
 
-        auto transfer = [=] (const std::vector<int> &order) {
+        auto transfer = [=, this] (const std::vector<int> &order) {
             const size_t input_size = getBytesPerInputPixel(input_type);
             const size_t input_pad = size_t(dmxMaxLen / input_size) * order.size() * getComponentBytes(input_type); 
             size_t left = len;
@@ -393,7 +393,7 @@ namespace lightkraken {
             return;
         }
 
-        auto transfer = [=] (const std::vector<int> &order) {
+        auto transfer = [=, this] (const std::vector<int> &order) {
             const uint32_t limit_8bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 255.f);
             const uint32_t limit_16bit = uint32_t(std::clamp(comp_limit, 0.0f, 1.0f) * 65535.f);
             const size_t input_size = getBytesPerInputPixel(input_type);

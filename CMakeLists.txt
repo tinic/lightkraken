@@ -89,6 +89,10 @@ set(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
 set(CMAKE_C_FLAGS_RELEASE "-flto -Wl,-flto -Os")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g3")
 
+#-Wsign-conversion -Weffc++ -Wcast-align -Wno-volatile \
+#-Wshadow -Wnon-virtual-dtor -Wunused \
+#-Woverloaded-virtual -Wlogical-op \
+
 set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Wall -Wextra \
 	-Wno-strict-aliasing -Wdouble-promotion \
 	-Wmisleading-indentation -Wduplicated-cond \
