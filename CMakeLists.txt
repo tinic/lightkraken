@@ -86,7 +86,7 @@ endif(BOOTLOADER)
 set(CMAKE_ASM_FLAGS "-mcpu=${ARM_ARCH}")
 
 set(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
-set(CMAKE_C_FLAGS_RELEASE "-flto -Wl,-flto -Os")
+set(CMAKE_C_FLAGS_RELEASE "-flto=auto -Wl,-flto=auto -Os")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g3")
 
 #-Wsign-conversion -Weffc++ -Wcast-align -Wno-volatile \
@@ -103,6 +103,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3")
 
 set(CMAKE_EXE_LINKER_FLAGS "-g3 --specs=nosys.specs \
 	--specs=nano.specs -Wl,--warn-unresolved-symbols \
+	-Wl,--no-warn-rwx-segments \
 	-Wl,--no-wchar-size-warning -Wl,--start-group -lm \
 	-Wl,--end-group -Wl,-gc-sections \
 	-T\"${CMAKE_SOURCE_DIR}/${LINKLDPATH}\"")
