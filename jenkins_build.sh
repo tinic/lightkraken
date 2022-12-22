@@ -26,5 +26,5 @@ git remote add origin https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/tinic/li
 git push --delete origin latest || true
 github-release release --tag latest --name "latest"
 #fix race on github.com
-sleep 2
+sleep 5
 github-release upload --tag latest --name "lightkraken-bin-$(date +"%Y-%m-%d")-r${buildnumber}.zip" --file build.zip
